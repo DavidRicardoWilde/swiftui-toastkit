@@ -1,0 +1,95 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  lang: 'en' | 'zh-cn' | 'zh-hant' | 'ja' | 'ko' | 'es';
+  title: string;
+  description: string;
+}
+
+const { lang, title, description } = Astro.props;
+const sectionLabels: Record<Props['lang'], string[]> = {
+  en: ['Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Accessibility', 'App localization'],
+  'zh-cn': ['快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '辅助功能', '应用本地化'],
+  'zh-hant': ['快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '輔助使用', '應用程式本地化'],
+  ja: ['はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'アクセシビリティ', 'アプリのローカライズ'],
+  ko: ['시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '접근성', '앱 현지화'],
+  es: ['Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Accesibilidad', 'Localización de la app'],
+};
+const guideLabel: Record<Props['lang'], string> = {
+  en: 'GUIDES', 'zh-cn': '使用指南', 'zh-hant': '使用指南', ja: 'ガイド', ko: '가이드', es: 'GUÍAS',
+};
+const languageNames: Array<{ code: Props['lang']; label: string; native: string; href: string }> = [
+  { code: 'en', label: 'English', native: 'EN', href: '/' },
+  { code: 'zh-cn', label: '简体中文', native: '简体中文', href: '/zh-cn/' },
+  { code: 'zh-hant', label: '繁體中文', native: '繁體中文', href: '/zh-hant/' },
+  { code: 'ja', label: '日本語', native: '日本語', href: '/ja/' },
+  { code: 'ko', label: '한국어', native: '한국어', href: '/ko/' },
+  { code: 'es', label: 'Español', native: 'Español', href: '/es/' },
+];
+const htmlLang = lang === 'zh-hant' ? 'zh-Hant' : lang === 'zh-cn' ? 'zh-CN' : lang;
+const sections = sectionLabels[lang].map((label, index) => [
+  ['start', 'messages', 'timing', 'actions', 'styling', 'layout', 'accessibility', 'localization'][index], label,
+]);
+const isCjk = ['zh-cn', 'zh-hant', 'ja', 'ko'].includes(lang);
+const home = languageNames.find((language) => language.code === lang)?.href ?? '/';
+const activeLanguage = languageNames.find((language) => language.code === lang)?.native ?? 'EN';
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7f7f5" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href={home} aria-label="ToastKit home">
+        <span class="brand-mark">t</span>
+        <span>ToastKit<span class="brand-docs"> / {isCjk ? (lang === 'ja' ? 'ドキュメント' : lang === 'ko' ? '문서' : lang === 'zh-hant' ? '文件' : '文档') : lang === 'es' ? 'Documentación' : 'Docs'}</span></span>
+      </a>
+      <nav class="top-links" aria-label={isCjk ? (lang === 'ja' ? 'メインナビゲーション' : lang === 'ko' ? '주 탐색' : '主導覽') : lang === 'es' ? 'Navegación principal' : 'Main navigation'}>
+        <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">GitHub <span aria-hidden="true">↗</span></a>
+        <details class="locale-menu">
+          <summary aria-label={lang === 'ja' ? '言語を選択' : lang === 'ko' ? '언어 선택' : lang === 'es' ? 'Seleccionar idioma' : '选择语言'}>{activeLanguage}<span aria-hidden="true">⌄</span></summary>
+          <div class="locale-options">
+            {languageNames.map((language) => (
+              <a href={language.href} lang={language.code === 'zh-hant' ? 'zh-Hant' : language.code} aria-current={language.code === lang ? 'page' : undefined}>
+                {language.label}{language.code === lang && <span aria-hidden="true">✓</span>}
+              </a>
+            ))}
+          </div>
+        </details>
+      </nav>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <p class="eyebrow">{guideLabel[lang]}</p>
+        <nav aria-label={isCjk ? (lang === 'ja' ? 'ドキュメントの各章' : lang === 'ko' ? '문서 섹션' : '文件章節') : lang === 'es' ? 'Secciones de documentación' : 'Documentation sections'}>
+          {sections.map(([id, label], index) => (
+            <a href={`#${id}`} class:list={['side-link', index === 0 && 'selected']}>
+              <span class="nav-number">{String(index + 1).padStart(2, '0')}</span>{label}
+            </a>
+          ))}
+        </nav>
+        <div class="sidebar-note">
+          <span class="note-dot"></span>
+          <p>{lang === 'ja' ? 'SwiftUI 向け' : lang === 'ko' ? 'SwiftUI 기반' : lang === 'es' ? 'Hecho para SwiftUI' : isCjk ? 'SwiftUI 原生构建' : 'Built for SwiftUI'}</p>
+          <small>iOS 17+ · macOS 14+</small>
+        </div>
+      </aside>
+
+      <main id="content">
+        <slot />
+        <footer class="footer">
+          <span>ToastKit · SwiftUI notifications</span>
+          <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">{lang === 'ja' ? 'ソースを見る' : lang === 'ko' ? '소스 보기' : lang === 'es' ? 'Ver código fuente' : isCjk ? '查看源码' : 'View source'} ↗</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

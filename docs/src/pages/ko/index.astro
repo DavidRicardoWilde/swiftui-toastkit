@@ -1,0 +1,142 @@
+---
+import DocPage from '../../components/DocPage.astro';
+---
+
+<DocPage lang="ko" title="ToastKit — SwiftUI 토스트 문서" description="ToastKit으로 SwiftUI 앱에 쌓이고 스와이프할 수 있는 토스트 알림을 추가하는 방법을 알아보세요.">
+  <div class="hero">
+    <div class="breadcrumb"><span>문서</span><span class="crumb-slash">/</span><span>가이드</span></div>
+    <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · 오픈 소스</p>
+    <h1>자연스럽게 어울리는<br /><em>알림.</em></h1>
+    <p class="hero-copy">SwiftUI 앱에 세련된 스택형 토스트 알림을 추가하세요. 제스처, 타이밍, 스타일을 한 번에 제공합니다.</p>
+    <div class="hero-actions"><a class="primary-button" href="#start">시작하기 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-art" aria-hidden="true"><div class="glow"></div><div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>동기화 완료</b><small>모든 항목이 최신 상태예요</small></span></div><div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>변경 사항 저장됨</b><small>작업 내용이 안전하게 저장됐어요.</small></span><span class="spark">✦</span></div><div class="art-caption">작은 피드백이 경험을 바꿉니다 <span>✳</span></div></div>
+  </div>
+
+  <section class="doc-section" id="start">
+    <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">바로 시작하기</p><h2>시작하기</h2></div></div>
+    <p>Swift Package Manager로 ToastKit을 추가한 다음, 알림을 표시할 뷰에 <code>ToastCenter</code>를 연결하세요.</p>
+    <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
+    <pre><code><span class="kw">import</span> SwiftUI
+<span class="kw">import</span> ToastKit
+
+<span class="kw">struct</span> ContentView: <span class="type">View</span> &#123;
+    <span class="kw">@State private var</span> toasts = ToastCenter()
+
+    <span class="kw">var body</span>: <span class="kw">some</span> View &#123;
+        Button(<span class="str">"저장"</span>) &#123;
+            toasts.present(.normal, title: <span class="str">"변경 사항 저장됨"</span>)
+        &#125;
+        .toasts(toasts)
+    &#125;
+&#125;</code></pre>
+    <div class="callout"><span>✳</span><p><strong>이제 끝입니다.</strong> 토스트가 안전 영역 하단에 4초 동안 표시됩니다. 기본 스와이프 동작으로 삭제하거나 다음 방문까지 보류할 수 있어요.</p></div>
+    <p>Xcode에서 <strong>File → Add Package Dependencies</strong>를 선택하고 <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>를 입력하세요.</p>
+  </section>
+
+  <section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">메시지 구성</p><h2>토스트 메시지</h2></div></div>
+    <p><code>ToastMessage</code>에는 표시할 내용, 의미를 나타내는 상태, 표시 시간, 선택적인 탭 및 스와이프 동작이 들어갑니다. 간단한 알림에는 편의 메서드를 사용하고, 더 세밀한 제어가 필요하면 메시지를 직접 만드세요.</p>
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"저장 공간 부족"</span>,
+    message: <span class="str">"동기화를 계속하려면 공간을 확보하세요."</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"새 사진"</span>,
+    message: <span class="str">"오늘 사진 12장이 추가됐어요"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>일반</h3><p>일상적인 확인에 어울리는 차분한 표현입니다.</p></article><article><span class="pill amber">WARNING</span><h3>주의 필요</h3><p>문제가 실패로 이어지기 전에 살펴보도록 알립니다.</p></article><article><span class="pill red">ERROR</span><h3>오류</h3><p>실패를 분명하게 전달하는 시각적 신호입니다.</p></article><article><span class="pill violet">NOTIFICATION</span><h3>알림</h3><p>앱의 강조 색상으로 소식을 전합니다.</p></article></div>
+    <p>이미 표시 중인 토스트와 같은 id로 다시 표시하면 중복을 만들지 않고 내용을 갱신해 맨 앞으로 가져옵니다. “동기화 중…”에서 “동기화 완료”로 바뀌는 상태를 보여줄 때 유용합니다.</p>
+  </section>
+
+  <section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">잠시 보여주기</p><h2>표시 시간</h2></div></div>
+    <p><code>.automatic</code>은 기본값인 4초 동안 표시됩니다. 초 단위로 직접 지정하거나 사용자의 확인이 필요한 알림에는 <code>.indefinite</code>를 사용할 수 있어요.</p>
+    <pre><code><span class="comment">// 2초 동안 표시</span>
+ToastMessage(title: <span class="str">"복사됨"</span>, duration: 2)
+
+<span class="comment">// 직접 닫을 때까지 표시</span>
+ToastMessage(title: <span class="str">"동기화 실패"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>맨 앞에 있는 토스트만 카운트다운합니다.</li><li>뒤에 가려진 토스트는 앞으로 나올 때까지 표시 시간을 사용하지 않습니다.</li><li>스택을 누르고 있거나 앱이 백그라운드에 있으면 타이머가 멈춥니다.</li></ul>
+  </section>
+
+  <section class="doc-section" id="actions">
+    <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">명확한 다음 단계</p><h2>제스처와 동작</h2></div></div>
+    <p>탭, 양방향 스와이프, 길게 누르기를 사용할 수 있습니다. 길게 누르면 선택하기 전에 양쪽 스와이프 동작을 확인할 수 있어요. VoiceOver에서도 이름으로 같은 동작을 선택할 수 있습니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>제스처</th><th>기본 동작</th><th>맞춤 설정</th></tr></thead><tbody><tr><td>탭</td><td>동작 없음, 뒤의 콘텐츠로 전달</td><td><code>tapAction</code> 또는 <code>onTap</code></td></tr><tr><td>leading 방향 스와이프</td><td>토스트 삭제</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 방향 스와이프</td><td>다음 방문 때 다시 표시</td><td><code>swipeActions.trailing</code></td></tr><tr><td>길게 누르기</td><td>양쪽 동작 미리 보기</td><td>같은 스와이프 동작 사용</td></tr></tbody></table></div>
+    <pre><code><span class="kw">let</span> archive = ToastAction(
+    id: <span class="str">"archive"</span>,
+    title: <span class="str">"보관"</span>,
+    icon: .system(<span class="str">"archivebox"</span>),
+    confirmation: <span class="str">"보관됨"</span>
+) &#123; toast <span class="kw">in</span>
+    store.archive(toast.id)
+&#125;
+
+toasts.present(ToastMessage(
+    title: <span class="str">"Ana님의 메시지"</span>,
+    tapAction: ToastAction(title: <span class="str">"열기"</span>) &#123; toast <span class="kw">in</span>
+        router.open(toast.id)
+    &#125;,
+    swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
+))</code></pre>
+    <p>동작은 handler 실행, 스택의 <code>onToastAction</code> 옵저버 호출, 동작 효과 적용 순서로 처리됩니다. 기본 제공 <code>.later</code>는 페이지가 다시 나타날 때까지 토스트를 보류합니다.</p>
+  </section>
+
+  <section class="doc-section" id="styling">
+    <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">원하는 모습으로</p><h2>스타일과 테마</h2></div></div>
+    <p>기본 <code>.glass</code> 스타일은 상태에 따라 색이 달라지는 반투명 카드입니다. <code>ToastTheme</code>으로 디자인 토큰을 조정하거나, 장식 없는 <code>.plain</code>을 선택하거나, <code>ToastStyle</code>을 구현해 직접 카드를 만들 수 있어요.</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastTheme(ToastTheme(
+        titleFont: .headline,
+        tint: &#123; status <span class="kw">in</span>
+            status == .notification ? .pink : ToastTheme.standardTint(status)
+        &#125;,
+        cornerRadius: 16
+    ))
+
+<span class="comment">// 배경이나 고정 색상 없이 시작</span>
+MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
+    <div class="swatches"><span><i class="swatch swatch-violet"></i> 모션</span><span><i class="swatch swatch-blue"></i> 색상</span><span><i class="swatch swatch-sage"></i> 표면</span><span><i class="swatch swatch-sand"></i> 글꼴</span></div>
+    <p>맞춤 스타일에서는 아이콘, 제목, 본문, 상태와 길게 누른 트랙에 올라왔는지 여부를 확인할 수 있습니다. 레이아웃과 제스처는 스택이 관리합니다.</p>
+  </section>
+
+  <section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">자연스러운 위치</p><h2>위치와 너비</h2></div></div>
+    <p>기본적으로 카드는 하단에서 쌓이며 사용 가능한 안전 영역 너비의 60%를 사용합니다.</p>
+    <pre><code><span class="comment">// 상단에 배치</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// 안전 영역의 90% 또는 고정 너비</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p><code>TabView</code> 안에서는 탭 콘텐츠에 <code>.toasts(toasts)</code>를 붙이세요. 시스템 탭 바와 하단 액세서리는 이미 안전 영역에 반영됩니다. 맞춤형 플로팅 바에는 <code>.toastObstruction()</code>을 지정하면 스택이 겹치지 않게 이동합니다.</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>저장됨</b><small>하단 · 60%</small></div><div class="demo-line"></div><div class="demo-label">안전 영역</div></div>
+  </section>
+
+  <section class="doc-section" id="accessibility">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">모두를 위한 설계</p><h2>접근성</h2></div></div>
+    <p>특정 제스처 없이도 동작을 사용할 수 있으며 SwiftUI 환경의 접근성 설정을 따릅니다.</p>
+    <ul class="check-list"><li>VoiceOver가 각 카드를 읽고 동작 로터에서 양쪽 스와이프 동작을 제공합니다.</li><li>동작 줄이기 설정에서는 슬라이드가 페이드 효과로 바뀝니다.</li><li>투명도 줄이기 설정에서는 유리 표면이 불투명해집니다.</li><li>대비 높이기 설정에서는 유리 테두리가 선명해집니다.</li><li>Dynamic Type에 맞춰 텍스트와 상태 아이콘 크기가 조정됩니다.</li></ul>
+  </section>
+
+  <section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">사용자의 언어로</p><h2>앱 현지화</h2></div></div>
+    <p>ToastKit의 기본 동작 레이블은 영어, 일본어, 간체 중국어, 번체 중국어로 제공됩니다. 제목, 본문, 맞춤 동작 레이블은 앱에서 현지화하세요.</p>
+    <pre><code><span class="comment">// 앱 문구를 String Catalog 또는 Localizable.strings에 추가하세요.</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit은 호스트 앱의 로캘에 맞춰 기본 레이블을 표시합니다. 맞춤 <code>ToastAction</code> 제목과 확인 문구는 일반 문자열이므로 앱에서 사용하는 현지화 도구로 처리할 수 있어요.</p>
+  </section>
+
+  <div class="next-card"><div><span class="eyebrow">더 알아보기</span><h2>조금 더 다듬어 볼까요?</h2><p>소스 코드에서 전체 API 사용법을 확인하세요.</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">GitHub에서 보기 <span>↗</span></a></div>
+</DocPage>

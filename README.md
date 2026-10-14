@@ -27,6 +27,7 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 
 ## Contents
 
+- [Documentation website](#documentation-website)
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Presenting toasts](#presenting-toasts)
@@ -41,6 +42,18 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 - [Architecture](#architecture)
 - [Roadmap](#roadmap)
 - [License](#license)
+
+## Documentation website
+
+The Astro-powered usage guide is available in English, Simplified and Traditional Chinese, Japanese, Korean, and Spanish. Run it locally from the `docs/` directory:
+
+```sh
+cd docs
+npm install
+npm run dev
+```
+
+English is served at `/`, with localized pages at `/zh-cn/`, `/zh-hant/`, `/ja/`, `/ko/`, and `/es/`. Run `npm run build` to type-check and generate the static site in `docs/dist/`.
 
 ## Installation
 

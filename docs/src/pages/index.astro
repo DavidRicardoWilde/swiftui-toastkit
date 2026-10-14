@@ -1,0 +1,157 @@
+---
+import DocPage from '../components/DocPage.astro';
+---
+
+<DocPage lang="en" title="ToastKit — SwiftUI toast documentation" description="Build stacked, swipeable toast notifications in SwiftUI with ToastKit.">
+  <div class="hero">
+    <div class="breadcrumb"><span>DOCUMENTATION</span><span class="crumb-slash">/</span><span>GUIDES</span></div>
+    <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · OPEN SOURCE</p>
+    <h1>Notifications that<br /><em>feel at home.</em></h1>
+    <p class="hero-copy">A guide to adding thoughtful, stacked toast notifications to your SwiftUI app — with gestures, timing, and style built in.</p>
+    <div class="hero-actions"><a class="primary-button" href="#start">Start building <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="glow"></div>
+      <div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>Sync complete</b><small>Everything is up to date</small></span></div>
+      <div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>Changes saved</b><small>Your work is safe and sound.</small></span><span class="spark">✦</span></div>
+      <div class="art-caption">A little feedback goes a long way <span>✳</span></div>
+    </div>
+  </div>
+
+  <section class="doc-section" id="start">
+    <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">UP AND RUNNING</p><h2>Get started</h2></div></div>
+    <p>Add ToastKit with Swift Package Manager, then attach a <code>ToastCenter</code> to the view that should present notifications.</p>
+    <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
+    <pre><code><span class="kw">import</span> SwiftUI
+<span class="kw">import</span> ToastKit
+
+<span class="kw">struct</span> ContentView: <span class="type">View</span> &#123;
+    <span class="kw">@State private var</span> toasts = ToastCenter()
+
+    <span class="kw">var body</span>: <span class="kw">some</span> View &#123;
+        Button(<span class="str">"Save"</span>) &#123;
+            toasts.present(.normal, title: <span class="str">"Changes saved"</span>)
+        &#125;
+        .toasts(toasts)
+    &#125;
+&#125;</code></pre>
+    <div class="callout"><span>✳</span><p><strong>That’s it.</strong> The toast appears at the bottom of the safe area for four seconds. The default swipe actions let people delete it or set it aside for later.</p></div>
+    <p>In Xcode, choose <strong>File → Add Package Dependencies</strong> and enter <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>.</p>
+  </section>
+
+  <section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">THE MESSAGE</p><h2>Toast messages</h2></div></div>
+    <p>A <code>ToastMessage</code> holds its content, semantic status, duration, and optional tap and swipe actions. Use the convenience method for a simple message, or build a message when you need more control.</p>
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"Low storage"</span>,
+    message: <span class="str">"Free up space to keep syncing."</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"New photos"</span>,
+    message: <span class="str">"12 photos from today"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid">
+      <article><span class="pill neutral">NORMAL</span><h3>Neutral</h3><p>Everyday confirmations with a quiet, neutral treatment.</p></article>
+      <article><span class="pill amber">WARNING</span><h3>Needs attention</h3><p>Something to review, before it becomes a failure.</p></article>
+      <article><span class="pill red">ERROR</span><h3>Something failed</h3><p>Give errors a clear, recognizable visual signal.</p></article>
+      <article><span class="pill violet">NOTIFICATION</span><h3>Worth a glance</h3><p>Announcements use your app’s accent color.</p></article>
+    </div>
+    <p>Presenting a message with an id that is already visible updates and brings that toast forward. This works well for progress states such as “Syncing…” followed by “Synced”.</p>
+  </section>
+
+  <section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">GIVE IT A MOMENT</p><h2>Display duration</h2></div></div>
+    <p><code>.automatic</code> uses the center’s default duration of four seconds. Pass seconds directly or use <code>.indefinite</code> for a message that needs an explicit response.</p>
+    <pre><code><span class="comment">// Two seconds</span>
+ToastMessage(title: <span class="str">"Copied"</span>, duration: 2)
+
+<span class="comment">// Stays until dismissed</span>
+ToastMessage(title: <span class="str">"Sync failed"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>Only the toast at the front counts down.</li><li>Covered toasts keep their full duration until they come forward.</li><li>The timer pauses while someone touches the stack or the app leaves the foreground.</li></ul>
+  </section>
+
+  <section class="doc-section" id="actions">
+    <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">A CLEAR NEXT STEP</p><h2>Gestures &amp; actions</h2></div></div>
+    <p>People can tap, swipe either direction, or press and hold to see both swipe choices before deciding. VoiceOver exposes the same actions by name.</p>
+    <div class="table-wrap"><table><thead><tr><th>Gesture</th><th>Default</th><th>Customize with</th></tr></thead><tbody>
+      <tr><td>Tap</td><td>No action; taps pass through</td><td><code>tapAction</code> or <code>onTap</code></td></tr>
+      <tr><td>Leading swipe</td><td>Delete the toast</td><td><code>swipeActions.leading</code></td></tr>
+      <tr><td>Trailing swipe</td><td>Bring it back next visit</td><td><code>swipeActions.trailing</code></td></tr>
+      <tr><td>Press &amp; hold</td><td>Preview both swipe actions</td><td>Uses the same swipe actions</td></tr>
+    </tbody></table></div>
+    <pre><code><span class="kw">let</span> archive = ToastAction(
+    id: <span class="str">"archive"</span>,
+    title: <span class="str">"Archive"</span>,
+    icon: .system(<span class="str">"archivebox"</span>),
+    confirmation: <span class="str">"Archived"</span>
+) &#123; toast <span class="kw">in</span>
+    store.archive(toast.id)
+&#125;
+
+toasts.present(ToastMessage(
+    title: <span class="str">"Message from Ana"</span>,
+    tapAction: ToastAction(title: <span class="str">"Open"</span>) &#123; toast <span class="kw">in</span>
+        router.open(toast.id)
+    &#125;,
+    swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
+))</code></pre>
+    <p>Actions run in order: their handler, the stack’s <code>onToastAction</code> observer, then their effect. Built-in <code>.later</code> postpones the toast until its page appears again.</p>
+  </section>
+
+  <section class="doc-section" id="styling">
+    <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">MAKE IT YOURS</p><h2>Styles &amp; themes</h2></div></div>
+    <p>The default <code>.glass</code> style draws a frosted card tinted by status. Tune design tokens with <code>ToastTheme</code>, choose the unstyled <code>.plain</code> style, or conform to <code>ToastStyle</code> for a custom card.</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastTheme(ToastTheme(
+        titleFont: .headline,
+        tint: &#123; status <span class="kw">in</span>
+            status == .notification ? .pink : ToastTheme.standardTint(status)
+        &#125;,
+        cornerRadius: 16
+    ))
+
+<span class="comment">// Start with no surface or fixed colors</span>
+MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
+    <div class="swatches"><span><i class="swatch swatch-violet"></i> Motion</span><span><i class="swatch swatch-blue"></i> Color</span><span><i class="swatch swatch-sage"></i> Surface</span><span><i class="swatch swatch-sand"></i> Type</span></div>
+    <p>A custom style receives the toast’s icon, title, message, status, and whether it is lifted onto the long-press track. Layout and gestures remain with the stack.</p>
+  </section>
+
+  <section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">RIGHT WHERE IT BELONGS</p><h2>Placement &amp; width</h2></div></div>
+    <p>By default, cards hang from the bottom and use 60% of the available safe-area width.</p>
+    <pre><code><span class="comment">// Top edge</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// 90% of the safe area, or a fixed width</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p>Inside a <code>TabView</code>, attach <code>.toasts(toasts)</code> to the tab’s content. System tab bars and accessories are already part of its safe area. Mark a custom floating bar with <code>.toastObstruction()</code> so the stack can lift clear of it.</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>Saved</b><small>bottom · 60%</small></div><div class="demo-line"></div><div class="demo-label">SAFE AREA</div></div>
+  </section>
+
+  <section class="doc-section" id="accessibility">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">BUILT FOR EVERYONE</p><h2>Accessibility</h2></div></div>
+    <p>ToastKit keeps actions available without requiring a gesture and follows the accessibility settings in SwiftUI’s environment.</p>
+    <ul class="check-list"><li>VoiceOver announces each card and offers both swipe actions in the actions rotor.</li><li>Reduce Motion replaces sliding movement with a cross-fade.</li><li>Reduce Transparency makes glass surfaces opaque.</li><li>Increase Contrast strengthens the glass border.</li><li>Dynamic Type scales text and the status icon.</li></ul>
+  </section>
+
+  <section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">SPEAK THEIR LANGUAGE</p><h2>App localization</h2></div></div>
+    <p>ToastKit ships its built-in action labels in English, Japanese, Simplified Chinese, and Traditional Chinese. Your app’s strings are separate: localize the title, message, and any custom action labels you provide.</p>
+    <pre><code><span class="comment">// Keep app copy in your String Catalog or Localizable.strings.</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit follows the host app’s locale for its own built-in labels. Custom <code>ToastAction</code> titles and confirmations are plain strings so you can localize them with the same tools as the rest of your app.</p>
+  </section>
+
+  <div class="next-card"><div><span class="eyebrow">KEEP EXPLORING</span><h2>Ready to add a little polish?</h2><p>Explore the source and see every API in context.</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">Browse on GitHub <span>↗</span></a></div>
+</DocPage>
