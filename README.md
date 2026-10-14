@@ -45,7 +45,7 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 
 ## Documentation website
 
-The Astro-powered usage guide is available in English and Simplified Chinese. Run it locally from the `docs/` directory:
+The Astro-powered usage guide is available in English, Simplified and Traditional Chinese, Japanese, Korean, and Spanish. Run it locally from the `docs/` directory:
 
 ```sh
 cd docs
@@ -53,7 +53,7 @@ npm install
 npm run dev
 ```
 
-English is served at `/`; Simplified Chinese is served at `/zh-cn/`. Run `npm run build` to type-check and generate the static site in `docs/dist/`.
+English is served at `/`, with localized pages at `/zh-cn/`, `/zh-hant/`, `/ja/`, `/ko/`, and `/es/`. Run `npm run build` to type-check and generate the static site in `docs/dist/`.
 
 ## Installation
 

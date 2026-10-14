@@ -1,0 +1,142 @@
+---
+import DocPage from '../../components/DocPage.astro';
+---
+
+<DocPage lang="ja" title="ToastKit — SwiftUI トーストのドキュメント" description="ToastKit を使って、積み重ね表示とスワイプ操作に対応した SwiftUI 通知を作成する方法を紹介します。">
+  <div class="hero">
+    <div class="breadcrumb"><span>ドキュメント</span><span class="crumb-slash">/</span><span>ガイド</span></div>
+    <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · オープンソース</p>
+    <h1>自然になじむ<br /><em>通知を。</em></h1>
+    <p class="hero-copy">SwiftUI アプリに、積み重ね表示のトースト通知を追加しましょう。ジェスチャ、タイマー、スタイルがそろっています。</p>
+    <div class="hero-actions"><a class="primary-button" href="#start">使い始める <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-art" aria-hidden="true"><div class="glow"></div><div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>同期が完了しました</b><small>すべて最新の状態です</small></span></div><div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>変更を保存しました</b><small>内容は安全に保存されています。</small></span><span class="spark">✦</span></div><div class="art-caption">さりげないフィードバックが体験を変える <span>✳</span></div></div>
+  </div>
+
+  <section class="doc-section" id="start">
+    <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">すぐに使える</p><h2>はじめに</h2></div></div>
+    <p>Swift Package Manager で ToastKit を追加し、通知を表示するビューに <code>ToastCenter</code> を付けます。</p>
+    <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
+    <pre><code><span class="kw">import</span> SwiftUI
+<span class="kw">import</span> ToastKit
+
+<span class="kw">struct</span> ContentView: <span class="type">View</span> &#123;
+    <span class="kw">@State private var</span> toasts = ToastCenter()
+
+    <span class="kw">var body</span>: <span class="kw">some</span> View &#123;
+        Button(<span class="str">"保存"</span>) &#123;
+            toasts.present(.normal, title: <span class="str">"変更を保存しました"</span>)
+        &#125;
+        .toasts(toasts)
+    &#125;
+&#125;</code></pre>
+    <div class="callout"><span>✳</span><p><strong>これだけで完了です。</strong>トーストはセーフエリアの下部に4秒間表示されます。標準のスワイプ操作で削除したり、次回まで保留したりできます。</p></div>
+    <p>Xcode の <strong>File → Add Package Dependencies</strong> を選び、<code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code> を入力してください。</p>
+  </section>
+
+  <section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">メッセージ</p><h2>トーストメッセージ</h2></div></div>
+    <p><code>ToastMessage</code> には、表示内容、意味を持つステータス、表示時間、任意のタップ操作とスワイプ操作を設定します。簡単な通知には便利メソッドを、細かな制御が必要な場合はメッセージを直接作成します。</p>
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"ストレージの空き容量が不足しています"</span>,
+    message: <span class="str">"同期を続けるには空き容量を増やしてください。"</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"新しい写真"</span>,
+    message: <span class="str">"今日の写真が12枚あります"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>通常</h3><p>日常的な確認に使う、控えめな表示です。</p></article><article><span class="pill amber">WARNING</span><h3>注意</h3><p>問題が失敗に至る前に確認を促します。</p></article><article><span class="pill red">ERROR</span><h3>エラー</h3><p>失敗を明確に伝える視覚的な合図です。</p></article><article><span class="pill violet">NOTIFICATION</span><h3>お知らせ</h3><p>アプリのアクセントカラーで通知します。</p></article></div>
+    <p>表示中のメッセージと同じ id を使って再度表示すると、複製せずに内容を更新して先頭へ移動します。「同期中…」から「同期完了」への更新に便利です。</p>
+  </section>
+
+  <section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">少しだけ表示</p><h2>表示時間</h2></div></div>
+    <p><code>.automatic</code> は <code>ToastCenter</code> の既定値である4秒を使います。秒数を直接指定するか、ユーザーの操作が必要な通知には <code>.indefinite</code> を使います。</p>
+    <pre><code><span class="comment">// 2秒間表示</span>
+ToastMessage(title: <span class="str">"コピーしました"</span>, duration: 2)
+
+<span class="comment">// 閉じられるまで表示</span>
+ToastMessage(title: <span class="str">"同期に失敗しました"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>カウントダウンするのは先頭のトーストだけです。</li><li>後ろに隠れたトーストは、先頭に移動するまで表示時間を使いません。</li><li>スタックに触れている間やアプリがバックグラウンドにある間はタイマーが止まります。</li></ul>
+  </section>
+
+  <section class="doc-section" id="actions">
+    <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">次の操作を明確に</p><h2>ジェスチャと操作</h2></div></div>
+    <p>タップ、左右へのスワイプ、長押しが使えます。長押しすると両方のスワイプ操作を確認してから選べます。VoiceOver でも同じ操作を名前から選択できます。</p>
+    <div class="table-wrap"><table><thead><tr><th>ジェスチャ</th><th>既定の動作</th><th>カスタマイズ</th></tr></thead><tbody><tr><td>タップ</td><td>操作なし。背後のコンテンツへ通過</td><td><code>tapAction</code> または <code>onTap</code></td></tr><tr><td>leading 側へスワイプ</td><td>トーストを削除</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 側へスワイプ</td><td>次にページを開いたときに再表示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>長押し</td><td>両方の操作をプレビュー</td><td>スワイプ操作と同じ設定</td></tr></tbody></table></div>
+    <pre><code><span class="kw">let</span> archive = ToastAction(
+    id: <span class="str">"archive"</span>,
+    title: <span class="str">"アーカイブ"</span>,
+    icon: .system(<span class="str">"archivebox"</span>),
+    confirmation: <span class="str">"アーカイブしました"</span>
+) &#123; toast <span class="kw">in</span>
+    store.archive(toast.id)
+&#125;
+
+toasts.present(ToastMessage(
+    title: <span class="str">"Ana からのメッセージ"</span>,
+    tapAction: ToastAction(title: <span class="str">"開く"</span>) &#123; toast <span class="kw">in</span>
+        router.open(toast.id)
+    &#125;,
+    swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
+))</code></pre>
+    <p>操作は handler、スタックの <code>onToastAction</code> オブザーバー、操作の効果の順に実行されます。組み込みの <code>.later</code> は、ページが再び表示されるまでトーストを保留します。</p>
+  </section>
+
+  <section class="doc-section" id="styling">
+    <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">自由にカスタマイズ</p><h2>スタイルとテーマ</h2></div></div>
+    <p>既定の <code>.glass</code> スタイルは、ステータスに合わせて色が変わるすりガラスのカードです。<code>ToastTheme</code> でデザイントークンを調整したり、装飾のない <code>.plain</code> を選んだり、<code>ToastStyle</code> に準拠した独自カードを作成したりできます。</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastTheme(ToastTheme(
+        titleFont: .headline,
+        tint: &#123; status <span class="kw">in</span>
+            status == .notification ? .pink : ToastTheme.standardTint(status)
+        &#125;,
+        cornerRadius: 16
+    ))
+
+<span class="comment">// 背景や固定色のないスタイルから始める</span>
+MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
+    <div class="swatches"><span><i class="swatch swatch-violet"></i> モーション</span><span><i class="swatch swatch-blue"></i> 色</span><span><i class="swatch swatch-sage"></i> 面</span><span><i class="swatch swatch-sand"></i> 文字</span></div>
+    <p>カスタムスタイルからはアイコン、タイトル、本文、ステータス、長押しトラックに持ち上げられているかを参照できます。レイアウトとジェスチャはスタックが管理します。</p>
+  </section>
+
+  <section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">適切な場所に表示</p><h2>配置と幅</h2></div></div>
+    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。</p>
+    <pre><code><span class="comment">// 上端に配置</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// 安全領域の90%、または固定幅</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p><code>TabView</code> 内では、タブのコンテンツに <code>.toasts(toasts)</code> を付けます。システムのタブバーや下部アクセサリは安全領域に含まれます。独自のフローティングバーには <code>.toastObstruction()</code> を付けると、スタックが重ならないように移動します。</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>保存しました</b><small>下部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">セーフエリア</div></div>
+  </section>
+
+  <section class="doc-section" id="accessibility">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">すべての人のために</p><h2>アクセシビリティ</h2></div></div>
+    <p>特定のジェスチャを使わなくても操作でき、SwiftUI 環境のアクセシビリティ設定に従います。</p>
+    <ul class="check-list"><li>VoiceOver が各カードを読み上げ、アクションローターから両方の操作を選べます。</li><li>視差効果を減らす設定では、スライドがフェード表示に変わります。</li><li>透明度を下げる設定では、ガラス面が不透明になります。</li><li>コントラストを上げる設定では、ガラスの縁がはっきりした境界線になります。</li><li>Dynamic Type に合わせて文字とアイコンが拡大します。</li></ul>
+  </section>
+
+  <section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">ユーザーの言語で</p><h2>アプリのローカライズ</h2></div></div>
+    <p>ToastKit の組み込み操作ラベルは英語、日本語、簡体字中国語、繁体字中国語に対応しています。タイトル、本文、独自の操作ラベルはアプリ側でローカライズしてください。</p>
+    <pre><code><span class="comment">// アプリの文言は String Catalog または Localizable.strings に登録します。</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit の組み込みラベルはホストアプリのロケールに従います。独自の <code>ToastAction</code> タイトルと確認文は通常の文字列なので、アプリと同じローカライズ手段を使えます。</p>
+  </section>
+
+  <div class="next-card"><div><span class="eyebrow">さらに詳しく</span><h2>もう少し仕上げてみましょう</h2><p>ソースコードで API の使い方を確認できます。</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">GitHub で見る <span>↗</span></a></div>
+</DocPage>
