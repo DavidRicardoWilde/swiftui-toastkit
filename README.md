@@ -49,7 +49,7 @@ Add the package with Swift Package Manager and depend on the `ToastKit` product:
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/DavidRicardoWilde/swiftui-toastkit.git", branch: "main")
+    .package(url: "https://github.com/DavidRicardoWilde/swiftui-toastkit.git", .upToNextMinor(from: "0.1.0"))
 ],
 targets: [
     .target(
@@ -61,7 +61,10 @@ targets: [
 
 In Xcode, use **File › Add Package Dependencies…**, enter
 `https://github.com/DavidRicardoWilde/swiftui-toastkit`, and add the `ToastKit` library to
-your app target. Until the first release is tagged, depend on the `main` branch.
+your app target.
+
+Releases follow [semantic versioning](https://semver.org). Before 1.0, a minor release may
+change the API, so `.upToNextMinor(from:)` is the safe requirement; patch releases only fix.
 
 ## Quick start
 
@@ -574,4 +577,4 @@ compile this README's examples against the public API
 
 ## License
 
-No license has been chosen yet. Until one is added, all rights are reserved.
+ToastKit is available under the MIT License. See [LICENSE](LICENSE).
