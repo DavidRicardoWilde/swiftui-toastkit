@@ -1,0 +1,157 @@
+---
+import DocPage from '../../components/DocPage.astro';
+---
+
+<DocPage lang="zh-cn" title="ToastKit — SwiftUI 提示文档" description="了解如何在 SwiftUI 应用中使用 ToastKit 构建堆叠、可滑动的提示通知。">
+  <div class="hero">
+    <div class="breadcrumb"><span>文档</span><span class="crumb-slash">/</span><span>使用指南</span></div>
+    <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · 开源组件</p>
+    <h1>恰到好处的<br /><em>轻提示。</em></h1>
+    <p class="hero-copy">为 SwiftUI 应用加入轻巧、堆叠的 Toast 通知。手势、计时和样式都已准备好。</p>
+    <div class="hero-actions"><a class="primary-button" href="#start">开始使用 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="glow"></div>
+      <div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>同步完成</b><small>所有内容均已更新</small></span></div>
+      <div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>更改已保存</b><small>你的内容已妥善保存。</small></span><span class="spark">✦</span></div>
+      <div class="art-caption">恰到好处的反馈，让体验更贴心 <span>✳</span></div>
+    </div>
+  </div>
+
+  <section class="doc-section" id="start">
+    <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">快速接入</p><h2>快速开始</h2></div></div>
+    <p>通过 Swift Package Manager 添加 ToastKit，然后将 <code>ToastCenter</code> 附加到需要显示通知的视图。</p>
+    <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
+    <pre><code><span class="kw">import</span> SwiftUI
+<span class="kw">import</span> ToastKit
+
+<span class="kw">struct</span> ContentView: <span class="type">View</span> &#123;
+    <span class="kw">@State private var</span> toasts = ToastCenter()
+
+    <span class="kw">var body</span>: <span class="kw">some</span> View &#123;
+        Button(<span class="str">"保存"</span>) &#123;
+            toasts.present(.normal, title: <span class="str">"更改已保存"</span>)
+        &#125;
+        .toasts(toasts)
+    &#125;
+&#125;</code></pre>
+    <div class="callout"><span>✳</span><p><strong>就这么简单。</strong>提示会显示在安全区域底部，停留四秒。默认滑动操作可删除提示，也可暂存到下次打开页面时再显示。</p></div>
+    <p>在 Xcode 中选择 <strong>File → Add Package Dependencies</strong>，输入 <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>。</p>
+  </section>
+
+  <section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">提示内容</p><h2>Toast 消息</h2></div></div>
+    <p><code>ToastMessage</code> 保存提示文案、语义状态、显示时长，以及可选的点击和滑动操作。简单场景可用便捷方法；需要更多控制时，直接创建消息对象。</p>
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"存储空间不足"</span>,
+    message: <span class="str">"请释放空间以继续同步。"</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"新照片"</span>,
+    message: <span class="str">"今天新增 12 张照片"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid">
+      <article><span class="pill neutral">NORMAL</span><h3>普通</h3><p>适合日常确认，视觉表达安静克制。</p></article>
+      <article><span class="pill amber">WARNING</span><h3>需要留意</h3><p>提示用户关注尚未失败的问题。</p></article>
+      <article><span class="pill red">ERROR</span><h3>操作失败</h3><p>使用清晰、容易识别的错误信号。</p></article>
+      <article><span class="pill violet">NOTIFICATION</span><h3>值得查看</h3><p>通知状态采用应用的强调色。</p></article>
+    </div>
+    <p>再次提交相同 id 的消息会更新并将该提示移到最前面，很适合展示“正在同步…”随后变为“同步完成”这样的进度状态。</p>
+  </section>
+
+  <section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">留一点时间</p><h2>显示时长</h2></div></div>
+    <p><code>.automatic</code> 使用中心的默认时长，默认为四秒。也可以直接指定秒数；需要用户明确处理的消息可设为 <code>.indefinite</code>。</p>
+    <pre><code><span class="comment">// 显示两秒</span>
+ToastMessage(title: <span class="str">"已复制"</span>, duration: 2)
+
+<span class="comment">// 直到用户主动关闭</span>
+ToastMessage(title: <span class="str">"同步失败"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>只有最前面的提示会倒计时。</li><li>被遮挡的提示会保留完整时长，等它移到最前面再开始计时。</li><li>用户触摸提示堆栈或应用进入后台时，倒计时会暂停。</li></ul>
+  </section>
+
+  <section class="doc-section" id="actions">
+    <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">清晰的下一步</p><h2>手势与操作</h2></div></div>
+    <p>用户可以点击、向任一方向滑动，或按住提示后先查看两侧操作再做决定。VoiceOver 也会按名称提供相同操作。</p>
+    <div class="table-wrap"><table><thead><tr><th>手势</th><th>默认行为</th><th>自定义方式</th></tr></thead><tbody>
+      <tr><td>点击</td><td>无操作，点击穿透到后方内容</td><td><code>tapAction</code> 或 <code>onTap</code></td></tr>
+      <tr><td>向 leading 侧滑动</td><td>删除提示</td><td><code>swipeActions.leading</code></td></tr>
+      <tr><td>向 trailing 侧滑动</td><td>下次打开时再次显示</td><td><code>swipeActions.trailing</code></td></tr>
+      <tr><td>按住</td><td>预览两侧滑动操作</td><td>复用相同的滑动操作</td></tr>
+    </tbody></table></div>
+    <pre><code><span class="kw">let</span> archive = ToastAction(
+    id: <span class="str">"archive"</span>,
+    title: <span class="str">"归档"</span>,
+    icon: .system(<span class="str">"archivebox"</span>),
+    confirmation: <span class="str">"已归档"</span>
+) &#123; toast <span class="kw">in</span>
+    store.archive(toast.id)
+&#125;
+
+toasts.present(ToastMessage(
+    title: <span class="str">"来自 Ana 的消息"</span>,
+    tapAction: ToastAction(title: <span class="str">"打开"</span>) &#123; toast <span class="kw">in</span>
+        router.open(toast.id)
+    &#125;,
+    swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
+))</code></pre>
+    <p>操作按顺序执行：先运行自身 handler，再通知堆栈的 <code>onToastAction</code> 观察器，最后应用操作效果。内置 <code>.later</code> 会暂存提示，等页面再次出现时恢复。</p>
+  </section>
+
+  <section class="doc-section" id="styling">
+    <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">按需定制</p><h2>样式与主题</h2></div></div>
+    <p>默认的 <code>.glass</code> 样式使用磨砂卡片，并根据状态调整颜色。可以用 <code>ToastTheme</code> 修改设计令牌，选择无装饰的 <code>.plain</code>，或实现 <code>ToastStyle</code> 创建自己的卡片。</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastTheme(ToastTheme(
+        titleFont: .headline,
+        tint: &#123; status <span class="kw">in</span>
+            status == .notification ? .pink : ToastTheme.standardTint(status)
+        &#125;,
+        cornerRadius: 16
+    ))
+
+<span class="comment">// 从无背景、无固定颜色的样式开始</span>
+MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
+    <div class="swatches"><span><i class="swatch swatch-violet"></i> 动效</span><span><i class="swatch swatch-blue"></i> 色彩</span><span><i class="swatch swatch-sage"></i> 表面</span><span><i class="swatch swatch-sand"></i> 字体</span></div>
+    <p>自定义样式可以访问提示的图标、标题、正文、状态，以及卡片是否正处于长按轨道上。布局和手势仍由堆栈负责。</p>
+  </section>
+
+  <section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">恰当的位置</p><h2>位置与宽度</h2></div></div>
+    <p>默认情况下，卡片从底部向上堆叠，宽度为可用安全区域的 60%。</p>
+    <pre><code><span class="comment">// 顶部位置</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// 安全区域的 90%，或指定固定宽度</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p>在 <code>TabView</code> 中，将 <code>.toasts(toasts)</code> 附加到标签页内容上。系统标签栏和底部配件已计入安全区域。若有自定义浮动栏，可标记为 <code>.toastObstruction()</code>，堆栈会避开它。</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>已保存</b><small>底部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">安全区域</div></div>
+  </section>
+
+  <section class="doc-section" id="accessibility">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">为所有人打造</p><h2>辅助功能</h2></div></div>
+    <p>ToastKit 无需依赖特定手势即可访问操作，并遵循 SwiftUI 环境中的辅助功能设置。</p>
+    <ul class="check-list"><li>VoiceOver 会朗读每条提示，并在操作转子中提供两侧滑动操作。</li><li>减少动态效果时，滑入动画会改为淡入淡出。</li><li>减少透明度时，磨砂表面会改为不透明。</li><li>增强对比度时，玻璃边缘会显示为实线边框。</li><li>动态字体会同步缩放文本和状态图标。</li></ul>
+  </section>
+
+  <section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">说用户的语言</p><h2>应用本地化</h2></div></div>
+    <p>ToastKit 内置的操作标签支持英语、日语、简体中文和繁体中文。应用自己的文案由你管理：请为标题、正文和自定义操作标签添加本地化。</p>
+    <pre><code><span class="comment">// 将应用文案放在 String Catalog 或 Localizable.strings 中。</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit 会根据宿主应用的语言环境显示内置标签。自定义 <code>ToastAction</code> 标题和确认文案是普通字符串，可使用应用现有的本地化工具处理。</p>
+  </section>
+
+  <div class="next-card"><div><span class="eyebrow">继续探索</span><h2>让界面再精致一点</h2><p>查看源码，了解完整 API 的实际用法。</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">在 GitHub 查看 <span>↗</span></a></div>
+</DocPage>
