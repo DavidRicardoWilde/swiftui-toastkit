@@ -1,0 +1,266 @@
+import SwiftUI
+
+// MARK: - Protocol
+
+/// How a toast card is drawn.
+///
+/// The kit's views own behaviour only — stacking, timing, gestures, the long-press
+/// track, accessibility — and draw nothing of their own. Every pixel of a card comes
+/// from the style in effect, the way a `ButtonStyle` draws a `Button`.
+///
+/// Two styles ship with the kit:
+///
+/// - ``GlassToastStyle`` (`.glass`) — frosted glass tinted by status, with a glyph chip.
+///   The default, tuned through ``ToastTheme``.
+/// - ``PlainToastStyle`` (`.plain`) — icon, title and message with no surface at all:
+///   the unstyled starting point for your own.
+///
+/// Write your own by laying out the configuration's parts:
+///
+/// ```swift
+/// struct BannerToastStyle: ToastStyle {
+///     func makeBody(configuration: Configuration) -> some View {
+///         HStack(spacing: 12) {
+///             configuration.icon
+///                 .foregroundStyle(.white)
+///             VStack(alignment: .leading, spacing: 2) {
+///                 configuration.title.bold()
+///                 configuration.message?.font(.footnote)
+///             }
+///             Spacer(minLength: 0)
+///         }
+///         .foregroundStyle(.white)
+///         .padding(14)
+///         .background(.indigo, in: .rect(cornerRadius: 14))
+///         .opacity(configuration.isLifted ? 0.85 : 1)
+///     }
+/// }
+///
+/// MyScreen()
+///     .toasts(toasts)
+///     .toastStyle(BannerToastStyle())
+/// ```
+///
+/// A style draws the card at rest and while it rides the long-press track
+/// (``ToastStyleConfiguration/isLifted``); the kit scales, moves and turns whatever the
+/// style returns. Fill the width you are given: the stack sets each card's width.
+public protocol ToastStyle {
+    associatedtype Body: View
+
+    /// The card for one toast.
+    @ViewBuilder @MainActor
+    func makeBody(configuration: Configuration) -> Body
+
+    typealias Configuration = ToastStyleConfiguration
+}
+
+/// What a ``ToastStyle`` draws a card from.
+public struct ToastStyleConfiguration {
+
+    /// The toast being drawn, for anything the ready-made parts below do not cover.
+    public let toast: ToastMessage
+
+    /// The toast's icon: its own, or its status's symbol.
+    public let icon: Image
+
+    /// The title as text, unstyled.
+    public let title: Text
+
+    /// The message as text, unstyled. `nil` when the toast has none.
+    public let message: Text?
+
+    /// True while a long press has lifted the card onto its action track. The kit
+    /// shrinks the card to half size; a style may also thin its surface so the track
+    /// shows through, as ``GlassToastStyle`` does.
+    public let isLifted: Bool
+
+    /// True when tapping the card runs an action, so a style can hint at it.
+    public let isTappable: Bool
+
+    public var status: ToastMessage.Status { toast.status }
+
+    init(toast: ToastMessage, isLifted: Bool, isTappable: Bool) {
+        self.toast = toast
+        self.icon = toast.icon?.image ?? Image(systemName: toast.status.symbolName)
+        self.title = Text(toast.title)
+        if let message = toast.message, !message.isEmpty {
+            self.message = Text(message)
+        } else {
+            self.message = nil
+        }
+        self.isLifted = isLifted
+        self.isTappable = isTappable
+    }
+}
+
+// MARK: - Applying a style
+
+public extension View {
+    /// Draws every toast below this point with `style`.
+    ///
+    /// ```swift
+    /// MyScreen()
+    ///     .toasts(toasts)
+    ///     .toastStyle(.plain)
+    /// ```
+    func toastStyle<S: ToastStyle>(_ style: S) -> some View {
+        environment(\.toastStyle, AnyToastStyle(style))
+    }
+}
+
+/// A type-erased style, so the environment can hold any of them.
+struct AnyToastStyle {
+    private let body: @MainActor (ToastStyleConfiguration) -> AnyView
+
+    init<S: ToastStyle>(_ style: S) {
+        body = { configuration in AnyView(style.makeBody(configuration: configuration)) }
+    }
+
+    @MainActor
+    func makeBody(configuration: ToastStyleConfiguration) -> AnyView {
+        body(configuration)
+    }
+}
+
+private struct ToastStyleKey: EnvironmentKey {
+    static let defaultValue = AnyToastStyle(GlassToastStyle())
+}
+
+extension EnvironmentValues {
+    var toastStyle: AnyToastStyle {
+        get { self[ToastStyleKey.self] }
+        set { self[ToastStyleKey.self] = newValue }
+    }
+}
+
+// MARK: - Icons
+
+extension ToastIcon {
+    var image: Image {
+        switch self {
+        case .system(let name):
+            Image(systemName: name)
+        case .asset(let name, let bundle):
+            Image(name, bundle: bundle)
+        }
+    }
+}
+
+// MARK: - Glass
+
+/// Frosted glass tinted by the toast's status, with a glyph chip beside the text. The
+/// default style.
+///
+/// Its colours, type, metrics and elevation come from ``ToastTheme`` — set one with
+/// `.toastTheme(_:)` to adopt a design system without writing a style. Under Reduce
+/// Transparency the glass turns opaque; under Increase Contrast its gradient edge turns
+/// solid. While lifted onto the action track it thins, so the track shows through.
+public struct GlassToastStyle: ToastStyle {
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        GlassToastCard(configuration: configuration)
+    }
+}
+
+public extension ToastStyle where Self == GlassToastStyle {
+    /// Frosted glass tinted by status. The default.
+    static var glass: GlassToastStyle { GlassToastStyle() }
+}
+
+private struct GlassToastCard: View {
+    let configuration: ToastStyleConfiguration
+
+    @Environment(\.toastTheme) private var theme
+
+    /// Gap between the glyph and the text column.
+    private let glyphSpacing: CGFloat = 12
+
+    var body: some View {
+        HStack(alignment: .top, spacing: glyphSpacing) {
+            ToastGlyph(status: configuration.status, icon: configuration.icon)
+
+            VStack(alignment: .leading, spacing: 3) {
+                configuration.title
+                    .font(theme.titleFont)
+                    .foregroundStyle(theme.textPrimary)
+                    .lineLimit(2)
+
+                if let message = configuration.message {
+                    message
+                        .font(theme.messageFont)
+                        .foregroundStyle(theme.textSecondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(theme.contentPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .toastGlassSurface(status: configuration.status, lifted: configuration.isLifted)
+    }
+}
+
+/// The status glyph on a tinted chip.
+private struct ToastGlyph: View {
+    let status: ToastMessage.Status
+    let icon: Image
+
+    @Environment(\.toastTheme) private var theme
+    @ScaledMetric(relativeTo: .callout) private var side: CGFloat = 30
+
+    var body: some View {
+        let tint = status.tint(in: theme)
+        return icon
+            // Already scaled by `side`; scaling the glyph again would compound it.
+            .font(.system(size: side * 0.52, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(width: side, height: side)
+            .background { Circle().fill(tint.opacity(0.18)) }
+            .overlay { Circle().strokeBorder(tint.opacity(0.30), lineWidth: 0.8) }
+            .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Plain
+
+/// Icon, title and message, and nothing else: no surface, no colour, no fixed type.
+///
+/// The unstyled baseline. Use it as the starting point for your own look, wrapping it in
+/// whatever surface your design system uses:
+///
+/// ```swift
+/// struct CardToastStyle: ToastStyle {
+///     func makeBody(configuration: Configuration) -> some View {
+///         PlainToastStyle().makeBody(configuration: configuration)
+///             .padding()
+///             .background(.background, in: .rect(cornerRadius: 12))
+///             .shadow(radius: 8, y: 4)
+///     }
+/// }
+/// ```
+public struct PlainToastStyle: ToastStyle {
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            configuration.icon
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                configuration.title
+                if let message = configuration.message {
+                    message
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+public extension ToastStyle where Self == PlainToastStyle {
+    /// No surface at all: the unstyled starting point.
+    static var plain: PlainToastStyle { PlainToastStyle() }
+}

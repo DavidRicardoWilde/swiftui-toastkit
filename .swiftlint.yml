@@ -1,0 +1,8 @@
+included:
+  - Sources
+  - Tests
+
+only_rules:
+  - force_cast
+  - force_try
+  - trailing_newline

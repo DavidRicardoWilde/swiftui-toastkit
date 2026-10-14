@@ -1,0 +1,9 @@
+"toast.a11y.dismiss" = "Dismiss notification";
+"toast.a11y.hint" = "Swipe left or right, or touch and hold, to choose an action";
+"toast.a11y.hint.activate" = "Tap to open. Swipe left or right, or touch and hold, to choose an action";
+"toast.action.delete" = "Delete";
+"toast.action.delete.done" = "Deleted";
+"toast.action.later" = "Later";
+"toast.action.later.subtitle" = "Next visit";
+"toast.action.later.done" = "See you later";
+"toast.action.open" = "Open";
