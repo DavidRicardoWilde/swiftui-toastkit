@@ -45,7 +45,9 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 
 ## Documentation website
 
-The Astro-powered usage guide is available in English, Simplified and Traditional Chinese, Japanese, Korean, and Spanish. Run it locally from the `docs/` directory:
+Live docs: [toastkit.studio.gluttongk.com](https://toastkit.studio.gluttongk.com) (English, Simplified and Traditional Chinese, Japanese, Korean, and Spanish).
+
+To run the Astro site locally from `docs/`:
 
 ```sh
 cd docs
