@@ -94,6 +94,17 @@ private func actionExamples(_ toasts: ToastCenter, store: ExampleStore) {
     toasts.present(ToastMessage(title: "One way", swipeActions: ToastSwipeActions(leading: .delete, trailing: nil)))
     toasts.present(ToastMessage(title: "Tap or wait", swipeActions: .disabled))
 
+    // Up and down instead of sideways, or all four ways.
+    let pin = ToastAction(title: "Pin", icon: .system("pin")) { toast in store.archive(toast.id) }
+    toasts.present(ToastMessage(title: "Up or down", swipeActions: .vertical(up: pin, down: .delete)))
+    toasts.present(ToastMessage(title: "Any way", swipeActions: ToastSwipeActions(
+        leading: .delete,
+        trailing: .later,
+        up: pin,
+        down: ToastAction(title: "Archive", icon: .system("archivebox")) { toast in store.archive(toast.id) }
+    )))
+    toasts.present(ToastMessage(title: "Sideways", swipeActions: .horizontal(leading: .delete, trailing: nil)))
+
     // One side replaced; the built-ins reworded.
     let archiveOnly = ToastSwipeActions(leading: ToastAction(title: "Archive", icon: .system("archivebox")) { toast in
         store.archive(toast.id)
@@ -108,6 +119,17 @@ private func actionExamples(_ toasts: ToastCenter, store: ExampleStore) {
         leading: .delete,
         trailing: .later(title: "Snooze")
     )))
+}
+
+/// Both swipe actions on show from the first moment of a swipe, without a hold.
+private struct SwipeHintsExample: View {
+    @State private var toasts = ToastCenter()
+
+    var body: some View {
+        Text("Inbox")
+            .toasts(toasts)
+            .toastSwipeHints(.immediate)
+    }
 }
 
 // MARK: - Testing
@@ -304,6 +326,7 @@ final class DocumentationExamplesTests: XCTestCase {
         // Compiling the views is the point; building one needs no host.
         let views: [any View] = [
             QuickStartExample(),
+            SwipeHintsExample(),
             ActionObserverExample(),
             StylingExample(),
             PlacementExample(),
@@ -312,6 +335,6 @@ final class DocumentationExamplesTests: XCTestCase {
             ScopeExample(),
             StaticCardExample()
         ]
-        XCTAssertEqual(views.count, 8)
+        XCTAssertEqual(views.count, 9)
     }
 }

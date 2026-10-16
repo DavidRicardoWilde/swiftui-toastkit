@@ -1,6 +1,10 @@
 "toast.a11y.dismiss" = "通知を閉じる";
 "toast.a11y.hint" = "左右にスワイプするか長押しして、操作を選択";
 "toast.a11y.hint.activate" = "タップで開く。左右にスワイプするか長押しして、操作を選択";
+"toast.a11y.hint.vertical" = "上下にスワイプするか長押しして、操作を選択";
+"toast.a11y.hint.vertical.activate" = "タップで開く。上下にスワイプするか長押しして、操作を選択";
+"toast.a11y.hint.any" = "上下左右にスワイプするか長押しして、操作を選択";
+"toast.a11y.hint.any.activate" = "タップで開く。上下左右にスワイプするか長押しして、操作を選択";
 "toast.action.delete" = "削除";
 "toast.action.delete.done" = "削除しました";
 "toast.action.later" = "あとで";

@@ -31,6 +31,7 @@ import DocPage from '../../components/DocPage.astro';
 &#125;</code></pre>
     <div class="callout"><span>✳</span><p><strong>Y listo.</strong> El aviso aparece cuatro segundos en la parte inferior del área segura. Las acciones de deslizamiento predeterminadas permiten eliminarlo o dejarlo para más tarde.</p></div>
     <p>En Xcode, elige <strong>File → Add Package Dependencies</strong> e introduce <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>.</p>
+    <p>Para ver todas las funciones en marcha, abre la carpeta <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/tree/main/examples"><code>examples/</code></a> del repositorio: una pequeña app para iOS, macOS, watchOS y visionOS, con el proyecto de Xcode generado por XcodeGen.</p>
   </section>
 
   <section class="doc-section" id="messages">
@@ -69,7 +70,7 @@ ToastMessage(title: <span class="str">"Error al sincronizar"</span>, duration: .
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">UN SIGUIENTE PASO CLARO</p><h2>Gestos y acciones</h2></div></div>
     <p>Se puede tocar, deslizar en cualquier dirección o mantener pulsado para ver ambas opciones antes de elegir. VoiceOver también ofrece las acciones por nombre.</p>
-    <div class="table-wrap"><table><thead><tr><th>Gesto</th><th>Predeterminado</th><th>Personaliza con</th></tr></thead><tbody><tr><td>Toque</td><td>Sin acción; pasa al contenido de atrás</td><td><code>tapAction</code> u <code>onTap</code></td></tr><tr><td>Deslizar hacia leading</td><td>Eliminar el aviso</td><td><code>swipeActions.leading</code></td></tr><tr><td>Deslizar hacia trailing</td><td>Mostrarlo en la próxima visita</td><td><code>swipeActions.trailing</code></td></tr><tr><td>Mantener pulsado</td><td>Previsualizar ambas acciones</td><td>Usa las mismas acciones</td></tr></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>Gesto</th><th>Predeterminado</th><th>Personaliza con</th></tr></thead><tbody><tr><td>Toque</td><td>Sin acción; pasa al contenido de atrás</td><td><code>tapAction</code> u <code>onTap</code></td></tr><tr><td>Deslizar hacia leading</td><td>Eliminar el aviso</td><td><code>swipeActions.leading</code></td></tr><tr><td>Deslizar hacia trailing</td><td>Mostrarlo en la próxima visita</td><td><code>swipeActions.trailing</code></td></tr><tr><td>Deslizar hacia arriba</td><td>Sin acción</td><td><code>swipeActions.up</code></td></tr><tr><td>Deslizar hacia abajo</td><td>Sin acción</td><td><code>swipeActions.down</code></td></tr><tr><td>Mantener pulsado</td><td>Previsualizar todas las acciones</td><td>Usa las mismas acciones</td></tr></tbody></table></div>
     <pre><code><span class="kw">let</span> archive = ToastAction(
     id: <span class="str">"archive"</span>,
     title: <span class="str">"Archivar"</span>,
@@ -86,7 +87,18 @@ toasts.present(ToastMessage(
     &#125;,
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
+    <p>También se puede deslizar hacia arriba y hacia abajo: se puede ofrecer un solo par de direcciones o las cuatro. El deslizamiento sigue el eje por el que el dedo se mueve primero, y al mantener pulsado esas acciones aparecen en una segunda pista, recta de arriba abajo.</p>
+    <pre><code><span class="comment">// Solo arriba y abajo</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// Las cuatro direcciones</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
     <p>Las acciones se ejecutan en este orden: su handler, el observador <code>onToastAction</code> de la pila y, por último, su efecto. La acción integrada <code>.later</code> guarda el aviso hasta que la página vuelva a aparecer.</p>
+    <div class="callout"><span>✳</span><p><strong>Novedad en 0.2.0: las acciones a la vista desde el inicio del deslizamiento.</strong> De forma predeterminada, un deslizamiento rápido actúa al instante y la pista con ambas acciones espera a que se mantenga pulsado. Con <code>.toastSwipeHints(.immediate)</code>, el propio deslizamiento levanta la tarjeta sobre la pista.</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>Tras 8 pt de recorrido, la tarjeta ya está en la pista con ambas acciones a la vista y sigue al dedo. Pasados 64 pt, el extremo hacia el que va se ilumina; al soltarla ahí, o al lanzarla hacia un extremo, se ejecuta esa acción. Si se suelta antes, la tarjeta vuelve a su sitio. Mantener pulsado sigue funcionando, y una <code>ToastCard</code> mostrada por sí sola, fuera de una pila, conserva el deslizamiento rápido. En ambos casos, la tarjeta levantada sube por encima del dedo y sus etiquetas van en la mitad superior de una pista más ancha, así que el pulgar no las tapa.</p>
   </section>
 
   <section class="doc-section" id="styling">
@@ -110,7 +122,7 @@ MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">EN EL LUGAR ADECUADO</p><h2>Posición y ancho</h2></div></div>
-    <p>De forma predeterminada, las tarjetas se apilan desde abajo y ocupan el 60% del área segura disponible.</p>
+    <p>De forma predeterminada, las tarjetas se apilan desde abajo y ocupan el 60% del área segura disponible. En la parte superior todo se refleja: las tarjetas anteriores asoman por debajo, la pista de mantener pulsado se curva hacia el borde superior y la tarjeta levantada baja en lugar de subir.</p>
     <pre><code><span class="comment">// Anclar arriba</span>
 MyScreen().toasts(toasts, placement: .top)
 

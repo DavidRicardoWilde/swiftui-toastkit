@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// How a quick swipe follows the finger and where it lands.
+/// How a quick swipe picks its axis, follows the finger and where it lands.
 ///
 /// Foundation-only so `ToastSwipeTests` can pin the thresholds without a view host.
 enum ToastSwipe {
@@ -14,9 +14,21 @@ enum ToastSwipe {
     /// …and never more than this, so it reads as "not this way" instead of moving.
     static let maxResisted: CGFloat = 24
 
-    /// Where the card sits for a finger `translation` from where the drag began.
-    static func follow(_ translation: CGFloat, leading: Bool, trailing: Bool) -> CGFloat {
-        if translation < 0 ? leading : trailing {
+    /// The axis a swipe moves along, settled by its first movement: with actions on one
+    /// axis only, that one; with both, the way the finger went further. A toast with no
+    /// actions at all swipes sideways, and only gives a little.
+    static func axis(for translation: CGSize, actions: ToastSwipeActions) -> ToastSwipeAxis {
+        let horizontal = actions.hasActions(along: .horizontal)
+        let vertical = actions.hasActions(along: .vertical)
+        if horizontal != vertical { return vertical ? .vertical : .horizontal }
+        guard horizontal else { return .horizontal }
+        return abs(translation.height) > abs(translation.width) ? .vertical : .horizontal
+    }
+
+    /// Where the card sits along `axis` for a finger `translation` along it.
+    static func follow(_ translation: CGFloat, along axis: ToastSwipeAxis, actions: ToastSwipeActions) -> CGFloat {
+        let side = translation < 0 ? axis.negative : axis.positive
+        if actions.action(for: side) != nil {
             return translation
         }
         return min(max(translation * resistance, -maxResisted), maxResisted)
@@ -29,14 +41,24 @@ enum ToastSwipe {
     static func commit(
         travel: CGFloat,
         projected: CGFloat,
-        leading: Bool,
-        trailing: Bool
+        along axis: ToastSwipeAxis,
+        actions: ToastSwipeActions
     ) -> ToastTrackSide? {
         guard abs(travel) >= commitDistance || abs(projected) >= flickDistance else { return nil }
-        let towardLeading = travel == 0 ? projected < 0 : travel < 0
-        if towardLeading {
-            return leading ? .leading : nil
-        }
-        return trailing ? .trailing : nil
+        let towardNegative = travel == 0 ? projected < 0 : travel < 0
+        let side = towardNegative ? axis.negative : axis.positive
+        return actions.action(for: side) == nil ? nil : side
+    }
+
+    /// The side a card that a swipe lifted onto the track runs when let go: the end it is
+    /// armed toward, or, short of that, the side it was flicked toward. `nil` puts it back.
+    static func release(
+        armed: ToastTrackSide?,
+        travel: CGFloat,
+        projected: CGFloat,
+        along axis: ToastSwipeAxis,
+        actions: ToastSwipeActions
+    ) -> ToastTrackSide? {
+        armed ?? commit(travel: travel, projected: projected, along: axis, actions: actions)
     }
 }

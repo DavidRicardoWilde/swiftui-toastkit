@@ -42,6 +42,45 @@ jobs:
       - name: Build
         run: xcodebuild -scheme ToastKit -destination 'generic/platform=iOS Simulator' build
 
+  examples:
+    name: Build the ${{ matrix.platform }} example
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: iOS
+            scheme: iOSExample
+            destination: generic/platform=iOS Simulator
+          - platform: macOS
+            scheme: macOSExample
+            destination: generic/platform=macOS
+          - platform: watchOS
+            scheme: watchOSExample
+            destination: generic/platform=watchOS Simulator
+          - platform: visionOS
+            scheme: visionOSExample
+            destination: generic/platform=visionOS Simulator
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate the project
+        working-directory: examples
+        run: xcodegen generate
+
+      - name: Build
+        working-directory: examples
+        run: >
+          xcodebuild build
+          -project ToastKitExamples.xcodeproj
+          -scheme "${{ matrix.scheme }}"
+          -destination "${{ matrix.destination }}"
+          CODE_SIGNING_ALLOWED=NO
+
   lint:
     name: SwiftLint
     runs-on: macos-15
