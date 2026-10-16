@@ -69,7 +69,7 @@ ToastMessage(title: <span class="str">"동기화 실패"</span>, duration: .inde
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">명확한 다음 단계</p><h2>제스처와 동작</h2></div></div>
     <p>탭, 양방향 스와이프, 길게 누르기를 사용할 수 있습니다. 길게 누르면 선택하기 전에 양쪽 스와이프 동작을 확인할 수 있어요. VoiceOver에서도 이름으로 같은 동작을 선택할 수 있습니다.</p>
-    <div class="table-wrap"><table><thead><tr><th>제스처</th><th>기본 동작</th><th>맞춤 설정</th></tr></thead><tbody><tr><td>탭</td><td>동작 없음, 뒤의 콘텐츠로 전달</td><td><code>tapAction</code> 또는 <code>onTap</code></td></tr><tr><td>leading 방향 스와이프</td><td>토스트 삭제</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 방향 스와이프</td><td>다음 방문 때 다시 표시</td><td><code>swipeActions.trailing</code></td></tr><tr><td>길게 누르기</td><td>양쪽 동작 미리 보기</td><td>같은 스와이프 동작 사용</td></tr></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>제스처</th><th>기본 동작</th><th>맞춤 설정</th></tr></thead><tbody><tr><td>탭</td><td>동작 없음, 뒤의 콘텐츠로 전달</td><td><code>tapAction</code> 또는 <code>onTap</code></td></tr><tr><td>leading 방향 스와이프</td><td>토스트 삭제</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 방향 스와이프</td><td>다음 방문 때 다시 표시</td><td><code>swipeActions.trailing</code></td></tr><tr><td>위로 스와이프</td><td>동작 없음</td><td><code>swipeActions.up</code></td></tr><tr><td>아래로 스와이프</td><td>동작 없음</td><td><code>swipeActions.down</code></td></tr><tr><td>길게 누르기</td><td>모든 스와이프 동작 미리 보기</td><td>같은 스와이프 동작 사용</td></tr></tbody></table></div>
     <pre><code><span class="kw">let</span> archive = ToastAction(
     id: <span class="str">"archive"</span>,
     title: <span class="str">"보관"</span>,
@@ -86,6 +86,12 @@ toasts.present(ToastMessage(
     &#125;,
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
+    <p>위아래로도 스와이프할 수 있습니다. 한 쌍의 방향만 쓰거나 네 방향을 모두 쓸 수 있어요. 스와이프는 손가락이 처음 움직인 축을 따라가며, 길게 누르면 해당 동작이 위아래로 곧게 뻗은 트랙에 표시됩니다.</p>
+    <pre><code><span class="comment">// 위아래만</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// 네 방향 모두</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
     <p>동작은 handler 실행, 스택의 <code>onToastAction</code> 옵저버 호출, 동작 효과 적용 순서로 처리됩니다. 기본 제공 <code>.later</code>는 페이지가 다시 나타날 때까지 토스트를 보류합니다.</p>
     <div class="callout"><span>✳</span><p><strong>0.2.0 새 기능: 스와이프를 시작하자마자 동작 표시.</strong> 기본적으로 빠른 스와이프는 바로 동작을 실행하고, 양쪽 동작을 보여 주는 트랙은 길게 눌러야 나타납니다. <code>.toastSwipeHints(.immediate)</code>를 설정하면 스와이프 자체가 카드를 트랙 위로 들어 올립니다.</p></div>
     <pre><code>MyScreen()
@@ -115,7 +121,7 @@ MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">자연스러운 위치</p><h2>위치와 너비</h2></div></div>
-    <p>기본적으로 카드는 하단에서 쌓이며 사용 가능한 안전 영역 너비의 60%를 사용합니다.</p>
+    <p>기본적으로 카드는 하단에서 쌓이며 사용 가능한 안전 영역 너비의 60%를 사용합니다. 상단에 두면 모든 것이 위아래로 대칭됩니다. 이전 카드는 아래로 살짝 보이고, 길게 누르기 트랙은 위쪽 가장자리를 향해 휘며, 들어 올린 카드는 위가 아니라 아래로 이동합니다.</p>
     <pre><code><span class="comment">// 상단에 배치</span>
 MyScreen().toasts(toasts, placement: .top)
 

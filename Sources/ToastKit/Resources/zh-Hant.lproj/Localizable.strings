@@ -1,6 +1,10 @@
 "toast.a11y.dismiss" = "關閉通知";
 "toast.a11y.hint" = "向左或向右滑動，或按住，以選擇動作";
 "toast.a11y.hint.activate" = "輕點查看；向左或向右滑動，或按住，以選擇動作";
+"toast.a11y.hint.vertical" = "向上或向下滑動，或按住，以選擇動作";
+"toast.a11y.hint.vertical.activate" = "輕點查看；向上或向下滑動，或按住，以選擇動作";
+"toast.a11y.hint.any" = "向任意方向滑動，或按住，以選擇動作";
+"toast.a11y.hint.any.activate" = "輕點查看；向任意方向滑動，或按住，以選擇動作";
 "toast.action.delete" = "刪除";
 "toast.action.delete.done" = "已刪除";
 "toast.action.later" = "稍後";

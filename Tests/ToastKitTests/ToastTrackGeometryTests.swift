@@ -35,16 +35,16 @@ final class ToastTrackGeometryTests: XCTestCase {
         XCTAssertEqual(offset.height, -44)
     }
 
-    func testLiftedCardOnATopStackKeepsItsSmallOffset() {
-        // No room above a card hanging from the top edge: it moves 7 pt down, as before.
-        XCTAssertEqual(geometry(curve: -1).cardOffset(at: 0).height, 7)
+    func testLiftedCardOnATopStackDropsTheSameDistance() {
+        // A top stack is the mirror of a bottom one: the card moves 44 pt down.
+        XCTAssertEqual(geometry(curve: -1).cardOffset(at: 0).height, 44)
     }
 
     func testCarriedCardFollowsTheBandAndTurnsWithIt() {
         let bottom = geometry(curve: 1)
         let top = geometry(curve: -1)
         XCTAssertEqual(bottom.cardOffset(at: 80).height, bottom.sag(at: 80) - 44, accuracy: 0.0001)
-        XCTAssertEqual(top.cardOffset(at: 80).height, -(top.sag(at: 80) - 7), accuracy: 0.0001)
+        XCTAssertEqual(top.cardOffset(at: 80).height, -(top.sag(at: 80) - 44), accuracy: 0.0001)
         XCTAssertEqual(bottom.tilt(at: 90), asin(0.1), accuracy: 0.0001)
         XCTAssertEqual(top.tilt(at: 90), -asin(0.1), accuracy: 0.0001)
         XCTAssertEqual(bottom.tilt(at: 0), 0)
@@ -52,13 +52,29 @@ final class ToastTrackGeometryTests: XCTestCase {
 
     func testTrackCrestSitsUnderTheLiftedCard() {
         // The track view is centred on the resting card; the offset moves its crest to
-        // the lifted card's centre: 44 pt up on a bottom stack, 7 pt down on a top one.
+        // the lifted card's centre: 44 pt up on a bottom stack, 44 pt down on a top one.
         for track in [geometry(curve: 1), geometry(curve: -1)] {
             let crest = track.crestY - ToastTrackGeometry.height / 2 + track.trackOffset
             XCTAssertEqual(crest, track.cardOffset(at: 0).height, accuracy: 0.0001)
+            XCTAssertEqual(track.liftedCenterY, track.cardOffset(at: 0).height)
         }
         XCTAssertEqual(geometry(curve: 1).trackOffset, -31)
-        XCTAssertEqual(geometry(curve: -1).trackOffset, -6)
+        XCTAssertEqual(geometry(curve: -1).trackOffset, 31)
+    }
+
+    func testATopStackIsTheMirrorImageOfABottomOne() {
+        let bottom = geometry(curve: 1)
+        let top = geometry(curve: -1)
+        for x: CGFloat in [-150, -64, 0, 90, 140] {
+            XCTAssertEqual(top.cardOffset(at: x).height, -bottom.cardOffset(at: x).height, accuracy: 0.0001)
+            XCTAssertEqual(top.tilt(at: x), -bottom.tilt(at: x), accuracy: 0.0001)
+            // Measured from the resting card's centre, every label lands mirrored too.
+            let bottomLabel = bottom.labelY(at: x) - ToastTrackGeometry.height / 2 + bottom.trackOffset
+            let topLabel = top.labelY(at: x) - ToastTrackGeometry.height / 2 + top.trackOffset
+            XCTAssertEqual(topLabel, -bottomLabel, accuracy: 0.0001)
+        }
+        XCTAssertEqual(top.cardOffset(vertically: 30).height, 44 + 30)
+        XCTAssertEqual(bottom.cardOffset(vertically: -30).height, -44 - 30)
     }
 
     func testTheBandIsWideEnoughToCarryItsLabelsAboveTheFinger() {
@@ -69,11 +85,13 @@ final class ToastTrackGeometryTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(ToastTrackGeometry.crestInset, ToastTrackGeometry.bandThickness / 2)
     }
 
-    func testLabelsRideAboveTheBandsCentreLineOnEitherEdge() {
-        for track in [geometry(curve: 1), geometry(curve: -1)] {
-            XCTAssertEqual(track.labelY(at: 0), track.bandY(at: 0) - 16)
-            XCTAssertEqual(track.labelY(at: 140), track.bandY(at: 140) - 16, accuracy: 0.0001)
-        }
+    func testLabelsRideAwayFromTheStacksEdge() {
+        let bottom = geometry(curve: 1)
+        let top = geometry(curve: -1)
+        XCTAssertEqual(bottom.labelY(at: 0), bottom.bandY(at: 0) - 16, "above the band's centre line")
+        XCTAssertEqual(bottom.labelY(at: 140), bottom.bandY(at: 140) - 16, accuracy: 0.0001)
+        XCTAssertEqual(top.labelY(at: 0), top.bandY(at: 0) + 16, "below it")
+        XCTAssertEqual(top.labelY(at: 140), top.bandY(at: 140) + 16, accuracy: 0.0001)
     }
 
     func testLabelsOnABottomStackClearAThumbPressingTheMiddleOfTheCard() {
@@ -119,6 +137,71 @@ final class ToastTrackGeometryTests: XCTestCase {
         XCTAssertLessThan(tight.labelCenter - 10, ToastTrackGeometry.armDistance)
         XCTAssertEqual(tight.carryLimit, ToastTrackGeometry.armDistance)
         XCTAssertGreaterThanOrEqual(tight.labelWidth, 0)
+    }
+
+    // MARK: - Up and down
+
+    func testUpAndDownLabelsSitBesideTheVerticalBand() {
+        let track = geometry()
+        XCTAssertEqual(track.verticalLabelY(for: .up), -80)
+        XCTAssertEqual(track.verticalLabelY(for: .down), 80)
+        // In the leading label's room, so they clear the band and the card's path.
+        XCTAssertEqual(track.verticalLabelX, -140.375, accuracy: 0.0001)
+        XCTAssertGreaterThan(track.labelCenter - track.labelWidth / 2, ToastTrackGeometry.bandThickness / 2)
+    }
+
+    func testVerticalCarryStopsJustPastArmingAndOnlyTowardActions() {
+        let track = geometry()
+        XCTAssertEqual(track.carryVertically(-40, up: true, down: true), -40)
+        XCTAssertEqual(track.carryVertically(500, up: true, down: true), 72)
+        XCTAssertEqual(track.carryVertically(-500, up: false, down: true), 0, "no action, no travel")
+        XCTAssertEqual(track.carryVertically(500, up: true, down: false), 0)
+    }
+
+    func testAnUpOrDownActionArmsAfterSixtyFourPoints() {
+        let track = geometry()
+        XCTAssertNil(track.armedSide(at: -63, along: .vertical))
+        XCTAssertEqual(track.armedSide(at: -64, along: .vertical), .up)
+        XCTAssertEqual(track.armedSide(at: 64, along: .vertical), .down)
+    }
+
+    func testACarryTakesTheOnlyAxisWithActionsStraightAway() {
+        let sideways = ToastSwipeActions()
+        let upDown = ToastSwipeActions.vertical(up: .later, down: .delete)
+        XCTAssertEqual(ToastTrackGeometry.carryAxis(for: .zero, current: nil, actions: sideways), .horizontal)
+        XCTAssertEqual(ToastTrackGeometry.carryAxis(for: .zero, current: nil, actions: upDown), .vertical)
+        XCTAssertNil(ToastTrackGeometry.carryAxis(for: CGSize(width: 50, height: 0), current: nil, actions: .disabled))
+    }
+
+    func testWithBothAxesACarryWaitsThenFollowsTheFinger() {
+        let fourWays = ToastSwipeActions(up: .later, down: .delete)
+        XCTAssertNil(ToastTrackGeometry.carryAxis(for: CGSize(width: 5, height: 5), current: nil, actions: fourWays))
+        XCTAssertEqual(
+            ToastTrackGeometry.carryAxis(for: CGSize(width: 3, height: -9), current: nil, actions: fourWays),
+            .vertical
+        )
+        XCTAssertEqual(
+            ToastTrackGeometry.carryAxis(for: CGSize(width: -9, height: 3), current: nil, actions: fourWays),
+            .horizontal
+        )
+    }
+
+    func testACarrySwitchesAxisOnlyWhenTheOtherClearlyLeads() {
+        let fourWays = ToastSwipeActions(up: .later, down: .delete)
+        // A diagonal drag stays where it is…
+        XCTAssertEqual(
+            ToastTrackGeometry.carryAxis(for: CGSize(width: 40, height: 50), current: .horizontal, actions: fourWays),
+            .horizontal
+        )
+        // …until the other way leads by more than 16 pt.
+        XCTAssertEqual(
+            ToastTrackGeometry.carryAxis(for: CGSize(width: 40, height: 57), current: .horizontal, actions: fourWays),
+            .vertical
+        )
+        XCTAssertEqual(
+            ToastTrackGeometry.carryAxis(for: CGSize(width: 57, height: -40), current: .vertical, actions: fourWays),
+            .horizontal
+        )
     }
 
     // MARK: - The colour wash
@@ -197,6 +280,39 @@ final class ToastActionTests: XCTestCase {
         XCTAssertNil(oneWay.trailing)
         XCTAssertFalse(oneWay.isEmpty)
         XCTAssertTrue(ToastSwipeActions.disabled.isEmpty)
+    }
+
+    func testUpAndDownAreOffUnlessAskedFor() {
+        let standard = ToastSwipeActions.standard
+        XCTAssertNil(standard.up)
+        XCTAssertNil(standard.down)
+        XCTAssertEqual(ToastSwipeActions.horizontal(), standard)
+    }
+
+    func testActionsCanGoUpAndDownOnlyOrAllFourWays() {
+        let upDown = ToastSwipeActions.vertical(up: .later, down: .delete)
+        XCTAssertNil(upDown.leading)
+        XCTAssertNil(upDown.trailing)
+        XCTAssertEqual(upDown.up, .later)
+        XCTAssertEqual(upDown.down, .delete)
+        XCTAssertFalse(upDown.isEmpty)
+        XCTAssertFalse(upDown.hasActions(along: .horizontal))
+        XCTAssertTrue(upDown.hasActions(along: .vertical))
+
+        let fourWays = ToastSwipeActions(up: ToastAction(title: "Pin"), down: ToastAction(title: "Archive"))
+        XCTAssertEqual(fourWays.leading, .delete)
+        XCTAssertEqual(fourWays.trailing, .later)
+        XCTAssertEqual(fourWays.action(for: .up)?.title, "Pin")
+        XCTAssertEqual(fourWays.action(for: .down)?.title, "Archive")
+        XCTAssertTrue(fourWays.hasActions(along: .horizontal))
+        XCTAssertTrue(fourWays.hasActions(along: .vertical))
+    }
+
+    func testOneUpOrDownActionIsEnoughToSwipeThatWay() {
+        let upOnly = ToastSwipeActions.vertical(up: .later, down: nil)
+        XCTAssertFalse(upOnly.isEmpty)
+        XCTAssertTrue(upOnly.hasActions(along: .vertical))
+        XCTAssertTrue(ToastSwipeActions.vertical(up: nil, down: nil).isEmpty)
     }
 
     func testHandlersDoNotTakePartInEquality() {

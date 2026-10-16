@@ -8,11 +8,12 @@ a `ToastStyle`: the frosted-glass default, the bare `.plain` style, or your own.
 
 - **A stack, not a queue.** The newest toast sits in front. Older ones peek out behind it
   and come forward as the front one leaves.
-- **Tap, swipe either way, or press and hold.** Each gesture runs an action you define. By
-  default, swiping toward the leading side deletes a toast. Swiping toward the trailing
-  side sets it aside until the page is next opened.
+- **Tap, swipe, or press and hold.** Each gesture runs an action you define, and swipes
+  can go left and right, up and down, or all four ways. By default, swiping toward the
+  leading side deletes a toast. Swiping toward the trailing side sets it aside until the
+  page is next opened.
 - **Actions you can read before choosing.** Pressing and holding lifts the card onto a
-  curved track with both swipe actions laid out at its ends: icon, title and subtitle.
+  track with its swipe actions laid out at the ends: icon, title and subtitle.
   Set `.toastSwipeHints(.immediate)` and the swipe itself shows them, no hold needed.
 - **Timing that waits for the user.** Only the front toast counts down. The countdown
   pauses while a finger is on the stack or the app is in the background.
@@ -196,7 +197,9 @@ Every gesture on the front card runs a `ToastAction`.
 | Tap | `tapAction`, or the stack's `onTap` | Nothing; taps pass through to the content behind. |
 | Swipe toward the leading side | `swipeActions.leading` | `.delete`: the toast is removed. |
 | Swipe toward the trailing side | `swipeActions.trailing` | `.later`: the toast comes back the next time the page is opened. |
-| Press and hold, then carry | Either swipe action, chosen on a track | Shows both, with their icons, titles and subtitles. With `.toastSwipeHints(.immediate)`, a swipe does this too. |
+| Swipe up | `swipeActions.up` | Nothing. |
+| Swipe down | `swipeActions.down` | Nothing. |
+| Press and hold, then carry | Any swipe action, chosen on a track | Shows them all, with their icons, titles and subtitles. With `.toastSwipeHints(.immediate)`, a swipe does this too. |
 
 In a left-to-right layout, leading is left and trailing is right.
 
@@ -249,8 +252,9 @@ A toast with neither does not intercept taps at all.
 
 ### Swiping
 
-Every toast swipes to `.delete` on the leading side and `.later` on the trailing side
-unless told otherwise. Replace either side, reword the built-ins, or turn a side off:
+Every toast swipes to `.delete` on the leading side and `.later` on the trailing side, and
+does nothing up or down, unless told otherwise. Replace either side, reword the built-ins,
+turn a side off, or use up and down instead or as well:
 
 ```swift
 // Your own action on one side; the other keeps its default.
@@ -267,9 +271,18 @@ ToastSwipeActions(
 // One way only: swiping right barely moves the card.
 ToastSwipeActions(leading: .delete, trailing: nil)
 
+// Up and down only: swiping sideways barely moves the card.
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+// All four ways.
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)
+
 // No swiping and no press-and-hold: the toast leaves by tap, by timeout, or from code.
 ToastSwipeActions.disabled
 ```
+
+`ToastSwipeActions.horizontal(leading:trailing:)` spells out the default left-and-right
+pair. Any direction can be `nil`, so one axis can still offer a single way.
 
 Pass the result as `swipeActions:` when you present:
 
@@ -280,8 +293,10 @@ toasts.present(ToastMessage(title: "Message from Ana", swipeActions: ToastSwipeA
 )))
 ```
 
-A swipe runs once the card travels 88 pt, or on a quick flick, and the card flies off that
-way first. A shorter swipe springs back. Toward a side with no action, the card gives
+A swipe moves along one axis. With actions on both, the first 8 pt of travel picks the
+way the finger went further. A swipe runs once the card travels 88 pt, or on a quick
+flick, and the card flies off that way first: off the side of the screen, or off its top
+or bottom. A shorter swipe springs back. Toward a direction with no action, the card gives
 only a little and always springs back.
 
 ### Pressing and holding
@@ -295,11 +310,19 @@ action's `confirmation` for a moment before the action runs.
 
 The finger that pressed stays put while the card lifts away from it, so nothing you need
 to read sits under your thumb. On a bottom stack the card rises 44 pt, and each label rides
-in the upper half of a 72 pt band, above the finger. A stack hanging from the top edge has
-no room above it, so its card moves only 7 pt.
+in the upper half of a 72 pt band, above the finger. A stack hanging from the top edge is
+the mirror image: the band bends up toward the top, the card drops 44 pt, and the labels
+ride in the band's lower half.
 
-This is the same pair of actions a quick swipe runs. Pressing and holding lets the user
-read them first. A toast with no swipe actions ignores the long press.
+With up or down actions, a second band runs straight up and down through the lifted card,
+coloured at its ends the same way. Its labels sit beside its ends, on the leading side:
+the finger is below the card, so a label at the bottom end would be under it on the way
+down. Carry the card up or down 64 pt to arm that end. With actions both ways, the card
+rides whichever band the finger heads along, and switches only once the other way clearly
+leads.
+
+These are the same actions a quick swipe runs. Pressing and holding lets the user read
+them first. A toast with no swipe actions ignores the long press.
 
 ### Showing the actions as a swipe starts
 
@@ -312,7 +335,7 @@ MyScreen()
     .toastSwipeHints(.immediate)
 ```
 
-After 8 pt of travel the card is on the track with both actions showing, and it follows
+After 8 pt of travel the card is on the track with its actions showing, and it follows
 the finger along it. Past 64 pt the end it is heading for lights up and ticks. Let go
 there, or flick toward an end, to run that action; let go anywhere short of it and the card
 settles back. Pressing and holding still works as before. A hold is confirmed with a thump
@@ -471,8 +494,10 @@ MyScreen().toasts(toasts, placement: .top)   // hangs from the top of the safe a
 ```
 
 The stack hangs from its edge. The newest card sits nearest the edge and older ones
-recede inward. The swipe path and the press-and-hold track both bend gently toward that
-edge.
+recede inward: upward from the bottom, downward from the top. The swipe path and the
+press-and-hold track both bend gently toward that edge. A top stack is the exact mirror
+of a bottom one: the band's ends bend up past the top, the lifted card drops instead of
+rising, and a sideways swipe tilts from the card's top edge.
 
 ### What sits at the bottom
 
@@ -557,7 +582,7 @@ Cards are measured against the width available inside the safe area:
 
 - Each card is one VoiceOver element: title, then message. A tappable card is a button,
   and its hint says so.
-- Both swipe actions are offered by name in the actions rotor, along with **Dismiss**. No
+- Every swipe action is offered by name in the actions rotor, along with **Dismiss**. No
   gesture is ever the only way to reach an action.
 - Buried cards are hidden from VoiceOver; only the front card is reachable.
 - **Reduce Motion:** cards cross-fade instead of sliding, the swipe path flattens, and the

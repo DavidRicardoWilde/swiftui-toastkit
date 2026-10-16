@@ -69,7 +69,7 @@ ToastMessage(title: <span class="str">"同期に失敗しました"</span>, dura
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">次の操作を明確に</p><h2>ジェスチャと操作</h2></div></div>
     <p>タップ、左右へのスワイプ、長押しが使えます。長押しすると両方のスワイプ操作を確認してから選べます。VoiceOver でも同じ操作を名前から選択できます。</p>
-    <div class="table-wrap"><table><thead><tr><th>ジェスチャ</th><th>既定の動作</th><th>カスタマイズ</th></tr></thead><tbody><tr><td>タップ</td><td>操作なし。背後のコンテンツへ通過</td><td><code>tapAction</code> または <code>onTap</code></td></tr><tr><td>leading 側へスワイプ</td><td>トーストを削除</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 側へスワイプ</td><td>次にページを開いたときに再表示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>長押し</td><td>両方の操作をプレビュー</td><td>スワイプ操作と同じ設定</td></tr></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>ジェスチャ</th><th>既定の動作</th><th>カスタマイズ</th></tr></thead><tbody><tr><td>タップ</td><td>操作なし。背後のコンテンツへ通過</td><td><code>tapAction</code> または <code>onTap</code></td></tr><tr><td>leading 側へスワイプ</td><td>トーストを削除</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 側へスワイプ</td><td>次にページを開いたときに再表示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>上へスワイプ</td><td>操作なし</td><td><code>swipeActions.up</code></td></tr><tr><td>下へスワイプ</td><td>操作なし</td><td><code>swipeActions.down</code></td></tr><tr><td>長押し</td><td>すべての操作をプレビュー</td><td>スワイプ操作と同じ設定</td></tr></tbody></table></div>
     <pre><code><span class="kw">let</span> archive = ToastAction(
     id: <span class="str">"archive"</span>,
     title: <span class="str">"アーカイブ"</span>,
@@ -86,6 +86,12 @@ toasts.present(ToastMessage(
     &#125;,
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
+    <p>上下へのスワイプにも操作を割り当てられます。上下だけ、または四方向すべてを設定できます。スワイプは指が最初に動いた方向の軸に沿って動き、長押しするとそれらの操作が上下にまっすぐ伸びるトラックに表示されます。</p>
+    <pre><code><span class="comment">// 上下のみ</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// 四方向すべて</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
     <p>操作は handler、スタックの <code>onToastAction</code> オブザーバー、操作の効果の順に実行されます。組み込みの <code>.later</code> は、ページが再び表示されるまでトーストを保留します。</p>
     <div class="callout"><span>✳</span><p><strong>0.2.0 の新機能：スワイプの始まりから操作を表示。</strong>既定では、素早いスワイプはすぐに操作を実行し、両方の操作を並べたトラックは長押しするまで表示されません。<code>.toastSwipeHints(.immediate)</code> を設定すると、スワイプそのものがカードをトラックに持ち上げます。</p></div>
     <pre><code>MyScreen()
@@ -115,7 +121,7 @@ MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">適切な場所に表示</p><h2>配置と幅</h2></div></div>
-    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。</p>
+    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。上部に配置すると、すべてが上下反転します。古いカードは下にのぞき、長押しのトラックは上端に向かって反り、持ち上げたカードは上ではなく下へ移動します。</p>
     <pre><code><span class="comment">// 上端に配置</span>
 MyScreen().toasts(toasts, placement: .top)
 

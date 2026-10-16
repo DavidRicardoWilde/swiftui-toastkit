@@ -1,6 +1,10 @@
 "toast.a11y.dismiss" = "Dismiss notification";
 "toast.a11y.hint" = "Swipe left or right, or touch and hold, to choose an action";
 "toast.a11y.hint.activate" = "Tap to open. Swipe left or right, or touch and hold, to choose an action";
+"toast.a11y.hint.vertical" = "Swipe up or down, or touch and hold, to choose an action";
+"toast.a11y.hint.vertical.activate" = "Tap to open. Swipe up or down, or touch and hold, to choose an action";
+"toast.a11y.hint.any" = "Swipe in any direction, or touch and hold, to choose an action";
+"toast.a11y.hint.any.activate" = "Tap to open. Swipe in any direction, or touch and hold, to choose an action";
 "toast.action.delete" = "Delete";
 "toast.action.delete.done" = "Deleted";
 "toast.action.later" = "Later";

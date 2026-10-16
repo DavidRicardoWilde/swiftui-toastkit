@@ -74,7 +74,7 @@ ToastMessage(title: <span class="str">"同步失敗"</span>, duration: .indefini
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">明確的下一步</p><h2>手勢與操作</h2></div></div>
     <p>使用者可以點擊、向任一方向滑動，或按住提示後先查看兩側操作再做決定。VoiceOver 也會依名稱提供相同操作。</p>
-    <div class="table-wrap"><table><thead><tr><th>手勢</th><th>預設行為</th><th>自訂方式</th></tr></thead><tbody><tr><td>點擊</td><td>沒有操作，點擊會穿透至後方內容</td><td><code>tapAction</code> 或 <code>onTap</code></td></tr><tr><td>向 leading 側滑動</td><td>刪除提示</td><td><code>swipeActions.leading</code></td></tr><tr><td>向 trailing 側滑動</td><td>下次開啟時再次顯示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>按住</td><td>預覽兩側滑動操作</td><td>重用相同的滑動操作</td></tr></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>手勢</th><th>預設行為</th><th>自訂方式</th></tr></thead><tbody><tr><td>點擊</td><td>沒有操作，點擊會穿透至後方內容</td><td><code>tapAction</code> 或 <code>onTap</code></td></tr><tr><td>向 leading 側滑動</td><td>刪除提示</td><td><code>swipeActions.leading</code></td></tr><tr><td>向 trailing 側滑動</td><td>下次開啟時再次顯示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>向上滑動</td><td>無操作</td><td><code>swipeActions.up</code></td></tr><tr><td>向下滑動</td><td>無操作</td><td><code>swipeActions.down</code></td></tr><tr><td>按住</td><td>預覽所有滑動操作</td><td>重用相同的滑動操作</td></tr></tbody></table></div>
     <pre><code><span class="kw">let</span> archive = ToastAction(
     id: <span class="str">"archive"</span>,
     title: <span class="str">"封存"</span>,
@@ -91,6 +91,12 @@ toasts.present(ToastMessage(
     &#125;,
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
+    <p>也可以向上和向下滑動：只提供一組方向，或四個方向都提供。滑動會沿手指最先移動的方向進行；按住時，這些操作會顯示在一條上下筆直的軌道上。</p>
+    <pre><code><span class="comment">// 僅上下兩個方向</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// 四個方向</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
     <p>操作依序執行：先執行自身 handler，再通知堆疊的 <code>onToastAction</code> 觀察器，最後套用操作效果。內建 <code>.later</code> 會暫存提示，等頁面再次出現時恢復。</p>
     <div class="callout"><span>✳</span><p><strong>0.2.0 新增：滑動一開始就顯示操作。</strong>預設情況下，快速滑動會立即執行操作，顯示兩側操作的軌道要等按住後才出現。設定 <code>.toastSwipeHints(.immediate)</code> 後，滑動本身就會把卡片抬到軌道上。</p></div>
     <pre><code>MyScreen()
@@ -120,7 +126,7 @@ MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">恰當的位置</p><h2>位置與寬度</h2></div></div>
-    <p>預設情況下，卡片從底部向上堆疊，寬度為可用安全區域的 60%。</p>
+    <p>預設情況下，卡片從底部向上堆疊，寬度為可用安全區域的 60%。放在頂部時一切都會鏡像：較早的卡片在下方露出，按住時的軌道向上彎向頂部邊緣，抬起的卡片向下移動而不是向上。</p>
     <pre><code><span class="comment">// 頂部位置</span>
 MyScreen().toasts(toasts, placement: .top)
 

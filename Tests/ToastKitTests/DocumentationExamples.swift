@@ -94,6 +94,17 @@ private func actionExamples(_ toasts: ToastCenter, store: ExampleStore) {
     toasts.present(ToastMessage(title: "One way", swipeActions: ToastSwipeActions(leading: .delete, trailing: nil)))
     toasts.present(ToastMessage(title: "Tap or wait", swipeActions: .disabled))
 
+    // Up and down instead of sideways, or all four ways.
+    let pin = ToastAction(title: "Pin", icon: .system("pin")) { toast in store.archive(toast.id) }
+    toasts.present(ToastMessage(title: "Up or down", swipeActions: .vertical(up: pin, down: .delete)))
+    toasts.present(ToastMessage(title: "Any way", swipeActions: ToastSwipeActions(
+        leading: .delete,
+        trailing: .later,
+        up: pin,
+        down: ToastAction(title: "Archive", icon: .system("archivebox")) { toast in store.archive(toast.id) }
+    )))
+    toasts.present(ToastMessage(title: "Sideways", swipeActions: .horizontal(leading: .delete, trailing: nil)))
+
     // One side replaced; the built-ins reworded.
     let archiveOnly = ToastSwipeActions(leading: ToastAction(title: "Archive", icon: .system("archivebox")) { toast in
         store.archive(toast.id)
