@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-ToastKit is a Swift Package that exposes one `ToastKit` library product. Production code is in `Sources/ToastKit/`; keep each public type in a focused file (for example, `ToastCenter.swift` or `ToastStyle.swift`). Package-owned localized strings live in `Sources/ToastKit/Resources/<locale>.lproj/Localizable.strings`. API documentation is in `Sources/ToastKit/ToastKit.docc/`. Tests mirror features in `Tests/ToastKitTests/`, while `DocumentationExamples.swift` compiles README snippets against the public API.
+ToastKit is a Swift Package that exposes one `ToastKit` library product. Production code is in `Sources/ToastKit/`; keep each public type in a focused file (for example, `ToastCenter.swift` or `ToastStyle.swift`). Package-owned localized strings live in `Sources/ToastKit/Resources/<locale>.lproj/Localizable.strings`. API documentation is in `Sources/ToastKit/ToastKit.docc/`. Tests mirror features in `Tests/ToastKitTests/`, while `DocumentationExamples.swift` compiles README snippets against the public API. `examples/` holds one example app per supported platform (`iOS`, `macOS`, `watchOS`, `visionOS`) plus `Shared` code; its Xcode project is generated from `examples/project.yml` with XcodeGen and is not committed.
 
 The package supports iOS 17+, macOS 14+, watchOS 10+, and visionOS 1+ with Swift 5.10. It deliberately has no dependencies beyond SwiftUI.
 
@@ -11,6 +11,7 @@ The package supports iOS 17+, macOS 14+, watchOS 10+, and visionOS 1+ with Swift
 - `swift build` — compile the library and catch public-API build errors.
 - `swift test` — run the XCTest suite, including README example compilation.
 - `swiftlint` — check `Sources/` and `Tests/` using `.swiftlint.yml`; install SwiftLint locally if the command is unavailable.
+- `cd examples && xcodegen generate` — generate `ToastKitExamples.xcodeproj`, then build or run the `iOSExample`, `macOSExample`, `watchOSExample` or `visionOSExample` scheme. CI builds all four.
 
 Run `swift test` before opening a pull request. Use an Xcode scheme derived from `Package.swift` when manually exercising gestures or accessibility on a supported simulator or device.
 
@@ -22,7 +23,7 @@ Keep model logic independent of rendering where possible: Foundation/Observation
 
 ## Testing Guidelines
 
-Use XCTest with `@testable import ToastKit`. Name tests `test<ExpectedBehavior>()`, e.g. `testNewestToastBecomesTopmost`. Cover behavior changes with deterministic tests; inject a `ToastScheduling` fake for timing rather than sleeping. Update `DocumentationExamples.swift` or README snippets when a public API changes.
+Use XCTest with `@testable import ToastKit`. Name tests `test<ExpectedBehavior>()`, e.g. `testNewestToastBecomesTopmost`. Cover behavior changes with deterministic tests; inject a `ToastScheduling` fake for timing rather than sleeping. Update `DocumentationExamples.swift` or README snippets when a public API changes. Keep the apps in `examples/` building too: they use the public API the same way an app would.
 
 ## Commit & Pull Request Guidelines
 

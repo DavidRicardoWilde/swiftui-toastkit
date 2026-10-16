@@ -32,6 +32,7 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 - [Documentation website](#documentation-website)
 - [Installation](#installation)
 - [Quick start](#quick-start)
+- [Examples](#examples)
 - [Presenting toasts](#presenting-toasts)
 - [How long a toast stays](#how-long-a-toast-stays)
 - [Actions: tap, swipe, press and hold](#actions-tap-swipe-press-and-hold)
@@ -112,6 +113,24 @@ struct ContentView: View {
 
 The toast appears at the bottom of the safe area, stays four seconds, and can be swiped
 away. Swipe left to delete it, or right to bring it back the next time the view appears.
+
+## Examples
+
+[`examples/`](examples) holds one small app for each supported platform: iOS, macOS,
+watchOS and visionOS. Each lets you present toasts of every status, pick which ways they
+swipe, switch swipe hints on and off, move the stack and change its width, and logs every
+action through `onToastAction`. The iOS example also draws the same toast in three
+styles. They build against this repository's package; generate the Xcode project with
+XcodeGen:
+
+```sh
+brew install xcodegen
+cd examples
+xcodegen generate
+open ToastKitExamples.xcodeproj
+```
+
+See [`examples/README.md`](examples/README.md) for what each one shows.
 
 ## Presenting toasts
 
