@@ -293,6 +293,11 @@ along the band. Past 64 pt the end it is heading for lights up and ticks; let go
 run that action, or anywhere short of it to put the card back. The chosen end shows the
 action's `confirmation` for a moment before the action runs.
 
+The finger that pressed stays put while the card lifts away from it, so nothing you need
+to read sits under your thumb. On a bottom stack the card rises 44 pt, and each label rides
+in the upper half of a 72 pt band, above the finger. A stack hanging from the top edge has
+no room above it, so its card moves only 7 pt.
+
 This is the same pair of actions a quick swipe runs. Pressing and holding lets the user
 read them first. A toast with no swipe actions ignores the long press.
 

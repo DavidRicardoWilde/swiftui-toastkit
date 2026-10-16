@@ -170,7 +170,8 @@ struct ToastLiftFeedback: ViewModifier {
 ///
 /// One translucent band across the stack, bent gently toward its edge. Each end carries
 /// its action's colour, solid near the end and fading to nothing at the centre so the
-/// two meet without a seam. The labels sit on the band beside the lifted card.
+/// two meet without a seam. The labels sit in the band's upper half beside the lifted
+/// card, clear of the finger below it.
 struct ToastActionTrack: View {
     let geometry: ToastTrackGeometry
     let actions: ToastSwipeActions
@@ -274,7 +275,7 @@ struct ToastActionTrack: View {
             .opacity(isDimmed(side) ? 0.5 : 1)
             .frame(width: max(0, geometry.labelWidth))
             .rotationEffect(.radians(geometry.tilt(at: x)))
-            .position(x: geometry.bandWidth / 2 + x, y: geometry.bandY(at: x))
+            .position(x: geometry.bandWidth / 2 + x, y: geometry.labelY(at: x))
             .opacity(isShown ? 1 : 0)
         }
     }

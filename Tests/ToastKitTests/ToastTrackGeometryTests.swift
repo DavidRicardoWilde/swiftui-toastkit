@@ -29,16 +29,21 @@ final class ToastTrackGeometryTests: XCTestCase {
 
     // MARK: - The lifted card
 
-    func testLiftedCardRisesSevenPointsOntoTheCrest() {
-        let offset = geometry().cardOffset(at: 0)
+    func testLiftedCardOnABottomStackRisesClearOfTheThumb() {
+        let offset = geometry(curve: 1).cardOffset(at: 0)
         XCTAssertEqual(offset.width, 0)
-        XCTAssertEqual(offset.height, -7)
+        XCTAssertEqual(offset.height, -44)
+    }
+
+    func testLiftedCardOnATopStackKeepsItsSmallOffset() {
+        // No room above a card hanging from the top edge: it moves 7 pt down, as before.
+        XCTAssertEqual(geometry(curve: -1).cardOffset(at: 0).height, 7)
     }
 
     func testCarriedCardFollowsTheBandAndTurnsWithIt() {
         let bottom = geometry(curve: 1)
         let top = geometry(curve: -1)
-        XCTAssertEqual(bottom.cardOffset(at: 80).height, bottom.sag(at: 80) - 7, accuracy: 0.0001)
+        XCTAssertEqual(bottom.cardOffset(at: 80).height, bottom.sag(at: 80) - 44, accuracy: 0.0001)
         XCTAssertEqual(top.cardOffset(at: 80).height, -(top.sag(at: 80) - 7), accuracy: 0.0001)
         XCTAssertEqual(bottom.tilt(at: 90), asin(0.1), accuracy: 0.0001)
         XCTAssertEqual(top.tilt(at: 90), -asin(0.1), accuracy: 0.0001)
@@ -47,9 +52,37 @@ final class ToastTrackGeometryTests: XCTestCase {
 
     func testTrackCrestSitsUnderTheLiftedCard() {
         // The track view is centred on the resting card; the offset moves its crest to
-        // the lifted card's centre, 7 pt off the resting one, on either edge.
-        XCTAssertEqual(geometry(curve: 1).trackOffset, 6)
+        // the lifted card's centre: 44 pt up on a bottom stack, 7 pt down on a top one.
+        for track in [geometry(curve: 1), geometry(curve: -1)] {
+            let crest = track.crestY - ToastTrackGeometry.height / 2 + track.trackOffset
+            XCTAssertEqual(crest, track.cardOffset(at: 0).height, accuracy: 0.0001)
+        }
+        XCTAssertEqual(geometry(curve: 1).trackOffset, -31)
         XCTAssertEqual(geometry(curve: -1).trackOffset, -6)
+    }
+
+    func testTheBandIsWideEnoughToCarryItsLabelsAboveTheFinger() {
+        XCTAssertEqual(ToastTrackGeometry.bandThickness, 72)
+        // A two-line label, about 30 pt tall, fits in the band's upper half.
+        XCTAssertLessThanOrEqual(ToastTrackGeometry.labelLift + 15, ToastTrackGeometry.bandThickness / 2)
+        // Room in the track view for the band on either side of its crest.
+        XCTAssertGreaterThanOrEqual(ToastTrackGeometry.crestInset, ToastTrackGeometry.bandThickness / 2)
+    }
+
+    func testLabelsRideAboveTheBandsCentreLineOnEitherEdge() {
+        for track in [geometry(curve: 1), geometry(curve: -1)] {
+            XCTAssertEqual(track.labelY(at: 0), track.bandY(at: 0) - 16)
+            XCTAssertEqual(track.labelY(at: 140), track.bandY(at: 140) - 16, accuracy: 0.0001)
+        }
+    }
+
+    func testLabelsOnABottomStackClearAThumbPressingTheMiddleOfTheCard() {
+        // A thumb's tip reaches about 31 pt above where it touches. Pressing the card's
+        // middle, a two-line label's lower edge (15 pt below its centre) must sit above it.
+        let track = geometry(curve: 1)
+        let x = track.labelCenter
+        let labelCenter = track.labelY(at: x) - ToastTrackGeometry.height / 2 + track.trackOffset
+        XCTAssertLessThanOrEqual(labelCenter + 15, -31)
     }
 
     // MARK: - Labels and carrying
