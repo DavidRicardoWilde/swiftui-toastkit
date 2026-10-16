@@ -87,6 +87,11 @@ toasts.present(ToastMessage(
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
     <p>동작은 handler 실행, 스택의 <code>onToastAction</code> 옵저버 호출, 동작 효과 적용 순서로 처리됩니다. 기본 제공 <code>.later</code>는 페이지가 다시 나타날 때까지 토스트를 보류합니다.</p>
+    <div class="callout"><span>✳</span><p><strong>0.2.0 새 기능: 스와이프를 시작하자마자 동작 표시.</strong> 기본적으로 빠른 스와이프는 바로 동작을 실행하고, 양쪽 동작을 보여 주는 트랙은 길게 눌러야 나타납니다. <code>.toastSwipeHints(.immediate)</code>를 설정하면 스와이프 자체가 카드를 트랙 위로 들어 올립니다.</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>8 pt만 움직여도 카드가 트랙에 올라가 양쪽 동작이 모두 보이고, 손가락을 따라 움직입니다. 64 pt를 넘으면 향하는 쪽 끝이 켜집니다. 그곳에서 손을 떼거나 한쪽으로 튕기면 그 동작이 실행되고, 그 전에 손을 떼면 카드가 제자리로 돌아갑니다. 길게 누르기도 그대로 쓸 수 있으며, 스택 밖에 단독으로 표시한 <code>ToastCard</code>는 빠른 스와이프를 유지합니다.</p>
   </section>
 
   <section class="doc-section" id="styling">

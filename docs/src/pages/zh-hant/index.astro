@@ -92,6 +92,11 @@ toasts.present(ToastMessage(
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
     <p>操作依序執行：先執行自身 handler，再通知堆疊的 <code>onToastAction</code> 觀察器，最後套用操作效果。內建 <code>.later</code> 會暫存提示，等頁面再次出現時恢復。</p>
+    <div class="callout"><span>✳</span><p><strong>0.2.0 新增：滑動一開始就顯示操作。</strong>預設情況下，快速滑動會立即執行操作，顯示兩側操作的軌道要等按住後才出現。設定 <code>.toastSwipeHints(.immediate)</code> 後，滑動本身就會把卡片抬到軌道上。</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>滑動 8 pt 後，卡片就會出現在軌道上，兩側操作同時可見，並跟隨手指移動。移動超過 64 pt 時，前方一端會亮起；在那裡放開，或朝某一端快速甩動，即可執行該操作。未到該位置就放開，卡片會落回原處。按住依然有效；在堆疊之外單獨顯示的 <code>ToastCard</code> 保留快速滑動。</p>
   </section>
 
   <section class="doc-section" id="styling">

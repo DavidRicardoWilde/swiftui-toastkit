@@ -87,6 +87,11 @@ toasts.present(ToastMessage(
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
     <p>Las acciones se ejecutan en este orden: su handler, el observador <code>onToastAction</code> de la pila y, por último, su efecto. La acción integrada <code>.later</code> guarda el aviso hasta que la página vuelva a aparecer.</p>
+    <div class="callout"><span>✳</span><p><strong>Novedad en 0.2.0: las acciones a la vista desde el inicio del deslizamiento.</strong> De forma predeterminada, un deslizamiento rápido actúa al instante y la pista con ambas acciones espera a que se mantenga pulsado. Con <code>.toastSwipeHints(.immediate)</code>, el propio deslizamiento levanta la tarjeta sobre la pista.</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>Tras 8 pt de recorrido, la tarjeta ya está en la pista con ambas acciones a la vista y sigue al dedo. Pasados 64 pt, el extremo hacia el que va se ilumina; al soltarla ahí, o al lanzarla hacia un extremo, se ejecuta esa acción. Si se suelta antes, la tarjeta vuelve a su sitio. Mantener pulsado sigue funcionando, y una <code>ToastCard</code> mostrada por sí sola, fuera de una pila, conserva el deslizamiento rápido.</p>
   </section>
 
   <section class="doc-section" id="styling">

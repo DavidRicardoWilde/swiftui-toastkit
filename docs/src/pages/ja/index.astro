@@ -87,6 +87,11 @@ toasts.present(ToastMessage(
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
     <p>操作は handler、スタックの <code>onToastAction</code> オブザーバー、操作の効果の順に実行されます。組み込みの <code>.later</code> は、ページが再び表示されるまでトーストを保留します。</p>
+    <div class="callout"><span>✳</span><p><strong>0.2.0 の新機能：スワイプの始まりから操作を表示。</strong>既定では、素早いスワイプはすぐに操作を実行し、両方の操作を並べたトラックは長押しするまで表示されません。<code>.toastSwipeHints(.immediate)</code> を設定すると、スワイプそのものがカードをトラックに持ち上げます。</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>8 pt 動かすとカードがトラックに乗り、両方の操作が見えたまま指に追従します。64 pt を超えると向かっている側の端が点灯し、そこで指を離すか、その方向へはじくと操作が実行されます。手前で離すとカードは元に戻ります。長押しもこれまでどおり使え、スタックの外で単独表示した <code>ToastCard</code> は素早いスワイプのままです。</p>
   </section>
 
   <section class="doc-section" id="styling">
