@@ -41,4 +41,27 @@ final class ToastSwipeTests: XCTestCase {
         XCTAssertNil(ToastSwipe.commit(travel: 200, projected: 400, leading: true, trailing: false))
         XCTAssertNil(ToastSwipe.commit(travel: -200, projected: -400, leading: false, trailing: true))
     }
+
+    // MARK: - Letting go of a card a swipe lifted onto the track
+
+    func testTheArmedEndRunsWhenLetGo() {
+        XCTAssertEqual(ToastSwipe.release(armed: .leading, travel: -64, projected: -64, leading: true, trailing: true), .leading)
+        XCTAssertEqual(ToastSwipe.release(armed: .trailing, travel: 70, projected: 70, leading: true, trailing: true), .trailing)
+    }
+
+    func testTheArmedEndWinsOverAFlickBack() {
+        XCTAssertEqual(ToastSwipe.release(armed: .trailing, travel: 70, projected: -300, leading: true, trailing: true), .trailing)
+    }
+
+    func testAFlickShortOfTheArmPointStillRunsThatSide() {
+        XCTAssertEqual(ToastSwipe.release(armed: nil, travel: -30, projected: -240, leading: true, trailing: true), .leading)
+    }
+
+    func testLettingGoShortWithoutAFlickPutsTheCardBack() {
+        XCTAssertNil(ToastSwipe.release(armed: nil, travel: 40, projected: 90, leading: true, trailing: true))
+    }
+
+    func testAFlickTowardASideWithoutAnActionPutsTheCardBack() {
+        XCTAssertNil(ToastSwipe.release(armed: nil, travel: 30, projected: 400, leading: true, trailing: false))
+    }
 }

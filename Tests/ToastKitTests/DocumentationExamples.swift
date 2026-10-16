@@ -110,6 +110,17 @@ private func actionExamples(_ toasts: ToastCenter, store: ExampleStore) {
     )))
 }
 
+/// Both swipe actions on show from the first moment of a swipe, without a hold.
+private struct SwipeHintsExample: View {
+    @State private var toasts = ToastCenter()
+
+    var body: some View {
+        Text("Inbox")
+            .toasts(toasts)
+            .toastSwipeHints(.immediate)
+    }
+}
+
 // MARK: - Testing
 
 @MainActor
@@ -304,6 +315,7 @@ final class DocumentationExamplesTests: XCTestCase {
         // Compiling the views is the point; building one needs no host.
         let views: [any View] = [
             QuickStartExample(),
+            SwipeHintsExample(),
             ActionObserverExample(),
             StylingExample(),
             PlacementExample(),
@@ -312,6 +324,6 @@ final class DocumentationExamplesTests: XCTestCase {
             ScopeExample(),
             StaticCardExample()
         ]
-        XCTAssertEqual(views.count, 8)
+        XCTAssertEqual(views.count, 9)
     }
 }

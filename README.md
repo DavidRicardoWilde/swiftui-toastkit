@@ -13,6 +13,7 @@ a `ToastStyle`: the frosted-glass default, the bare `.plain` style, or your own.
   side sets it aside until the page is next opened.
 - **Actions you can read before choosing.** Pressing and holding lifts the card onto a
   curved track with both swipe actions laid out at its ends: icon, title and subtitle.
+  Set `.toastSwipeHints(.immediate)` and the swipe itself shows them, no hold needed.
 - **Timing that waits for the user.** Only the front toast counts down. The countdown
   pauses while a finger is on the stack or the app is in the background.
 - **Bottom by default, clear of whatever is there.** The stack sits above system tab bars
@@ -80,6 +81,13 @@ your app target.
 
 Releases follow [semantic versioning](https://semver.org). Before 1.0, a minor release may
 change the API, so `.upToNextMinor(from:)` is the safe requirement; patch releases only fix.
+
+Pre-releases, such as `0.2.0-beta.1`, are tagged ahead of a minor release. Swift Package
+Manager never picks one for a range that starts at a plain version, so ask for it exactly:
+
+```swift
+.package(url: "https://github.com/DavidRicardoWilde/swiftui-toastkit.git", exact: "0.2.0-beta.1")
+```
 
 ## Quick start
 
@@ -188,7 +196,7 @@ Every gesture on the front card runs a `ToastAction`.
 | Tap | `tapAction`, or the stack's `onTap` | Nothing; taps pass through to the content behind. |
 | Swipe toward the leading side | `swipeActions.leading` | `.delete`: the toast is removed. |
 | Swipe toward the trailing side | `swipeActions.trailing` | `.later`: the toast comes back the next time the page is opened. |
-| Press and hold, then carry | Either swipe action, chosen on a track | Shows both, with their icons, titles and subtitles. |
+| Press and hold, then carry | Either swipe action, chosen on a track | Shows both, with their icons, titles and subtitles. With `.toastSwipeHints(.immediate)`, a swipe does this too. |
 
 In a left-to-right layout, leading is left and trailing is right.
 
@@ -287,6 +295,32 @@ action's `confirmation` for a moment before the action runs.
 
 This is the same pair of actions a quick swipe runs. Pressing and holding lets the user
 read them first. A toast with no swipe actions ignores the long press.
+
+### Showing the actions as a swipe starts
+
+By default a quick swipe acts without saying what it will do; the track waits for a hold.
+Set `toastSwipeHints(.immediate)` and the swipe itself lifts the card onto the track:
+
+```swift
+MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)
+```
+
+After 8 pt of travel the card is on the track with both actions showing, and it follows
+the finger along it. Past 64 pt the end it is heading for lights up and ticks. Let go
+there, or flick toward an end, to run that action; let go anywhere short of it and the card
+settles back. Pressing and holding still works as before. A hold is confirmed with a thump
+as the card lifts; a swipe, already under way, keeps only the tick.
+
+| | `.afterHold` (default) | `.immediate` |
+| --- | --- | --- |
+| Swipe | Runs past 88 pt or on a flick; the card flies off. | Lifts the card onto the track at 8 pt; runs the end it is armed toward at 64 pt, or flicked toward. |
+| Press and hold | Lifts the card onto the track. | The same. |
+
+Like `toastTheme(_:)`, it applies to every stack below where it is set. A `ToastCard`
+shown on its own, outside a stack, has no room for a track and keeps the quick swipe.
+Available from 0.2.0.
 
 ### Observing every action
 
@@ -574,7 +608,7 @@ compile this README's examples against the public API
 | Layer | Types | Imports |
 | --- | --- | --- |
 | Model | `ToastCenter`, `ToastMessage`, `ToastDuration`, `ToastAction`, `ToastSwipeActions`, `ToastIcon`, `ToastWidth`, `ToastScheduling` | Foundation |
-| Behaviour | `ToastStack`, `ToastCard`, the press-and-hold track, obstructions | SwiftUI |
+| Behaviour | `ToastStack`, `ToastCard`, the press-and-hold track, `ToastSwipeHints`, obstructions | SwiftUI |
 | Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme` | SwiftUI |
 
 - The model holds no colours or views, so its rules are unit-tested without a host.

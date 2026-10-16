@@ -176,7 +176,8 @@ public extension ToastAction {
 ///
 /// A quick swipe runs an action at once. Pressing and holding first lifts the card onto
 /// a track with both actions drawn at its ends — icon, title and subtitle — so the user
-/// can see what each way does before letting go.
+/// can see what each way does before letting go. With ``ToastSwipeHints/immediate`` set,
+/// the swipe itself lifts the card onto that track.
 ///
 /// By default every toast offers ``ToastAction/delete`` on the leading side and
 /// ``ToastAction/later`` on the trailing side. Replace either, or pass `nil` to make that

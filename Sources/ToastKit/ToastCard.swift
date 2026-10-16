@@ -19,6 +19,11 @@ import SwiftUI
 ///   end. Carrying it 64 pt toward an end arms that action; letting go there runs it,
 ///   anywhere else puts the card back. See `ToastActionTrack`.
 ///
+/// With ``ToastSwipeHints/immediate`` in the environment, a swipe does what the hold
+/// does: 8 pt of travel lifts the card onto the track, the swipe carries it, and letting
+/// go runs the armed end, or the end it was flicked toward. A card with nowhere to draw a
+/// track, outside a stack, keeps the quick swipe.
+///
 /// The exit is animated here rather than left to a SwiftUI removal transition, because
 /// a transition cannot know which way the finger went. The card flings itself past the
 /// screen edge, fading as it goes, and only then reports the action — by which point it
@@ -83,6 +88,7 @@ public struct ToastCard: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.toastPlacement) private var placement
     @Environment(\.toastTrackLayout) private var trackLayout
+    @Environment(\.toastSwipeHints) private var swipeHints
 
     @State private var dragX: CGFloat = 0
     @State private var isFlingingOut = false
@@ -104,6 +110,9 @@ public struct ToastCard: View {
     /// The end chosen on letting go; its label switches to the confirmation.
     @State private var chosenSide: ToastTrackSide?
     @State private var liftHaptic = ToastLiftHaptic()
+    /// The swipe lifted the card, rather than a hold. The swipe then carries and releases
+    /// it; the hold's gesture, which has failed by then, leaves it alone.
+    @State private var liftedBySwipe = false
     /// Set when a long press lifts the card, so the tap that may follow the same touch
     /// does not also run the tap action. Cleared when the next touch begins.
     @State private var liftConsumedTouch = false
@@ -155,10 +164,13 @@ public struct ToastCard: View {
                 if pressing { liftConsumedTouch = false }
             }
             // The same for a lift: a cancelled long press must not leave the card up.
-            // Deferred a turn so that a normal release, handled in `onEnded`, wins.
+            // Deferred a turn so that a normal release, handled in `onEnded`, wins. A
+            // swipe that lifts the card also fails the long press, so it is skipped then.
             .onChange(of: isLiftGestureActive) { _, active in
                 guard !active else { return }
-                Task { @MainActor in putBack() }
+                Task { @MainActor in
+                    if !liftedBySwipe { putBack() }
+                }
             }
             .onDisappear {
                 releaseAbandonedDrag()
@@ -227,11 +239,24 @@ public struct ToastCard: View {
         return placement.curve * min(dragX * dragX / 1_800, 160)
     }
 
+    /// With ``ToastSwipeHints/immediate``, a swipe lifts the card onto its track.
+    private var swipeLifts: Bool {
+        swipeHints == .immediate && canLift
+    }
+
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 8)
             .updating($isDragging) { _, dragging, _ in dragging = true }
             .onChanged { value in
-                guard !isFlingingOut, isInteractive, lift == .resting else { return }
+                guard !isFlingingOut, isInteractive else { return }
+                if lift == .resting, !swipeStarted, swipeLifts {
+                    liftUp(bySwipe: true)
+                }
+                if liftedBySwipe {
+                    carry(value.translation.width)
+                    return
+                }
+                guard lift == .resting else { return }
                 swipeStarted = true
                 if !holdsInteraction {
                     holdsInteraction = true
@@ -244,7 +269,18 @@ public struct ToastCard: View {
                 )
             }
             .onEnded { value in
-                guard !isFlingingOut, isInteractive, swipeStarted, lift == .resting else { return }
+                guard !isFlingingOut, isInteractive else { return }
+                if liftedBySwipe {
+                    release(to: ToastSwipe.release(
+                        armed: armedSide,
+                        travel: value.translation.width,
+                        projected: value.predictedEndTranslation.width,
+                        leading: swipeActions.leading != nil,
+                        trailing: swipeActions.trailing != nil
+                    ))
+                    return
+                }
+                guard swipeStarted, lift == .resting else { return }
                 swipeStarted = false
                 holdsInteraction = false
                 let side = ToastSwipe.commit(
@@ -268,6 +304,14 @@ public struct ToastCard: View {
     /// interaction it raised. A no-op once the drag has been resolved, and during a
     /// fling, whose deferred action lowers the interaction itself.
     private func releaseAbandonedDrag() {
+        if liftedBySwipe {
+            // Puts the card back down, deferred a turn like a cancelled hold, so that a
+            // normal release in `onEnded` wins whichever order the two arrive in.
+            Task { @MainActor in
+                if liftedBySwipe { putBack() }
+            }
+            return
+        }
         guard holdsInteraction, !isFlingingOut else { return }
         holdsInteraction = false
         withAnimation(theme.snapBackMotion.animation(reduceMotion: reduceMotion)) {
@@ -344,14 +388,16 @@ public struct ToastCard: View {
             }
             .onEnded { value in
                 guard case .second(true, _) = value else { return }
-                release()
+                release(to: armedSide)
             }
     }
 
-    private func liftUp() {
+    /// Onto the track, by a hold or, with ``ToastSwipeHints/immediate``, by a swipe.
+    private func liftUp(bySwipe: Bool = false) {
         guard lift == .resting, canLift, !isFlingingOut else { return }
         liftConsumedTouch = true
         swipeStarted = false
+        liftedBySwipe = bySwipe
         withAnimation(theme.stackMotion.animation(reduceMotion: reduceMotion)) {
             lift = .lifted
             carryX = 0
@@ -359,7 +405,9 @@ public struct ToastCard: View {
             chosenSide = nil
         }
         onInteractionChange(true)
-        liftHaptic.fire(.lifted)
+        // A hold gets a thump to say it has worked. A swipe is already under way, so it
+        // is left with the tick as an end arms; a thump on every swipe would grate.
+        if !bySwipe { liftHaptic.fire(.lifted) }
     }
 
     private func carry(_ translation: CGFloat) {
@@ -380,10 +428,10 @@ public struct ToastCard: View {
         if side != nil { liftHaptic.fire(.armed) }
     }
 
-    /// Let go: into the armed action, or back down if none is armed.
-    private func release() {
+    /// Let go: into `side`'s action, or back down if there is none.
+    private func release(to side: ToastTrackSide?) {
         guard lift == .lifted else { return }
-        if let side = armedSide, let action = swipeActions.action(for: side) {
+        if let side, let action = swipeActions.action(for: side) {
             choose(action, at: side)
         } else {
             putBack()
@@ -394,6 +442,7 @@ public struct ToastCard: View {
     /// stays held until the action has run.
     private func choose(_ action: ToastAction, at side: ToastTrackSide) {
         guard let geometry = trackGeometry else { return }
+        liftedBySwipe = false
         withAnimation(theme.flingMotion.animation(reduceMotion: reduceMotion)) {
             lift = .committing
             carryX = geometry.labelX(for: side)
@@ -411,6 +460,7 @@ public struct ToastCard: View {
     /// Back down to full size with nothing chosen. A no-op unless the card is lifted.
     private func putBack() {
         guard lift == .lifted else { return }
+        liftedBySwipe = false
         withAnimation(theme.stackMotion.animation(reduceMotion: reduceMotion)) {
             lift = .resting
             carryX = 0

@@ -39,4 +39,16 @@ enum ToastSwipe {
         }
         return trailing ? .trailing : nil
     }
+
+    /// The side a card that a swipe lifted onto the track runs when let go: the end it is
+    /// armed toward, or, short of that, the side it was flicked toward. `nil` puts it back.
+    static func release(
+        armed: ToastTrackSide?,
+        travel: CGFloat,
+        projected: CGFloat,
+        leading: Bool,
+        trailing: Bool
+    ) -> ToastTrackSide? {
+        armed ?? commit(travel: travel, projected: projected, leading: leading, trailing: trailing)
+    }
 }
