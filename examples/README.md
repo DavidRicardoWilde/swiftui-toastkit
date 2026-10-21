@@ -22,6 +22,10 @@ Each action you choose is logged under **Recent actions**, through `onToastActio
 
 ## Running them
 
+Quickest: from the repository root, `scripts/run-example.sh ios` (or `macos`, `watchos`, `visionos`) generates the project, builds the example and launches it.
+
+By hand:
+
 The Xcode project is generated with [XcodeGen](https://github.com/yonaskolb/XcodeGen) from
 [`project.yml`](project.yml), and is not committed:
 

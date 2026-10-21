@@ -5,3 +5,5 @@ DerivedData/
 xcuserdata/
 *.xcodeproj
 Package.resolved
+docs/assets/*.mov
+examples/.build/

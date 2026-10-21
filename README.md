@@ -2,6 +2,18 @@
 
 Stacked, swipeable toast notifications for SwiftUI.
 
+<!-- Demo GIFs: recorded on a Mac from examples/ — see docs/recording-demos.md.
+     Uncomment each line once its file is in docs/assets/.
+<p align="center">
+  <img src="docs/assets/demo-ios-stack.gif" width="240" alt="Toasts stacking on iPhone">
+  <img src="docs/assets/demo-ios-swipe.gif" width="240" alt="Swiping toasts left and right">
+  <img src="docs/assets/demo-ios-hold.gif" width="240" alt="Holding a toast to see its actions">
+</p>
+<p align="center">
+  <img src="docs/assets/demo-macos.gif" width="600" alt="ToastKit on macOS">
+</p>
+-->
+
 ToastKit separates what a toast *does* from how it *looks*. The views handle stacking,
 timing, gestures and accessibility, and draw nothing of their own. Every card is drawn by
 a `ToastStyle`: the frosted-glass default, the bare `.plain` style, or your own.
@@ -121,7 +133,9 @@ watchOS and visionOS. Each lets you present toasts of every status, pick which w
 swipe, switch swipe hints on and off, move the stack and change its width, and logs every
 action through `onToastAction`. The iOS example also draws the same toast in three
 styles. They build against this repository's package; generate the Xcode project with
-XcodeGen:
+XcodeGen, or run `scripts/run-example.sh ios` (also `macos`, `watchos`, `visionos`) to
+generate, build and launch one in a step. Each folder has its own README. To record the
+README's demo GIFs, see [docs/recording-demos.md](docs/recording-demos.md).
 
 ```sh
 brew install xcodegen
