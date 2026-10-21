@@ -18,6 +18,27 @@ import SwiftUI
 ///     ))
 /// ```
 ///
+/// To adopt a palette the app already has — asset catalog colour sets, or a design
+/// system's `Color` extensions — map its tokens once, in a theme of the app's own, and
+/// apply it at the root. Every toast below inherits it through the environment:
+///
+/// ```swift
+/// extension ToastTheme {
+///     static let brand = ToastTheme(
+///         textPrimary: .brandTextPrimary,
+///         tint: ToastTheme.statusTint(
+///             warning: .brandWarning,
+///             error: .brandDanger,
+///             notification: .brandAccent
+///         )
+///     )
+/// }
+///
+/// ContentView()
+///     .toasts(toasts)
+///     .toastTheme(.brand)
+/// ```
+///
 /// Surfaces, content and metrics are read by ``GlassToastStyle`` only; a custom
 /// ``ToastStyle`` is free to ignore them. `edgeInset`, the motions, `actionTint`,
 /// `actionFadeStart` and `feedback` apply whatever the style.
@@ -85,7 +106,8 @@ public struct ToastTheme {
 
     /// The hue for a status. One colour per status — the kit derives the wash, the edge,
     /// the glyph chip and the glow from it at fixed opacities, so a host retunes a
-    /// status by changing one value rather than four.
+    /// status by changing one value rather than four. Map a palette's colours onto it with
+    /// ``statusTint(normal:warning:error:notification:)``.
     public var tint: (ToastMessage.Status) -> Color
 
     // MARK: Metrics
@@ -179,12 +201,38 @@ public struct ToastTheme {
     /// already tuned the pair for its own appearances and contrast requirements.
     /// `normal` resolves to the secondary label colour, which is what makes its wash
     /// vanish — see `ToastMessage.Status.surfaceWash(in:)`.
-    public static let standardTint: (ToastMessage.Status) -> Color = { status in
-        switch status {
-        case .normal:       .secondary
-        case .warning:      .orange
-        case .error:        .red
-        case .notification: .accentColor
+    public static let standardTint: (ToastMessage.Status) -> Color = statusTint()
+
+    /// Builds a ``tint`` from one colour per status — the shape of a design system's
+    /// semantic palette, so adopting one is a matter of naming its tokens. Each colour
+    /// left out keeps its ``standardTint`` value.
+    ///
+    /// ```swift
+    /// ToastTheme(tint: ToastTheme.statusTint(
+    ///     warning: .brandWarning,
+    ///     error: .brandDanger,
+    ///     notification: .brandAccent
+    /// ))
+    /// ```
+    ///
+    /// Dynamic colours, such as asset catalog colour sets, keep their light, dark and
+    /// high-contrast variants: the kit derives every shade from the tint as it draws.
+    ///
+    /// `normal` colours only the glyph. Its surface stays clear and its border neutral
+    /// whatever the tint, so a toast with nothing to report never looks like one that does.
+    public static func statusTint(
+        normal: Color = .secondary,
+        warning: Color = .orange,
+        error: Color = .red,
+        notification: Color = .accentColor
+    ) -> (ToastMessage.Status) -> Color {
+        { status in
+            switch status {
+            case .normal:       normal
+            case .warning:      warning
+            case .error:        error
+            case .notification: notification
+            }
         }
     }
 

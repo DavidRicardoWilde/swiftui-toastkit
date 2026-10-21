@@ -121,6 +121,19 @@ toasts.present(ToastMessage(
 MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
     <div class="swatches"><span><i class="swatch swatch-violet"></i> 动效</span><span><i class="swatch swatch-blue"></i> 色彩</span><span><i class="swatch swatch-sage"></i> 表面</span><span><i class="swatch swatch-sand"></i> 字体</span></div>
     <p>自定义样式可以访问提示的图标、标题、正文、状态，以及卡片是否正处于长按轨道上。布局和手势仍由堆栈负责。</p>
+    <p><strong>已有自己的配色？</strong>用 <code>ToastTheme.statusTint</code> 把资源目录中的颜色一次性映射到主题，并在根视图上应用。未指定的状态保留默认颜色，浅色、深色和高对比度变体也会一并生效。</p>
+    <pre><code><span class="kw">extension</span> ToastTheme &#123;
+    <span class="kw">static let</span> brand = ToastTheme(
+        <span class="comment">// Xcode 根据资源目录生成的颜色符号</span>
+        tint: ToastTheme.statusTint(
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        )
+    )
+&#125;
+
+ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
   </section>
 
   <section class="doc-section" id="layout">

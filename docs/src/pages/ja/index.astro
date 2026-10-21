@@ -106,6 +106,19 @@ toasts.present(ToastMessage(
 MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
     <div class="swatches"><span><i class="swatch swatch-violet"></i> モーション</span><span><i class="swatch swatch-blue"></i> 色</span><span><i class="swatch swatch-sage"></i> 面</span><span><i class="swatch swatch-sand"></i> 文字</span></div>
     <p>カスタムスタイルからはアイコン、タイトル、本文、ステータス、長押しトラックに持ち上げられているかを参照できます。レイアウトとジェスチャはスタックが管理します。</p>
+    <p><strong>既存のカラーパレットがある場合</strong>は、アセットカタログの色を <code>ToastTheme.statusTint</code> で一度テーマに割り当て、ルートで適用します。指定しなかったステータスは既定の色のままで、ライト・ダーク・高コントラストの各バリアントもそのまま反映されます。</p>
+    <pre><code><span class="kw">extension</span> ToastTheme &#123;
+    <span class="kw">static let</span> brand = ToastTheme(
+        <span class="comment">// Xcode がアセットカタログから生成するシンボル</span>
+        tint: ToastTheme.statusTint(
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        )
+    )
+&#125;
+
+ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
   </section>
 
   <section class="doc-section" id="layout">
