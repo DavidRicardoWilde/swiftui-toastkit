@@ -108,20 +108,30 @@ away. Swipe left to delete it, or right to bring it back the next time the view 
 ## Running the example
 
 The repository includes a small demo app at `Examples/ToastKitDemo`. It is a
-regular Xcode project, so there is nothing to generate first.
+regular Xcode project, so there is nothing to generate first. It needs Xcode 16
+or later, with the platforms you want to try installed under
+**Settings > Components**.
 
-1. Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj` in Xcode 16 or later.
-2. Choose the **ToastKitDemo** scheme and an iPhone simulator, or **My Mac**.
+1. Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj`.
+2. Choose a scheme and a run destination:
+   - **ToastKitDemo** runs on an iPhone or iPad simulator, on **My Mac**, or on
+     an Apple Vision Pro simulator. It is one multiplatform target, so all
+     three appear in the same destination menu.
+   - **ToastKitDemoWatch** is a standalone Apple Watch app. Pick an Apple Watch
+     simulator.
 3. Press Run.
 
-The project depends on this checkout of ToastKit through a local package
+Both targets depend on this checkout of ToastKit through a local package
 reference (`../..`), so any change you make to the library shows up in the
-demo on the next build. The bundle identifier is the placeholder
-`com.example.ToastKitDemo`. The simulator and My Mac need no signing setup.
-To run on a physical iPhone or iPad, choose your own team under
-**Signing & Capabilities** and change the bundle identifier to one you own.
+demo on the next build. The bundle identifiers are the placeholders
+`com.example.ToastKitDemo` and `com.example.ToastKitDemo.watchkitapp`.
+Simulators and My Mac need no signing setup. To run on a physical device,
+choose your own team under **Signing & Capabilities** and change the bundle
+identifiers to ones you own.
 
-The demo has two tabs:
+The watch app is a compact version of the playground: each status, a short
+stack, swipe actions, a tap action and top or bottom placement. On iPhone,
+iPad, Mac and Apple Vision Pro, the demo has two tabs:
 
 - **Playground** shows each status, a burst of stacked toasts, a persistent
   toast, tap actions, swipe actions on both sides, press and hold, postponed
