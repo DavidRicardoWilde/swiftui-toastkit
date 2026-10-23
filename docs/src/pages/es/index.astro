@@ -106,6 +106,19 @@ toasts.present(ToastMessage(
 MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
     <div class="swatches"><span><i class="swatch swatch-violet"></i> Movimiento</span><span><i class="swatch swatch-blue"></i> Color</span><span><i class="swatch swatch-sage"></i> Superficie</span><span><i class="swatch swatch-sand"></i> Tipografía</span></div>
     <p>Un estilo propio recibe el icono, el título, el mensaje, el estado y la información de si la tarjeta está elevada sobre la pista. La pila sigue controlando el diseño y los gestos.</p>
+    <p><strong>¿Ya tienes una paleta?</strong> Asigna una sola vez los colores de tu catálogo de recursos a un tema con <code>ToastTheme.statusTint</code> y aplícalo en la raíz. Los estados que no indiques conservan su color predeterminado, y las variantes clara, oscura y de alto contraste se mantienen.</p>
+    <pre><code><span class="kw">extension</span> ToastTheme &#123;
+    <span class="kw">static let</span> brand = ToastTheme(
+        <span class="comment">// Símbolos que Xcode genera a partir del catálogo de recursos</span>
+        tint: ToastTheme.statusTint(
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        )
+    )
+&#125;
+
+ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
   </section>
 
   <section class="doc-section" id="layout">

@@ -205,6 +205,49 @@ private struct StylingExample: View {
     }
 }
 
+// Stand-ins for the symbols Xcode generates from an app's asset catalog colour sets.
+private extension Color {
+    static let brandTextPrimary = Color.primary
+    static let brandTextSecondary = Color.secondary
+    static let brandNeutral = Color.gray
+    static let brandWarning = Color.yellow
+    static let brandDanger = Color.pink
+    static let brandAccent = Color.purple
+}
+
+private extension ToastTheme {
+    static let brand = ToastTheme(
+        textPrimary: .brandTextPrimary,
+        textSecondary: .brandTextSecondary,
+        tint: ToastTheme.statusTint(
+            normal: .brandNeutral,
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        ),
+        actionTint: { role in
+            role == .destructive ? .brandDanger : ToastTheme.standardActionTint(role)
+        }
+    )
+
+    static let onlyErrors = ToastTheme(tint: ToastTheme.statusTint(error: .brandDanger))
+}
+
+private struct DesignSystemExample: View {
+    @State private var toasts = ToastCenter()
+
+    var body: some View {
+        VStack {
+            Color.clear
+                .toasts(toasts)
+                .toastTheme(.brand)
+            Color.clear
+                .toasts(toasts)
+                .toastTheme(.onlyErrors)
+        }
+    }
+}
+
 // MARK: - Placement
 
 private struct PlacementExample: View {
@@ -306,12 +349,13 @@ final class DocumentationExamplesTests: XCTestCase {
             QuickStartExample(),
             ActionObserverExample(),
             StylingExample(),
+            DesignSystemExample(),
             PlacementExample(),
             SystemTabBarExample(),
             CustomTabBarExample(),
             ScopeExample(),
             StaticCardExample()
         ]
-        XCTAssertEqual(views.count, 8)
+        XCTAssertEqual(views.count, 9)
     }
 }

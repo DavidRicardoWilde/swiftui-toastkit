@@ -349,7 +349,7 @@ MyScreen()
 | --- | --- | --- |
 | `material`, `surfaceFill`, `opaqueSurfaceFill`, `borderSubtle` | regular material, 4% primary, background, 25% primary | The glass pane, and its Reduce Transparency and Increase Contrast fallbacks. |
 | `textPrimary`, `textSecondary`, `titleFont`, `messageFont` | primary, secondary, callout medium, footnote | The text. |
-| `tint` | secondary, orange, red, accent | One colour per status. The wash, edge, glyph and glow all derive from it. |
+| `tint` | secondary, orange, red, accent | One colour per status. The wash, edge, glyph and glow all derive from it. Build one with `ToastTheme.statusTint(normal:warning:error:notification:)`. |
 | `cornerRadius`, `contentPadding`, `shadow` | 22, 14/16, soft | The card's shape and elevation. |
 | `edgeInset` | 8 | The gap between the stack and its edge. Applies to every style. |
 | `stackMotion`, `flingMotion`, `snapBackMotion` | springs | Cards arriving and restacking, the swipe-out, the spring-back. Applies to every style. |
@@ -357,6 +357,53 @@ MyScreen()
 | `actionFadeStart` | ⅓ | How far in from each end the track's colour stays solid before fading out at the centre. |
 | `liftedMaterial` | ultra-thin material | The thinner pane of a card lifted onto the track. |
 | `feedback` | per status | The arrival haptic. Return `nil` for silence. |
+
+### Using your app's colours
+
+If your app already has a palette, such as colour sets in an asset catalog or a design
+system's `Color` extensions, map its tokens onto a theme once and apply it at the root.
+ToastKit does not look up colours by name: you pass them in. With generated colour symbols,
+a renamed or missing token is then a compile error rather than a toast that silently draws
+clear.
+
+```swift
+extension ToastTheme {
+    static let brand = ToastTheme(
+        textPrimary: .brandTextPrimary,
+        textSecondary: .brandTextSecondary,
+        tint: ToastTheme.statusTint(
+            normal: .brandNeutral,
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        ),
+        actionTint: { role in
+            role == .destructive ? .brandDanger : ToastTheme.standardActionTint(role)
+        }
+    )
+}
+
+ContentView()
+    .toasts(toasts)
+    .toastTheme(.brand)
+```
+
+`.brandDanger` and the others are the symbols Xcode generates for an asset catalog's
+colour sets (Xcode 15 and later, on by default in new projects). Hand-written
+`static let` colours work the same way.
+
+- `statusTint` takes one colour per status. Any status you leave out keeps its standard
+  colour, so `ToastTheme.statusTint(error: .brandDanger)` changes only errors.
+- Asset catalog colours keep their light, dark and high-contrast variants. The kit
+  derives every shade from the tint as it draws, so the toasts follow the appearance
+  with no extra work.
+- `normal` uses its tint only for the glyph. Its surface stays clear and its border
+  neutral, so a routine message never looks like a warning.
+- The washes are fixed proportions of the tint (16% for warnings and errors, 14% for
+  notifications), tuned for saturated mid-tone hues. If a very pale or very dark token
+  gives a weak wash, map that status to a stronger token in the same palette.
+- The default `notification` colour is the app's accent colour, so an `AccentColor` in
+  the asset catalog already carries through without a theme.
 
 ### Unstyled: plain
 

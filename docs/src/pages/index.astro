@@ -121,6 +121,19 @@ toasts.present(ToastMessage(
 MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
     <div class="swatches"><span><i class="swatch swatch-violet"></i> Motion</span><span><i class="swatch swatch-blue"></i> Color</span><span><i class="swatch swatch-sage"></i> Surface</span><span><i class="swatch swatch-sand"></i> Type</span></div>
     <p>A custom style receives the toast’s icon, title, message, status, and whether it is lifted onto the long-press track. Layout and gestures remain with the stack.</p>
+    <p><strong>Already have a palette?</strong> Map your asset catalog colors onto a theme once with <code>ToastTheme.statusTint</code> and apply it at the root. Any status you leave out keeps its default color, and light, dark, and high-contrast variants carry through.</p>
+    <pre><code><span class="kw">extension</span> ToastTheme &#123;
+    <span class="kw">static let</span> brand = ToastTheme(
+        <span class="comment">// Symbols Xcode generates from your asset catalog</span>
+        tint: ToastTheme.statusTint(
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        )
+    )
+&#125;
+
+ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
   </section>
 
   <section class="doc-section" id="layout">
