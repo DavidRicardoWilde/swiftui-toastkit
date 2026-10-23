@@ -110,7 +110,7 @@ away. Swipe left to delete it, or right to bring it back the next time the view 
 The repository includes a small demo app at `Examples/ToastKitDemo`. It is a
 regular Xcode project, so there is nothing to generate first.
 
-1. Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj` in Xcode 15 or later.
+1. Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj` in Xcode 16 or later.
 2. Choose the **ToastKitDemo** scheme and an iPhone simulator, or **My Mac**.
 3. Press Run.
 

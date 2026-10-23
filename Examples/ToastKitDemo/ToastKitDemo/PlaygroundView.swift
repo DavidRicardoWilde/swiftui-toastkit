@@ -43,7 +43,7 @@ struct PlaygroundView: View {
             } header: {
                 Text("Stacking")
             } footer: {
-                Text("Up to three cards show; older ones peek out behind the newest. Swiping right sets a toast aside for later.")
+                Text("Up to three cards show; older ones peek out behind the newest. Swiping right sets a toast aside for later; postponed toasts come back when you switch tabs, or right away with the button above.")
             }
 
             Section("Tap") {

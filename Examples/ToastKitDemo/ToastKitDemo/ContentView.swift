@@ -18,11 +18,15 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             NavigationStack {
+                // Each page hosts its own stack, so top toasts sit below the navigation
+                // bar instead of over the title.
                 switch selectedTab {
                 case .playground:
                     PlaygroundView(toasts: toasts, settings: settings)
+                        .demoToasts(toasts, settings: settings)
                 case .styles:
                     StylesView(toasts: toasts, settings: settings)
+                        .demoToasts(toasts, settings: settings)
                 }
             }
             // Keep the last rows of each form scrollable above the floating tab bar.
@@ -31,14 +35,25 @@ struct ContentView: View {
             CustomTabBar(selection: $selectedTab, isTall: settings.tallTabBar)
                 .toastObstruction()
         }
-        .toasts(toasts, placement: settings.placement)
-        // Style, theme and the action observer are read from the environment by the
-        // stack, so they go outside `.toasts(_:)`.
-        .demoToastStyle(settings.style)
-        .toastTheme(settings.theme == .brand ? .brand : .standard)
-        .onToastAction { toast, action in
-            settings.recentActions.append("\(action.title) — \(toast.title)")
-        }
+        // The tab bar is beside the pages' stacks rather than inside them, so the
+        // nearest common container opens a scope that lets the stacks see it.
+        .toastObstructionScope()
+    }
+}
+
+private extension View {
+    /// Hosts the shared toast center on a page, with the demo's style, theme and
+    /// action log.
+    func demoToasts(_ toasts: ToastCenter, settings: DemoSettings) -> some View {
+        self
+            .toasts(toasts, placement: settings.placement)
+            // Style, theme and the action observer are read from the environment by the
+            // stack, so they go outside `.toasts(_:)`.
+            .demoToastStyle(settings.style)
+            .toastTheme(settings.theme == .brand ? .brand : .standard)
+            .onToastAction { toast, action in
+                settings.recentActions.append("\(action.title) — \(toast.title)")
+            }
     }
 }
 
