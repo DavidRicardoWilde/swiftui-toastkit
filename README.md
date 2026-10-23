@@ -30,6 +30,7 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 - [Documentation website](#documentation-website)
 - [Installation](#installation)
 - [Quick start](#quick-start)
+- [Running the example](#running-the-example)
 - [Presenting toasts](#presenting-toasts)
 - [How long a toast stays](#how-long-a-toast-stays)
 - [Actions: tap, swipe, press and hold](#actions-tap-swipe-press-and-hold)
@@ -103,6 +104,32 @@ struct ContentView: View {
 
 The toast appears at the bottom of the safe area, stays four seconds, and can be swiped
 away. Swipe left to delete it, or right to bring it back the next time the view appears.
+
+## Running the example
+
+The repository includes a small demo app at `Examples/ToastKitDemo`. It is a
+regular Xcode project, so there is nothing to generate first.
+
+1. Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj` in Xcode 15 or later.
+2. Choose the **ToastKitDemo** scheme and an iPhone simulator, or **My Mac**.
+3. Press Run.
+
+The project depends on this checkout of ToastKit through a local package
+reference (`../..`), so any change you make to the library shows up in the
+demo on the next build. The bundle identifier is the placeholder
+`com.example.ToastKitDemo`. The simulator and My Mac need no signing setup.
+To run on a physical iPhone or iPad, choose your own team under
+**Signing & Capabilities** and change the bundle identifier to one you own.
+
+The demo has two tabs:
+
+- **Playground** shows each status, a burst of stacked toasts, a persistent
+  toast, tap actions, swipe actions on both sides, press and hold, postponed
+  toasts, and top or bottom placement. A switch makes the custom tab bar
+  taller, so you can watch toasts move to stay clear of it.
+- **Styles** switches between the glass style, `.plain` and a custom
+  `ToastStyle`, and between the standard theme and a custom `ToastTheme`
+  built with `statusTint`.
 
 ## Presenting toasts
 

@@ -4,4 +4,5 @@
 DerivedData/
 xcuserdata/
 *.xcodeproj
+!Examples/ToastKitDemo/ToastKitDemo.xcodeproj
 Package.resolved
