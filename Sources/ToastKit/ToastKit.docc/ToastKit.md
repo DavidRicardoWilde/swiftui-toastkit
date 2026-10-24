@@ -27,6 +27,17 @@ swipe actions on a curved track before choosing. By default a leading swipe dele
 toast and a trailing swipe brings it back the next time the page is opened. Every action
 is a ``ToastAction`` with its own title, subtitle, icon and handler.
 
+Cards come in three sizes, ``ToastMetrics/compact``, ``ToastMetrics/regular`` and
+``ToastMetrics/large``, applied with `toastMetrics(_:)`. A `width:` passed to the stack
+always wins over the size's width, and Dynamic Type stops growing toast content at
+`accessibility1`.
+
+```swift
+ContentView()
+    .toasts(toasts)
+    .toastMetrics(.compact)
+```
+
 The stack sits at the bottom of the safe area by default, above a tab bar and its
 accessory. To keep it clear of anything the safe area does not cover, such as a custom
 tab bar, mark that view with `toastObstruction()`.
@@ -61,6 +72,7 @@ The package README is the full guide, with examples for every feature.
 - ``GlassToastStyle``
 - ``PlainToastStyle``
 - ``ToastTheme``
+- ``ToastMetrics``
 
 ### Testing
 

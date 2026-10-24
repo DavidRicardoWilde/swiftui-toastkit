@@ -262,6 +262,34 @@ private struct PlacementExample: View {
     }
 }
 
+// MARK: - Sizing
+
+private struct SizingExample: View {
+    @State private var toasts = ToastCenter()
+
+    var body: some View {
+        VStack {
+            Color.clear
+                .toasts(toasts)
+                .toastMetrics(.compact)
+            Color.clear
+                .toasts(toasts)
+                .toastMetrics(.large)
+            // An explicit width beats the preset's.
+            Color.clear
+                .toasts(toasts, width: .fraction(0.9))
+                .toastMetrics(.large)
+            Color.clear
+                .toasts(toasts)
+                .toastMetrics(ToastMetrics(width: .fraction(0.8), cornerRadius: 12, messageLineLimit: 3))
+            Color.clear
+                .toasts(toasts)
+                .toastTheme(.brand)
+                .toastMetrics(.compact)
+        }
+    }
+}
+
 /// A system tab bar: put the stack inside the tab, where the bar is in the safe area.
 private struct SystemTabBarExample: View {
     @State private var toasts = ToastCenter()
@@ -351,11 +379,12 @@ final class DocumentationExamplesTests: XCTestCase {
             StylingExample(),
             DesignSystemExample(),
             PlacementExample(),
+            SizingExample(),
             SystemTabBarExample(),
             CustomTabBarExample(),
             ScopeExample(),
             StaticCardExample()
         ]
-        XCTAssertEqual(views.count, 9)
+        XCTAssertEqual(views.count, 10)
     }
 }

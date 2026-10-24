@@ -31,7 +31,8 @@ public struct ToastStack: View {
     let center: ToastCenter
     let placement: ToastPlacement
     /// How wide the cards are drawn, against the safe-area width. See ``ToastWidth``.
-    let width: ToastWidth
+    /// `nil` defers to the ``ToastMetrics`` in effect.
+    let width: ToastWidth?
     /// Runs when a card with no tap action of its own is tapped.
     let onTap: ((ToastMessage) -> Void)?
     /// Obstruction scopes the `.toasts(_:)` modifier hands over, beyond the one in this
@@ -41,13 +42,15 @@ public struct ToastStack: View {
     /// - Parameters:
     ///   - center: The model the stack draws and times.
     ///   - placement: The edge the stack hangs from. Bottom by default.
-    ///   - width: How wide cards are drawn. 60% of the safe-area width by default.
+    ///   - width: How wide cards are drawn. Omit it to use the ``ToastMetrics`` width: 60%
+    ///     of the safe-area width by default, the full width on watchOS. An explicit width
+    ///     always wins.
     ///   - onTap: Runs for a tapped toast that has no ``ToastMessage/tapAction`` of its
     ///     own, then the toast is dismissed. Omit it to leave such toasts inert to taps.
     public init(
         center: ToastCenter,
         placement: ToastPlacement = .bottom,
-        width: ToastWidth = .default,
+        width: ToastWidth? = nil,
         onTap: ((ToastMessage) -> Void)? = nil
     ) {
         self.center = center
@@ -57,6 +60,7 @@ public struct ToastStack: View {
     }
 
     @Environment(\.toastTheme) private var theme
+    @Environment(\.toastMetrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.toastActionHandler) private var actionObserver
@@ -70,8 +74,9 @@ public struct ToastStack: View {
 
     /// Width the pile loses per layer of depth.
     private let scaleStep: CGFloat = 0.05
-    /// How far each buried card peeks past the one in front of it.
-    private let peekStep: CGFloat = 14
+    /// How far each buried card peeks past the one in front of it: derived from the
+    /// preset's padding. The theme's padding does not change it: the kit owns the stack.
+    private var peekStep: CGFloat { metrics.stackPeek }
 
     public var body: some View {
         // The reader measures the region the stack was handed; `availableWidth` then
@@ -80,7 +85,7 @@ public struct ToastStack: View {
         // full safe-area width rather than that minus a margin nobody asked for.
         GeometryReader { proxy in
             let available = availableWidth(in: proxy)
-            cards(width: width.resolved(in: available), available: available)
+            cards(width: metrics.resolvedWidth(explicit: width).resolved(in: available), available: available)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: placement.alignment)
         }
         .padding(placement.paddingEdge, theme.edgeInset + obstructionLift)
@@ -256,6 +261,7 @@ public extension View {
     ///     .toasts(toasts, placement: .top)                  // from the top
     ///     .toasts(toasts, width: .fraction(0.9))            // 90% of the safe area
     ///     .toasts(toasts) { toast in open(toast) }          // tap to open
+    ///     .toasts(toasts).toastMetrics(.compact)            // a smaller card
     /// ```
     ///
     /// Cards are drawn by the ``ToastStyle`` in effect — `.glass` unless you set another
@@ -264,14 +270,16 @@ public extension View {
     /// - Parameters:
     ///   - center: The model to draw. Keep it in `@State`.
     ///   - placement: The edge the stack hangs from. Bottom by default.
-    ///   - width: How wide cards are drawn, against the safe-area width. 60% by default;
-    ///     `.fraction(1)` is the maximum and `.points(_:)` is clamped to it.
+    ///   - width: How wide cards are drawn, against the safe-area width. Omit it for the
+    ///     width of the ``ToastMetrics`` in effect: 60% by default, the full width on
+    ///     watchOS. An explicit width always wins. `.fraction(1)` is the maximum and
+    ///     `.points(_:)` is clamped to it.
     ///   - onTap: Runs for a tapped toast that has no tap action of its own, then the
     ///     toast is dismissed.
     func toasts(
         _ center: ToastCenter,
         placement: ToastPlacement = .bottom,
-        width: ToastWidth = .default,
+        width: ToastWidth? = nil,
         onTap: ((ToastMessage) -> Void)? = nil
     ) -> some View {
         modifier(ToastStackModifier(center: center, placement: placement, width: width, onTap: onTap))
@@ -284,7 +292,7 @@ public extension View {
 private struct ToastStackModifier: ViewModifier {
     let center: ToastCenter
     let placement: ToastPlacement
-    let width: ToastWidth
+    let width: ToastWidth?
     let onTap: ((ToastMessage) -> Void)?
 
     @State private var contentObstructions = ToastObstructionRegistry()

@@ -36,7 +36,7 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 - [Actions: tap, swipe, press and hold](#actions-tap-swipe-press-and-hold)
 - [Styling](#styling)
 - [Placement](#placement)
-- [Width](#width)
+- [Sizing](#sizing)
 - [Accessibility](#accessibility)
 - [Platforms and localization](#platforms-and-localization)
 - [Testing your code](#testing-your-code)
@@ -130,7 +130,8 @@ choose your own team under **Signing & Capabilities** and change the bundle
 identifiers to ones you own.
 
 The watch app is a compact version of the playground: each status, a short
-stack, swipe actions, a tap action and top or bottom placement. On iPhone,
+stack, swipe actions, a tap action, top or bottom placement and a
+compact, regular or large size. On iPhone,
 iPad, Mac and Apple Vision Pro, the demo has two tabs:
 
 - **Playground** shows each status, a burst of stacked toasts, a persistent
@@ -139,7 +140,7 @@ iPad, Mac and Apple Vision Pro, the demo has two tabs:
   taller, so you can watch toasts move to stay clear of it.
 - **Styles** switches between the glass style, `.plain` and a custom
   `ToastStyle`, and between the standard theme and a custom `ToastTheme`
-  built with `statusTint`.
+  built with `statusTint`, and between the compact, regular and large sizes.
 
 ## Presenting toasts
 
@@ -385,9 +386,9 @@ MyScreen()
 | Token | Default | Used for |
 | --- | --- | --- |
 | `material`, `surfaceFill`, `opaqueSurfaceFill`, `borderSubtle` | regular material, 4% primary, background, 25% primary | The glass pane, and its Reduce Transparency and Increase Contrast fallbacks. |
-| `textPrimary`, `textSecondary`, `titleFont`, `messageFont` | primary, secondary, callout medium, footnote | The text. |
+| `textPrimary`, `textSecondary`, `titleFont`, `messageFont` | primary, secondary, callout medium, footnote | The text. A font set here beats the one in `ToastMetrics`. |
 | `tint` | secondary, orange, red, accent | One colour per status. The wash, edge, glyph and glow all derive from it. Build one with `ToastTheme.statusTint(normal:warning:error:notification:)`. |
-| `cornerRadius`, `contentPadding`, `shadow` | 22, 14/16, soft | The card's shape and elevation. |
+| `cornerRadius`, `contentPadding`, `shadow` | 22, 14/16, soft | The card's shape and elevation. A radius or padding set here beats the one in `ToastMetrics`. |
 | `edgeInset` | 8 | The gap between the stack and its edge. Applies to every style. |
 | `stackMotion`, `flingMotion`, `snapBackMotion` | springs | Cards arriving and restacking, the swipe-out, the spring-back. Applies to every style. |
 | `actionTint` | red, indigo, graphite | One colour per action role, on the track. |
@@ -587,7 +588,9 @@ hosts the stack, it is in the safe area already and needs no marking.
 corner placement can be added without breaking anyone's `switch`. See
 [Roadmap](#roadmap).
 
-## Width
+## Sizing
+
+### Width
 
 Cards are measured against the width available inside the safe area:
 
@@ -597,6 +600,60 @@ Cards are measured against the width available inside the safe area:
 .toasts(toasts, width: .fraction(1))     // the full safe-area width; the maximum
 .toasts(toasts, width: .points(320))     // a fixed width, clamped to the maximum
 ```
+
+On watchOS the default is the full width, since 60% of a watch is too narrow to read.
+
+### Sizes
+
+`ToastMetrics` sets how big cards are: width, padding, type, the glyph chip, corner
+radius, line limits and the long-press track. It is separate from the theme and the style,
+so they combine freely. Choose one of three presets, or build your own:
+
+```swift
+.toasts(toasts)
+.toastMetrics(.compact)     // .compact, .regular (the default) or .large
+
+.toastMetrics(ToastMetrics(width: .fraction(0.8), cornerRadius: 12, messageLineLimit: 3))
+```
+
+Like the style and the theme, `toastMetrics(_:)` is read from the environment, so it goes
+outside `.toasts(_:)`. `.regular` matches what the kit drew before on iOS, macOS and
+visionOS, and is the full width on watchOS. The one other difference is that Dynamic Type
+is now capped at `accessibility1`, so text no longer grows through the largest accessibility
+sizes. Every parameter of the initializer defaults to its
+`.regular` value.
+
+| Preset | iOS | macOS | watchOS | visionOS |
+| --- | --- | --- | --- | --- |
+| `.compact` | 50% wide, 10/12 padding, radius 16 | 280 pt, 8/10, 12 | full width, 8/10, 14 | 50%, 12/14, 20 |
+| `.regular` | 60%, 14/16, 22 | 60%, 14/16, 22 | full width, 14/16, 22 | 60%, 14/16, 22 |
+| `.large` | 80%, 18/20, 28 | 480 pt, 16/18, 22 | full width, 12/14, 24 | 70%, 20/24, 32 |
+
+Type and the glyph chip step along with them. On macOS the compact and large widths are
+fixed points, because a window can be any size. On watchOS every preset is the full width,
+so `.large` means bigger type rather than a wider card.
+
+How the settings combine:
+
+- **Width:** a `width:` you pass to `.toasts(_:width:)` always beats the preset's. Passing
+  `.default` asks for 60%, even on the watch.
+- **Theme:** a title font, message font, corner radius or content padding you set on a
+  `ToastTheme` beats the preset's, so a brand theme keeps its look in every size.
+- **Stack:** each buried card peeks out by the average of the preset's top and bottom
+  padding (14 pt for `.regular`), so a roomier preset shows a deeper stack. A theme's
+  `contentPadding` does not change it.
+- **Long press:** the track's band, its height and its labels scale with the preset, so a
+  large card still fits. The distance a finger travels to arm an action does not change.
+- **Line limits:** `titleLineLimit` and `messageLineLimit` live in the metrics: 2 and 2,
+  or 3 and 4 for `.large`. Set one to `nil` for no limit.
+- **Dynamic Type:** toast content stops growing at `accessibility1`. Change it with
+  `maximumDynamicTypeSize`.
+
+Width, the stack offset, the long-press track's scale and label fonts, and the Dynamic Type
+limit apply to every style, `.plain` included. Padding, title and message fonts, the glyph
+chip, corner radius and line limits are drawn only by the glass style; `.plain` and your own
+styles can read them from `configuration.metrics`, which already has the theme's explicit
+fonts, radius and padding laid over the preset's.
 
 ## Accessibility
 
@@ -610,7 +667,7 @@ Cards are measured against the width available inside the safe area:
 - **Reduce Transparency:** the glass pane and the track turn opaque. The status colour
   stays, because it carries meaning.
 - **Increase Contrast:** the glass style's gradient edge becomes a solid border.
-- **Dynamic Type:** text and the glyph chip scale.
+- **Dynamic Type:** text and the glyph chip scale, up to `accessibility1`.
 
 These are read from the SwiftUI environment, so they work on every platform with no setup.
 
@@ -620,7 +677,7 @@ These are read from the SwiftUI environment, so they work on every platform with
 | --- | --- | --- |
 | iOS, iPadOS | 17 | |
 | macOS | 14 | Swipe by clicking and dragging. |
-| watchOS | 10 | Use a narrow `width`; the track fits down to about 184 pt. |
+| watchOS | 10 | Toasts are full width by default; the track fits down to about 184 pt. |
 | visionOS | 1 | No haptics: `SensoryFeedback` arrived in visionOS 26, and a headset has nothing to vibrate. |
 | tvOS | — | Not supported: there is no drag gesture, and swiping is the primary interaction. A tvOS toast needs focus-driven dismissal, which is a redesign. |
 
@@ -659,7 +716,7 @@ compile this README's examples against the public API
 | --- | --- | --- |
 | Model | `ToastCenter`, `ToastMessage`, `ToastDuration`, `ToastAction`, `ToastSwipeActions`, `ToastIcon`, `ToastWidth`, `ToastScheduling` | Foundation |
 | Behaviour | `ToastStack`, `ToastCard`, the press-and-hold track, obstructions | SwiftUI |
-| Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme` | SwiftUI |
+| Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme`, `ToastMetrics` | SwiftUI |
 
 - The model holds no colours or views, so its rules are unit-tested without a host.
 - The behaviour layer draws nothing; it hands each card to the style in effect.

@@ -80,6 +80,7 @@ public struct ToastCard: View {
 
     @Environment(\.toastStyle) private var style
     @Environment(\.toastTheme) private var theme
+    @Environment(\.toastMetrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.toastPlacement) private var placement
     @Environment(\.toastTrackLayout) private var trackLayout
@@ -133,6 +134,8 @@ public struct ToastCard: View {
             .modifier(ToastTiltEffect(dragX: dragX, enabled: !reduceMotion))
             .opacity(dragOpacity)
             .background { actionTrack }
+            // Past the limit toast content stops growing, track labels included.
+            .dynamicTypeSize(...metrics.maximumDynamicTypeSize)
             .contentShape(Rectangle())
             .gesture(dragGesture, including: isInteractive ? .all : .subviews)
             .simultaneousGesture(liftGesture, including: canLift ? .all : .subviews)
@@ -186,7 +189,8 @@ public struct ToastCard: View {
         style.makeBody(configuration: ToastStyleConfiguration(
             toast: toast,
             isLifted: lift != .resting,
-            isTappable: isTappable
+            isTappable: isTappable,
+            metrics: metrics.resolved(in: theme)
         ))
     }
 
@@ -302,7 +306,8 @@ public struct ToastCard: View {
         return ToastTrackGeometry(
             cardWidth: trackLayout.cardWidth,
             availableWidth: trackLayout.availableWidth,
-            curve: placement.curve
+            curve: placement.curve,
+            scale: metrics.actionTrackScale
         )
     }
 
