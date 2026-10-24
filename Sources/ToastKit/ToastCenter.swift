@@ -33,6 +33,12 @@ import Observation
 /// effect is ``ToastAction/Effect/postpone`` — leaves the stack and waits in
 /// ``postponed``. The stack brings it back the next time it appears, which is the next
 /// time the user opens the page it lives on.
+///
+/// **Batches.** ``dismiss(group:removal:scope:)``, ``dismiss(removal:scope:where:)`` and
+/// ``dismissAll(removal:scope:)`` remove any number of toasts as one change: the
+/// countdown is reconciled once, after all of them are gone, and never waits for the
+/// removal animation. A card the user is holding on its action track when code removes
+/// it leaves at once, and its hold is cancelled.
 @MainActor
 @Observable
 public final class ToastCenter {
@@ -75,6 +81,25 @@ public final class ToastCenter {
     /// when everything left is persistent does the oldest of those go. The arrival
     /// itself is never dropped.
     public let capacity: Int
+
+    /// Cards that have left `toasts` and are still being drawn on their way out. The
+    /// stack draws a stand-in for each and reports back through `finishDeparture(token:)`.
+    private(set) var departures: [ToastDeparture] = []
+
+    /// The latest batch removal, for the stack to announce to VoiceOver. The serial
+    /// changes on every batch, so two batches of the same size are both announced.
+    private(set) var batchAnnouncement: ToastBatchAnnouncement?
+
+    /// Cards running their own exit — a swipe's fling, or a track action's drop. They
+    /// are removed with a plain fade, and get no stand-in.
+    private(set) var ownExitIDs: Set<UUID> = []
+
+    /// The card lifted onto its action track, as the stack reports it.
+    @ObservationIgnored private var liftedToastID: UUID?
+    @ObservationIgnored private var announcementSerial = 0
+
+    /// A departure older than this has long finished, whatever the view reported.
+    private static let departureLifetime: TimeInterval = 5
 
     private let scheduler: ToastScheduling
     private var phase: Phase = .idle
@@ -139,8 +164,14 @@ public final class ToastCenter {
     /// duplicating it, so a repeated notice refreshes instead of piling up. Presenting
     /// an id that was postponed takes it out of ``postponed``.
     public func present(_ toast: ToastMessage) {
+        pruneTransientState()
         toasts.removeAll { $0.id == toast.id }
         postponed.removeAll { $0.id == toast.id }
+        // A stand-in and a live card with one id must never be drawn together.
+        if departures.contains(where: { $0.toast.id == toast.id }) {
+            departures.removeAll { $0.toast.id == toast.id }
+        }
+        if ownExitIDs.contains(toast.id) { ownExitIDs.remove(toast.id) }
         toasts.append(toast)
         dropOverflow()
         reconcile()
@@ -167,16 +198,38 @@ public final class ToastCenter {
         ))
     }
 
+    /// Like ``present(_:title:message:icon:duration:tapAction:swipeActions:)``, for a
+    /// toast that belongs to `group`. Presenting never replaces another toast in the same
+    /// group; use the group to dismiss them together with
+    /// ``dismiss(group:removal:scope:)``.
+    public func present(
+        _ status: ToastMessage.Status = .normal,
+        title: String,
+        message: String? = nil,
+        icon: ToastIcon? = nil,
+        duration: ToastDuration = .automatic,
+        tapAction: ToastAction? = nil,
+        swipeActions: ToastSwipeActions = .standard,
+        group: ToastGroup
+    ) {
+        present(ToastMessage(
+            status: status,
+            title: title,
+            message: message,
+            icon: icon,
+            duration: duration,
+            tapAction: tapAction,
+            swipeActions: swipeActions,
+            group: group
+        ))
+    }
+
     // MARK: - Dismissing
 
     /// Removes one toast, whether it is showing or postponed. Dismissing a buried card
     /// is allowed and leaves the topmost's countdown untouched.
     public func dismiss(id: UUID) {
-        postponed.removeAll { $0.id == id }
-        guard toasts.contains(where: { $0.id == id }) else { return }
-        toasts.removeAll { $0.id == id }
-        releaseInteractionIfEmpty()
-        reconcile()
+        remove(where: { $0.id == id }, scope: .everywhere, removal: nil, announces: false)
     }
 
     public func dismissTopmost() {
@@ -185,12 +238,107 @@ public final class ToastCenter {
     }
 
     /// Removes every toast on screen. Postponed toasts stay postponed — clear those with
-    /// ``discardPostponed()``.
+    /// ``discardPostponed()``, or use ``dismissAll(removal:scope:)``.
+    ///
+    /// VoiceOver announces how many notifications were dismissed.
     public func dismissAll() {
-        guard !toasts.isEmpty else { return }
-        toasts.removeAll()
+        remove(where: { _ in true }, scope: .onScreen, removal: nil, announces: true)
+    }
+
+    /// Removes every toast in `scope`, all as one change.
+    ///
+    /// - Parameters:
+    ///   - removal: How the cards leave. `nil` uses the stack's default, set with
+    ///     `toastRemoval(_:)` and ``ToastRemoval/fade`` unless changed.
+    ///   - scope: Which toasts to reach. On screen only by default, like ``dismissAll()``.
+    /// - Returns: How many toasts were removed, postponed ones included.
+    @discardableResult
+    public func dismissAll(removal: ToastRemoval?, scope: ToastDismissalScope = .onScreen) -> Int {
+        remove(where: { _ in true }, scope: scope, removal: removal, announces: true)
+    }
+
+    /// Removes every toast presented with `group`, all as one change. Toasts without a
+    /// group never match.
+    ///
+    /// - Parameters:
+    ///   - group: The group to clear.
+    ///   - removal: How the cards leave. `nil` uses the stack's default.
+    ///   - scope: Which toasts to reach. Everywhere by default, so a postponed toast of
+    ///     the group does not come back later.
+    /// - Returns: How many toasts were removed, postponed ones included.
+    @discardableResult
+    public func dismiss(
+        group: ToastGroup,
+        removal: ToastRemoval? = nil,
+        scope: ToastDismissalScope = .everywhere
+    ) -> Int {
+        remove(where: { $0.group == group }, scope: scope, removal: removal, announces: true)
+    }
+
+    /// Removes every toast `shouldDismiss` accepts, all as one change.
+    ///
+    /// ```swift
+    /// toasts.dismiss(removal: .trail()) { $0.status == .error }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - removal: How the cards leave. `nil` uses the stack's default.
+    ///   - scope: Which toasts to reach. Everywhere by default.
+    ///   - shouldDismiss: Called once for each toast in scope.
+    /// - Returns: How many toasts were removed, postponed ones included.
+    @discardableResult
+    public func dismiss(
+        removal: ToastRemoval? = nil,
+        scope: ToastDismissalScope = .everywhere,
+        where shouldDismiss: (ToastMessage) -> Bool
+    ) -> Int {
+        remove(where: shouldDismiss, scope: scope, removal: removal, announces: true)
+    }
+
+    /// The one path every removal takes.
+    ///
+    /// Matching toasts all leave in a single change and the countdown is reconciled once,
+    /// afterwards, so a batch never hands the countdown to a toast that is about to go.
+    /// The animation is none of its business: the next toast is timed straight away.
+    @discardableResult
+    private func remove(
+        where shouldRemove: (ToastMessage) -> Bool,
+        scope: ToastDismissalScope,
+        removal: ToastRemoval?,
+        announces: Bool
+    ) -> Int {
+        pruneTransientState()
+
+        var removedCount = 0
+        if scope.includesPostponed {
+            let before = postponed.count
+            postponed.removeAll(where: shouldRemove)
+            removedCount += before - postponed.count
+        }
+        guard scope.includesOnScreen else { return removedCount }
+
+        let matching = Set(toasts.filter(shouldRemove).map(\.id))
+        guard !matching.isEmpty else { return removedCount }
+
+        // A lifted card is removed at once, and so are the cards behind it, which are
+        // already hidden while it rides its track: no stand-ins for any of them.
+        let liftedWasRemoved = liftedToastID.map { matching.contains($0) } ?? false
+        recordDepartures(removing: matching, from: toasts, removal: removal)
+        toasts.removeAll { matching.contains($0.id) }
+
+        if liftedWasRemoved {
+            // Its hold can never be released by the card now.
+            liftedToastID = nil
+            isInteracting = false
+        }
         releaseInteractionIfEmpty()
         reconcile()
+
+        if announces {
+            announcementSerial += 1
+            batchAnnouncement = ToastBatchAnnouncement(count: matching.count, serial: announcementSerial)
+        }
+        return removedCount + matching.count
     }
 
     // MARK: - Postponing
@@ -203,6 +351,8 @@ public final class ToastCenter {
     /// ``postponed`` and present them again yourself.
     public func postpone(id: UUID) {
         guard let toast = toasts.first(where: { $0.id == id }) else { return }
+        pruneTransientState()
+        recordDepartures(removing: [id], from: toasts, removal: nil)
         toasts.removeAll { $0.id == id }
         postponed.removeAll { $0.id == id }
         postponed.append(toast)
@@ -271,7 +421,85 @@ public final class ToastCenter {
         // `kept` still ends with the arrival and holds `capacity + excess` toasts, so
         // this never reaches it.
         kept.removeFirst(excess)
+        let keptIDs = Set(kept.map(\.id))
+        let dropped = Set(toasts.map(\.id)).subtracting(keptIDs)
+        // Planned against the stack as it was last drawn, before the arrival was added.
+        recordDepartures(removing: dropped, from: Array(toasts.dropLast()), removal: nil)
         toasts = kept
+    }
+
+    // MARK: - Departures
+
+    /// Adds a departure for each visible card of `stack` that `ids` takes, unless it is
+    /// animating its own exit. Adds none while a card is lifted: that card leaves at
+    /// once and the ones behind it are already hidden.
+    private func recordDepartures(removing ids: Set<UUID>, from stack: [ToastMessage], removal: ToastRemoval?) {
+        guard liftedToastID == nil, !ids.isEmpty else { return }
+        let added = ToastDeparture.plan(
+            removing: ids,
+            from: stack,
+            visibleDepth: visibleDepth,
+            removal: removal,
+            excluding: ownExitIDs,
+            at: scheduler.now
+        )
+        guard !added.isEmpty else { return }
+        departures.append(contentsOf: added)
+        trimDepartures()
+    }
+
+    /// Keeps the newest `capacity + visibleDepth` departures.
+    private func trimDepartures() {
+        let limit = capacity + visibleDepth
+        if departures.count > limit {
+            departures.removeFirst(departures.count - limit)
+        }
+    }
+
+    /// Forgets what has outlived its use: departures the view never reported finished,
+    /// the oldest beyond a bound, and own-exit marks for toasts that are gone.
+    private func pruneTransientState() {
+        // Each write is guarded: assigning to an observed property redraws the stack even
+        // when nothing changed.
+        let now = scheduler.now
+        if departures.contains(where: { now.timeIntervalSince($0.departedAt) > Self.departureLifetime }) {
+            departures.removeAll { now.timeIntervalSince($0.departedAt) > Self.departureLifetime }
+        }
+        trimDepartures()
+        if !ownExitIDs.isEmpty {
+            let showing = Set(toasts.map(\.id))
+            let stale = ownExitIDs.subtracting(showing)
+            if !stale.isEmpty { ownExitIDs.subtract(stale) }
+        }
+        // A lifted card that is no longer in the stack can never report being put back.
+        if let lifted = liftedToastID, !toasts.contains(where: { $0.id == lifted }) {
+            liftedToastID = nil
+        }
+    }
+
+    // MARK: - Reported by the stack
+
+    /// The stack reports the card lifted onto its action track, or `nil` when none is.
+    func setLifted(_ id: UUID?) {
+        liftedToastID = id
+    }
+
+    /// A card is animating its own exit, so removing it needs no stand-in.
+    func beginOwnExit(id: UUID) {
+        guard toasts.contains(where: { $0.id == id }) else { return }
+        ownExitIDs.insert(id)
+    }
+
+    /// A stand-in finished its animation.
+    func finishDeparture(token: UUID) {
+        guard departures.contains(where: { $0.token == token }) else { return }
+        departures.removeAll { $0.token == token }
+    }
+
+    /// Drops every stand-in, so a page opened again never replays old exits.
+    func clearDepartures() {
+        guard !departures.isEmpty else { return }
+        departures.removeAll()
     }
 
     // MARK: - Interaction

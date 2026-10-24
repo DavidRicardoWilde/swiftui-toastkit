@@ -76,11 +76,13 @@ struct ToastGlassSurface: ViewModifier {
     var lifted = false
 
     @Environment(\.toastTheme) private var theme
+    @Environment(\.toastMetrics) private var metrics
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
 
     func body(content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous)
+        let cornerRadius = metrics.resolved(in: theme).cornerRadius
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         content
             .background { surface(shape) }
             .overlay { sheen(in: shape) }

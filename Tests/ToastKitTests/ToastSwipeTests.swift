@@ -41,4 +41,45 @@ final class ToastSwipeTests: XCTestCase {
         XCTAssertNil(ToastSwipe.commit(travel: 200, projected: 400, leading: true, trailing: false))
         XCTAssertNil(ToastSwipe.commit(travel: -200, projected: -400, leading: false, trailing: true))
     }
+
+    // MARK: - The drag pose
+
+    func testThePoseSagsTowardTheStacksEdgeAndCapsAt160() {
+        XCTAssertEqual(ToastDragPose(dragX: 90, curve: 1, reduceMotion: false).sag, 4.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: -90, curve: -1, reduceMotion: false).sag, -4.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: 1_400, curve: 1, reduceMotion: false).sag, 160)
+    }
+
+    func testThePoseFadesWithTravelDownToAFloorOf35Percent() {
+        XCTAssertEqual(ToastDragPose(dragX: 0, curve: 1, reduceMotion: false).opacity, 1)
+        XCTAssertEqual(ToastDragPose(dragX: 120, curve: 1, reduceMotion: false).opacity, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: -120, curve: 1, reduceMotion: false).opacity, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: 1_000, curve: 1, reduceMotion: false).opacity, 0.35, accuracy: 0.0001)
+    }
+
+    func testThePoseTiltsByOneDegreePer36Points() {
+        XCTAssertEqual(ToastDragPose(dragX: 72, curve: 1, reduceMotion: false).rotationDegrees, 2, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: 72, curve: 1, reduceMotion: false).x, 72)
+    }
+
+    func testReduceMotionRemovesTheTiltAndTheSag() {
+        let pose = ToastDragPose(dragX: 200, curve: 1, reduceMotion: true)
+        XCTAssertEqual(pose.sag, 0)
+        XCTAssertEqual(pose.rotationDegrees, 0)
+        XCTAssertEqual(pose.x, 200)
+    }
+
+    @MainActor
+    func testTheRegistryHandsBackWhatWasWrittenAndRestOtherwise() {
+        let registry = ToastDragPoseRegistry()
+        let id = UUID()
+        XCTAssertEqual(registry.pose(for: id), .rest)
+
+        let pose = ToastDragPose(dragX: 50, curve: 1, reduceMotion: false)
+        registry.set(pose, for: id)
+        XCTAssertEqual(registry.pose(for: id), pose)
+
+        registry.clear(id)
+        XCTAssertEqual(registry.pose(for: id), .rest)
+    }
 }

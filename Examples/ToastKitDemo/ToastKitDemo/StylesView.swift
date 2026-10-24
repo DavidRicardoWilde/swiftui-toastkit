@@ -2,7 +2,7 @@ import SwiftUI
 import ToastKit
 
 /// Switches between the glass default, `.plain` and a custom ``ToastStyle``, and between
-/// the standard theme and one built with `ToastTheme.statusTint`.
+/// the standard theme and one built with `ToastTheme.statusTint`, and picks a size.
 struct StylesView: View {
     let toasts: ToastCenter
     @Bindable var settings: DemoSettings
@@ -33,6 +33,19 @@ struct StylesView: View {
                 Text("Theme")
             } footer: {
                 Text("Brand maps an app palette with ToastTheme.statusTint and changes the title font and corner radius. The glass style reads the theme; the custom style ignores it.")
+            }
+
+            Section {
+                Picker("Size", selection: $settings.size) {
+                    ForEach(SizeChoice.allCases) { choice in
+                        Text(choice.rawValue).tag(choice)
+                    }
+                }
+                .pickerStyle(.segmented)
+            } header: {
+                Text("Size")
+            } footer: {
+                Text("ToastMetrics sets width, padding, type, glyph and the press-and-hold track. A theme's own font, radius or padding still wins. Hold a toast to see the track scale.")
             }
 
             Section("Preview") {

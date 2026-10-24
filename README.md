@@ -32,11 +32,12 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 - [Quick start](#quick-start)
 - [Running the example](#running-the-example)
 - [Presenting toasts](#presenting-toasts)
+- [Dismissing toasts](#dismissing-toasts)
 - [How long a toast stays](#how-long-a-toast-stays)
 - [Actions: tap, swipe, press and hold](#actions-tap-swipe-press-and-hold)
 - [Styling](#styling)
 - [Placement](#placement)
-- [Width](#width)
+- [Sizing](#sizing)
 - [Accessibility](#accessibility)
 - [Platforms and localization](#platforms-and-localization)
 - [Testing your code](#testing-your-code)
@@ -130,7 +131,8 @@ choose your own team under **Signing & Capabilities** and change the bundle
 identifiers to ones you own.
 
 The watch app is a compact version of the playground: each status, a short
-stack, swipe actions, a tap action and top or bottom placement. On iPhone,
+stack, swipe actions, a tap action, top or bottom placement and a
+compact, regular or large size. On iPhone,
 iPad, Mac and Apple Vision Pro, the demo has two tabs:
 
 - **Playground** shows each status, a burst of stacked toasts, a persistent
@@ -139,7 +141,7 @@ iPad, Mac and Apple Vision Pro, the demo has two tabs:
   taller, so you can watch toasts move to stay clear of it.
 - **Styles** switches between the glass style, `.plain` and a custom
   `ToastStyle`, and between the standard theme and a custom `ToastTheme`
-  built with `statusTint`.
+  built with `statusTint`, and between the compact, regular and large sizes.
 
 ## Presenting toasts
 
@@ -169,6 +171,7 @@ toasts.present(ToastMessage(
 | `duration` | `.automatic` | See [How long a toast stays](#how-long-a-toast-stays). |
 | `tapAction` | `nil` | What a tap does. See [Actions](#actions-tap-swipe-press-and-hold). |
 | `swipeActions` | `.standard` | What swiping each way does: delete one way, later the other. |
+| `group` | `nil` | A `ToastGroup` of your choosing, such as `"upload"`, to dismiss related toasts together. See [Dismissing toasts](#dismissing-toasts). |
 
 Re-presenting an id updates a toast in place, which suits progress:
 
@@ -179,7 +182,8 @@ toasts.present(ToastMessage(id: syncID, title: "Syncing 3 items…", duration: .
 toasts.present(ToastMessage(id: syncID, title: "Synced"))
 ```
 
-Remove toasts from code with `dismiss(id:)`, `dismissTopmost()` or `dismissAll()`.
+Remove toasts from code with `dismiss(id:)`, `dismissTopmost()` or `dismissAll()`, or
+several at once: see [Dismissing toasts](#dismissing-toasts).
 
 ### The stack
 
@@ -191,6 +195,78 @@ acknowledge (`duration: .indefinite`) survives a burst of routine ones.
 ```swift
 let toasts = ToastCenter(visibleDepth: 2, capacity: 8)
 ```
+
+## Dismissing toasts
+
+One toast at a time, `dismiss(id:)` and `dismissTopmost()`. Several at once, give related
+toasts a **group**, or match them with a closure:
+
+```swift
+toasts.present(.normal, title: "Uploading photo 1 of 3", group: "upload")
+toasts.present(ToastMessage(title: "Uploading photo 2 of 3", group: "upload"))
+
+toasts.dismiss(group: "upload")                                   // every toast in the group
+toasts.dismiss(removal: .slide(.trailing)) { $0.status == .error } // every toast the closure accepts
+toasts.dismissAll(removal: .trail())                              // the whole stack
+```
+
+A group is a name you choose, `"sync"` or `"upload:\(id)"`. Presenting a toast never
+replaces another in the same group, and a toast without a group never matches
+`dismiss(group:)`. Each call returns how many toasts it removed, postponed ones included,
+and a batch is one change: the countdown is reconciled once, and a toast beneath is timed
+from the moment the batch lands. It never waits for an animation.
+
+`group:` is a required parameter of its own `ToastMessage.init` and `present` overloads,
+so the original ones are unchanged.
+
+### Scope
+
+| `scope` | Reaches | Default for |
+| --- | --- | --- |
+| `.onScreen` | Toasts in the stack | `dismissAll()`, `dismissAll(removal:scope:)` |
+| `.postponed` | Toasts waiting in `postponed` | |
+| `.everywhere` | Both | `dismiss(id:)`, `dismiss(group:)`, `dismiss(where:)` |
+
+### Removal styles
+
+`removal:` chooses how the cards leave; `nil`, the default, uses the stack's own setting.
+
+| `removal` | The card |
+| --- | --- |
+| `.fade` | Dissolves where it stands. The default, and what every removal used to look like. |
+| `.slide(direction)` | Slides off while fading, all cards together. |
+| `.trail(direction)` | Winds up slightly, then leaves shrinking and blurring, front card first and the others a beat behind. Three cards take about 0.43 s; no batch takes more than 0.6 s. |
+
+Both take a direction, `.towardAnchor` by default:
+
+| `direction` | Travels |
+| --- | --- |
+| `.inPlace` | Not at all |
+| `.towardAnchor`, `.awayFromAnchor` | Toward or away from the edge the stack hangs from |
+| `.top`, `.bottom` | Up or down the screen |
+| `.leading`, `.trailing` | To the layout direction's start or end; they flip in right-to-left layouts |
+| `.degrees(_:)` | 0° is right and angles grow clockwise, so 90° is down and −90° is up. Never mirrored |
+| `.vector(dx:dy:)` | Along the vector, in screen space where y grows downward. Never mirrored |
+
+Cards travel far enough to leave the region the stack was given.
+
+`.toastRemoval(_:)` sets the default for removals that do not choose one, which covers a
+toast that expires, one dropped for capacity, `dismiss(id:)` and `dismissAll()`:
+
+```swift
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+```
+
+A card the user swipes away, or one they choose an action for, keeps its own exit. A card
+held on its action track when code removes it leaves at once and its hold is cancelled.
+With Reduce Motion, every removal is a cross-fade and all cards fade together.
+
+A stack should be shown by one view per center: two stacks drawing the same center would
+both draw an exit. Do not reference the dismiss methods bare (`let f = toasts.dismiss`);
+with the overloads, that needs a type annotation. Calls and full names such as
+`dismiss(id:)` are fine.
 
 ## How long a toast stays
 
@@ -360,9 +436,11 @@ toasts.restorePostponed()   // bring them back now
 toasts.discardPostponed()   // forget them
 ```
 
-Postponed toasts live as long as the center. `dismiss(id:)` forgets a postponed toast too.
-`dismissAll()` clears only the screen, so whatever was put off stays put off. To keep
-postponed toasts across launches, save what you need from `postponed` and present again.
+Postponed toasts live as long as the center. `dismiss(id:)` forgets a postponed toast too,
+and so does `dismiss(group:)` by default. `dismissAll()` clears only the screen, so
+whatever was put off stays put off; `dismissAll(removal: nil, scope: .everywhere)` clears
+both. See [Dismissing toasts](#dismissing-toasts). To keep postponed toasts across
+launches, save what you need from `postponed` and present again.
 
 ## Styling
 
@@ -385,9 +463,9 @@ MyScreen()
 | Token | Default | Used for |
 | --- | --- | --- |
 | `material`, `surfaceFill`, `opaqueSurfaceFill`, `borderSubtle` | regular material, 4% primary, background, 25% primary | The glass pane, and its Reduce Transparency and Increase Contrast fallbacks. |
-| `textPrimary`, `textSecondary`, `titleFont`, `messageFont` | primary, secondary, callout medium, footnote | The text. |
+| `textPrimary`, `textSecondary`, `titleFont`, `messageFont` | primary, secondary, callout medium, footnote | The text. A font set here beats the one in `ToastMetrics`. |
 | `tint` | secondary, orange, red, accent | One colour per status. The wash, edge, glyph and glow all derive from it. Build one with `ToastTheme.statusTint(normal:warning:error:notification:)`. |
-| `cornerRadius`, `contentPadding`, `shadow` | 22, 14/16, soft | The card's shape and elevation. |
+| `cornerRadius`, `contentPadding`, `shadow` | 22, 14/16, soft | The card's shape and elevation. A radius or padding set here beats the one in `ToastMetrics`. |
 | `edgeInset` | 8 | The gap between the stack and its edge. Applies to every style. |
 | `stackMotion`, `flingMotion`, `snapBackMotion` | springs | Cards arriving and restacking, the swipe-out, the spring-back. Applies to every style. |
 | `actionTint` | red, indigo, graphite | One colour per action role, on the track. |
@@ -587,7 +665,9 @@ hosts the stack, it is in the safe area already and needs no marking.
 corner placement can be added without breaking anyone's `switch`. See
 [Roadmap](#roadmap).
 
-## Width
+## Sizing
+
+### Width
 
 Cards are measured against the width available inside the safe area:
 
@@ -598,6 +678,60 @@ Cards are measured against the width available inside the safe area:
 .toasts(toasts, width: .points(320))     // a fixed width, clamped to the maximum
 ```
 
+On watchOS the default is the full width, since 60% of a watch is too narrow to read.
+
+### Sizes
+
+`ToastMetrics` sets how big cards are: width, padding, type, the glyph chip, corner
+radius, line limits and the long-press track. It is separate from the theme and the style,
+so they combine freely. Choose one of three presets, or build your own:
+
+```swift
+.toasts(toasts)
+.toastMetrics(.compact)     // .compact, .regular (the default) or .large
+
+.toastMetrics(ToastMetrics(width: .fraction(0.8), cornerRadius: 12, messageLineLimit: 3))
+```
+
+Like the style and the theme, `toastMetrics(_:)` is read from the environment, so it goes
+outside `.toasts(_:)`. `.regular` matches what the kit drew before on iOS, macOS and
+visionOS, and is the full width on watchOS. The one other difference is that Dynamic Type
+is now capped at `accessibility1`, so text no longer grows through the largest accessibility
+sizes. Every parameter of the initializer defaults to its
+`.regular` value.
+
+| Preset | iOS | macOS | watchOS | visionOS |
+| --- | --- | --- | --- | --- |
+| `.compact` | 50% wide, 10/12 padding, radius 16 | 280 pt, 8/10, 12 | full width, 8/10, 14 | 50%, 12/14, 20 |
+| `.regular` | 60%, 14/16, 22 | 60%, 14/16, 22 | full width, 14/16, 22 | 60%, 14/16, 22 |
+| `.large` | 80%, 18/20, 28 | 480 pt, 16/18, 22 | full width, 12/14, 24 | 70%, 20/24, 32 |
+
+Type and the glyph chip step along with them. On macOS the compact and large widths are
+fixed points, because a window can be any size. On watchOS every preset is the full width,
+so `.large` means bigger type rather than a wider card.
+
+How the settings combine:
+
+- **Width:** a `width:` you pass to `.toasts(_:width:)` always beats the preset's. Passing
+  `.default` asks for 60%, even on the watch.
+- **Theme:** a title font, message font, corner radius or content padding you set on a
+  `ToastTheme` beats the preset's, so a brand theme keeps its look in every size.
+- **Stack:** each buried card peeks out by the average of the preset's top and bottom
+  padding (14 pt for `.regular`), so a roomier preset shows a deeper stack. A theme's
+  `contentPadding` does not change it.
+- **Long press:** the track's band, its height and its labels scale with the preset, so a
+  large card still fits. The distance a finger travels to arm an action does not change.
+- **Line limits:** `titleLineLimit` and `messageLineLimit` live in the metrics: 2 and 2,
+  or 3 and 4 for `.large`. Set one to `nil` for no limit.
+- **Dynamic Type:** toast content stops growing at `accessibility1`. Change it with
+  `maximumDynamicTypeSize`.
+
+Width, the stack offset, the long-press track's scale and label fonts, and the Dynamic Type
+limit apply to every style, `.plain` included. Padding, title and message fonts, the glyph
+chip, corner radius and line limits are drawn only by the glass style; `.plain` and your own
+styles can read them from `configuration.metrics`, which already has the theme's explicit
+fonts, radius and padding laid over the preset's.
+
 ## Accessibility
 
 - Each card is one VoiceOver element: title, then message. A tappable card is a button,
@@ -606,11 +740,15 @@ Cards are measured against the width available inside the safe area:
   gesture is ever the only way to reach an action.
 - Buried cards are hidden from VoiceOver; only the front card is reachable.
 - **Reduce Motion:** cards cross-fade instead of sliding, the swipe path flattens, and the
-  tilt is dropped.
+  tilt is dropped. Every removal, whatever `removal:` asks for, is a cross-fade, and all
+  departing cards fade together.
+- A batch removal (`dismiss(group:)`, `dismiss(where:)`, `dismissAll()`) is announced
+  once, as "3 notifications dismissed", instead of leaving VoiceOver to notice cards
+  vanishing. The text is localized and pluralized.
 - **Reduce Transparency:** the glass pane and the track turn opaque. The status colour
   stays, because it carries meaning.
 - **Increase Contrast:** the glass style's gradient edge becomes a solid border.
-- **Dynamic Type:** text and the glyph chip scale.
+- **Dynamic Type:** text and the glyph chip scale, up to `accessibility1`.
 
 These are read from the SwiftUI environment, so they work on every platform with no setup.
 
@@ -620,7 +758,7 @@ These are read from the SwiftUI environment, so they work on every platform with
 | --- | --- | --- |
 | iOS, iPadOS | 17 | |
 | macOS | 14 | Swipe by clicking and dragging. |
-| watchOS | 10 | Use a narrow `width`; the track fits down to about 184 pt. |
+| watchOS | 10 | Toasts are full width by default; the track fits down to about 184 pt. |
 | visionOS | 1 | No haptics: `SensoryFeedback` arrived in visionOS 26, and a headset has nothing to vibrate. |
 | tvOS | — | Not supported: there is no drag gesture, and swiping is the primary interaction. A tvOS toast needs focus-driven dismissal, which is a redesign. |
 
@@ -648,7 +786,11 @@ let toasts = ToastCenter(scheduler: FakeScheduler())
 ```
 
 The package's own tests run with `swift test`. They cover the countdown rules, durations,
-postponing, swipe thresholds, the track's geometry and the obstruction lift. They also
+postponing, swipe thresholds, the track's geometry and the obstruction lift. Dismissal is
+tested on the model alone: groups, scopes, the countdown across a batch, the departures
+the stack draws, the direction maths and the trail's stagger and keyframes. A batch
+removal needs no clock beyond the fake scheduler, because the countdown never waits for
+the animation. They also
 compile this README's examples against the public API
 (`Tests/ToastKitTests/DocumentationExamples.swift`). The exception is the iOS 26
 `TabView` snippet, which needs a newer SDK than the package's minimum.
@@ -657,9 +799,9 @@ compile this README's examples against the public API
 
 | Layer | Types | Imports |
 | --- | --- | --- |
-| Model | `ToastCenter`, `ToastMessage`, `ToastDuration`, `ToastAction`, `ToastSwipeActions`, `ToastIcon`, `ToastWidth`, `ToastScheduling` | Foundation |
+| Model | `ToastCenter`, `ToastMessage`, `ToastDuration`, `ToastAction`, `ToastSwipeActions`, `ToastIcon`, `ToastWidth`, `ToastScheduling`, `ToastGroup`, `ToastDismissalScope`, `ToastRemoval`, `ToastRemovalDirection`, and the departure planning and trail timing behind them | Foundation, CoreGraphics |
 | Behaviour | `ToastStack`, `ToastCard`, the press-and-hold track, obstructions | SwiftUI |
-| Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme` | SwiftUI |
+| Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme`, `ToastMetrics` | SwiftUI |
 
 - The model holds no colours or views, so its rules are unit-tested without a host.
 - The behaviour layer draws nothing; it hands each card to the style in effect.

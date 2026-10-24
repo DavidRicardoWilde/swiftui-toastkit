@@ -42,7 +42,7 @@ struct ContentView: View {
 }
 
 private extension View {
-    /// Hosts the shared toast center on a page, with the demo's style, theme and
+    /// Hosts the shared toast center on a page, with the demo's style, theme, size and
     /// action log.
     func demoToasts(_ toasts: ToastCenter, settings: DemoSettings) -> some View {
         self
@@ -51,6 +51,8 @@ private extension View {
             // stack, so they go outside `.toasts(_:)`.
             .demoToastStyle(settings.style)
             .toastTheme(settings.theme == .brand ? .brand : .standard)
+            .toastMetrics(settings.size.metrics)
+            .toastRemoval(settings.removal.removal(settings.direction.direction))
             .onToastAction { toast, action in
                 settings.recentActions.append("\(action.title) — \(toast.title)")
             }

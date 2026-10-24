@@ -77,9 +77,15 @@ public struct ToastStyleConfiguration {
     /// True when tapping the card runs an action, so a style can hint at it.
     public let isTappable: Bool
 
+    /// The sizes in effect, as set with `toastMetrics(_:)`, with any title font, message
+    /// font, corner radius or content padding the ``ToastTheme`` sets explicitly laid over
+    /// them. ``GlassToastStyle`` draws from them; a custom style may do the same, or
+    /// ignore them.
+    public let metrics: ToastMetrics
+
     public var status: ToastMessage.Status { toast.status }
 
-    init(toast: ToastMessage, isLifted: Bool, isTappable: Bool) {
+    init(toast: ToastMessage, isLifted: Bool, isTappable: Bool, metrics: ToastMetrics = .regular) {
         self.toast = toast
         self.icon = toast.icon?.image ?? Image(systemName: toast.status.symbolName)
         self.title = Text(toast.title)
@@ -90,6 +96,7 @@ public struct ToastStyleConfiguration {
         }
         self.isLifted = isLifted
         self.isTappable = isTappable
+        self.metrics = metrics
     }
 }
 
@@ -173,31 +180,30 @@ private struct GlassToastCard: View {
 
     @Environment(\.toastTheme) private var theme
 
-    /// Gap between the glyph and the text column.
-    private let glyphSpacing: CGFloat = 12
-
     var body: some View {
-        HStack(alignment: .top, spacing: glyphSpacing) {
-            ToastGlyph(status: configuration.status, icon: configuration.icon)
+        // Sizes from the metrics, except where the theme sets one explicitly.
+        let metrics = configuration.metrics.resolved(in: theme)
+        HStack(alignment: .top, spacing: metrics.glyphSpacing) {
+            ToastGlyph(status: configuration.status, icon: configuration.icon, side: metrics.glyphSide)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: metrics.textSpacing) {
                 configuration.title
-                    .font(theme.titleFont)
+                    .font(metrics.titleFont)
                     .foregroundStyle(theme.textPrimary)
-                    .lineLimit(2)
+                    .lineLimit(metrics.titleLineLimit)
 
                 if let message = configuration.message {
                     message
-                        .font(theme.messageFont)
+                        .font(metrics.messageFont)
                         .foregroundStyle(theme.textSecondary)
-                        .lineLimit(2)
+                        .lineLimit(metrics.messageLineLimit)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
             Spacer(minLength: 0)
         }
-        .padding(theme.contentPadding)
+        .padding(metrics.contentPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .toastGlassSurface(status: configuration.status, lifted: configuration.isLifted)
     }
@@ -209,7 +215,13 @@ private struct ToastGlyph: View {
     let icon: Image
 
     @Environment(\.toastTheme) private var theme
-    @ScaledMetric(relativeTo: .callout) private var side: CGFloat = 30
+    @ScaledMetric private var side: CGFloat
+
+    init(status: ToastMessage.Status, icon: Image, side: CGFloat) {
+        self.status = status
+        self.icon = icon
+        _side = ScaledMetric(wrappedValue: side, relativeTo: .callout)
+    }
 
     var body: some View {
         let tint = status.tint(in: theme)

@@ -50,11 +50,20 @@ struct ToastTrackGeometry: Equatable {
     /// +1 for a stack on the bottom edge, -1 for one on the top: the band always bends
     /// toward its own edge.
     let curve: CGFloat
+    /// Scales the band, the track view's height, the crest inset and the card's rise, so a
+    /// larger or smaller card still fits the band. 1 is the regular size. The arming
+    /// distance stays fixed: it is how far a finger travels, not how big anything is.
+    var scale: CGFloat = 1
+
+    var scaledBandThickness: CGFloat { Self.bandThickness * scale }
+    var scaledHeight: CGFloat { Self.height * scale }
+    var scaledCrestInset: CGFloat { Self.crestInset * scale }
+    var scaledRise: CGFloat { Self.rise * scale }
 
     var bandWidth: CGFloat { availableWidth + 2 * Self.bleed }
 
     /// Vertical position of the band's crest inside the track view.
-    var crestY: CGFloat { curve > 0 ? Self.crestInset : Self.height - Self.crestInset }
+    var crestY: CGFloat { curve > 0 ? scaledCrestInset : scaledHeight - scaledCrestInset }
 
     /// How far the arc has bent away from its crest at `x` from the centre.
     func sag(at x: CGFloat) -> CGFloat {
@@ -75,13 +84,13 @@ struct ToastTrackGeometry: Equatable {
 
     /// The lifted card's centre at `x`, relative to its resting centre.
     func cardOffset(at x: CGFloat) -> CGSize {
-        CGSize(width: x, height: curve * (sag(at: x) - Self.rise))
+        CGSize(width: x, height: curve * (sag(at: x) - scaledRise))
     }
 
     /// Vertical offset that puts the band's crest under the lifted card's centre when the
     /// track view is centred on the resting card.
     var trackOffset: CGFloat {
-        -curve * Self.rise - (crestY - Self.height / 2)
+        -curve * scaledRise - (crestY - scaledHeight / 2)
     }
 
     private var labelInner: CGFloat { cardWidth * Self.liftScale / 2 + Self.labelGapToCard }
