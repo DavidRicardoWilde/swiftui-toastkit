@@ -30,6 +30,7 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 - [Documentation website](#documentation-website)
 - [Installation](#installation)
 - [Quick start](#quick-start)
+- [Running the example](#running-the-example)
 - [Presenting toasts](#presenting-toasts)
 - [How long a toast stays](#how-long-a-toast-stays)
 - [Actions: tap, swipe, press and hold](#actions-tap-swipe-press-and-hold)
@@ -103,6 +104,42 @@ struct ContentView: View {
 
 The toast appears at the bottom of the safe area, stays four seconds, and can be swiped
 away. Swipe left to delete it, or right to bring it back the next time the view appears.
+
+## Running the example
+
+The repository includes a small demo app at `Examples/ToastKitDemo`. It is a
+regular Xcode project, so there is nothing to generate first. It needs Xcode 16
+or later, with the platforms you want to try installed under
+**Settings > Components**.
+
+1. Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj`.
+2. Choose a scheme and a run destination:
+   - **ToastKitDemo** runs on an iPhone or iPad simulator, on **My Mac**, or on
+     an Apple Vision Pro simulator. It is one multiplatform target, so all
+     three appear in the same destination menu.
+   - **ToastKitDemoWatch** is a standalone Apple Watch app. Pick an Apple Watch
+     simulator.
+3. Press Run.
+
+Both targets depend on this checkout of ToastKit through a local package
+reference (`../..`), so any change you make to the library shows up in the
+demo on the next build. The bundle identifiers are the placeholders
+`com.example.ToastKitDemo` and `com.example.ToastKitDemo.watchkitapp`.
+Simulators and My Mac need no signing setup. To run on a physical device,
+choose your own team under **Signing & Capabilities** and change the bundle
+identifiers to ones you own.
+
+The watch app is a compact version of the playground: each status, a short
+stack, swipe actions, a tap action and top or bottom placement. On iPhone,
+iPad, Mac and Apple Vision Pro, the demo has two tabs:
+
+- **Playground** shows each status, a burst of stacked toasts, a persistent
+  toast, tap actions, swipe actions on both sides, press and hold, postponed
+  toasts, and top or bottom placement. A switch makes the custom tab bar
+  taller, so you can watch toasts move to stay clear of it.
+- **Styles** switches between the glass style, `.plain` and a custom
+  `ToastStyle`, and between the standard theme and a custom `ToastTheme`
+  built with `statusTint`.
 
 ## Presenting toasts
 
