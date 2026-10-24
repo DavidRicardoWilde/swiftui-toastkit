@@ -26,6 +26,8 @@ struct WatchContentView: View {
                         toasts.present(.notification, title: "New message")
                     }
                     Button("Dismiss all", role: .destructive) { toasts.dismissAll() }
+                    Button("Bring back postponed (\(toasts.postponed.count))") { toasts.restorePostponed() }
+                        .disabled(toasts.postponed.isEmpty)
                 }
 
                 Section("Actions") {
@@ -64,10 +66,10 @@ struct WatchContentView: View {
                 }
             }
             .navigationTitle("ToastKit")
-        }
-        .toasts(toasts, placement: placement)
-        .onToastAction { _, action in
-            lastAction = action.title
+            .toasts(toasts, placement: placement, width: .fraction(1))
+            .onToastAction { _, action in
+                lastAction = action.title
+            }
         }
     }
 
