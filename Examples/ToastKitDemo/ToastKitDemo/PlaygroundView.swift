@@ -36,14 +36,52 @@ struct PlaygroundView: View {
                         duration: .indefinite
                     )
                 }
+                Button("Uploads ×3") {
+                    for number in 1...3 {
+                        toasts.present(
+                            .normal,
+                            title: "Uploading photo \(number) of 3",
+                            message: "Dismiss them together below.",
+                            duration: .indefinite,
+                            group: "upload"
+                        )
+                    }
+                }
+                Button("Dismiss uploads (trail)") {
+                    toasts.dismiss(group: "upload", removal: .trail(settings.direction.direction))
+                }
+                Button("Dismiss errors") {
+                    toasts.dismiss(removal: .slide(settings.direction.direction)) { $0.status == .error }
+                }
                 Button("Dismiss front toast") { toasts.dismissTopmost() }
                 Button("Dismiss all", role: .destructive) { toasts.dismissAll() }
+                Button("Trail all") {
+                    toasts.dismissAll(removal: .trail(settings.direction.direction))
+                }
                 Button("Bring back postponed (\(toasts.postponed.count))") { toasts.restorePostponed() }
                     .disabled(toasts.postponed.isEmpty)
             } header: {
                 Text("Stacking")
             } footer: {
-                Text("Up to three cards show; older ones peek out behind the newest. Swiping right sets a toast aside for later; postponed toasts come back when you switch tabs, or right away with the button above.")
+                Text("Up to three cards show; older ones peek out behind the newest. Swiping right sets a toast aside for later; postponed toasts come back when you switch tabs, or right away with the button above. The upload and error buttons remove several toasts at once, and the pickers below choose how cards leave.")
+            }
+
+            Section {
+                Picker("Default removal", selection: $settings.removal) {
+                    ForEach(RemovalChoice.allCases) { choice in
+                        Text(choice.rawValue).tag(choice)
+                    }
+                }
+                .pickerStyle(.segmented)
+                Picker("Direction", selection: $settings.direction) {
+                    ForEach(DirectionChoice.allCases) { choice in
+                        Text(choice.rawValue).tag(choice)
+                    }
+                }
+            } header: {
+                Text("Removal")
+            } footer: {
+                Text("The default applies to toasts that expire and to Dismiss front toast. The batch buttons always use a trail or slide in the chosen direction. With Reduce Motion on, every removal is a cross-fade.")
             }
 
             Section("Tap") {

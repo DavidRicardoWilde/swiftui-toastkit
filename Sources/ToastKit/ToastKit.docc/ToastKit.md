@@ -38,6 +38,21 @@ ContentView()
     .toastMetrics(.compact)
 ```
 
+Related toasts can share a ``ToastGroup`` and be dismissed together, as a batch, with a
+choice of how they leave. A ``ToastRemoval`` is ``ToastRemoval/fade`` by default, or a
+slide or a staggered trail in a ``ToastRemovalDirection``; a ``ToastDismissalScope``
+picks whether the batch reaches the stack, the postponed toasts, or both. Set the default
+exit for the whole stack with `toastRemoval(_:)`. With Reduce Motion, every removal is a
+cross-fade.
+
+```swift
+toasts.present(.normal, title: "Uploading…", group: "upload")
+
+toasts.dismiss(group: "upload", removal: .trail())
+toasts.dismiss(removal: .slide(.trailing)) { $0.status == .error }
+toasts.dismissAll(removal: .trail(.towardAnchor))
+```
+
 The stack sits at the bottom of the safe area by default, above a tab bar and its
 accessory. To keep it clear of anything the safe area does not cover, such as a custom
 tab bar, mark that view with `toastObstruction()`.
@@ -52,6 +67,13 @@ The package README is the full guide, with examples for every feature.
 - ``ToastMessage``
 - ``ToastDuration``
 - ``ToastIcon``
+
+### Dismissing
+
+- ``ToastGroup``
+- ``ToastDismissalScope``
+- ``ToastRemoval``
+- ``ToastRemovalDirection``
 
 ### Acting on toasts
 

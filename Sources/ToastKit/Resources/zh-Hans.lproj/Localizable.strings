@@ -1,4 +1,5 @@
 "toast.a11y.dismiss" = "关闭通知";
+"toast.a11y.dismissed %lld" = "已关闭 %lld 条通知";
 "toast.a11y.hint" = "向左或向右滑动，或按住，以选择操作";
 "toast.a11y.hint.activate" = "轻点查看；向左或向右滑动，或按住，以选择操作";
 "toast.action.delete" = "删除";

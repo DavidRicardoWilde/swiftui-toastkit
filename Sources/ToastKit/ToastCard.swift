@@ -36,6 +36,9 @@ public struct ToastCard: View {
     let onAction: (ToastAction) -> Void
     /// Removes the toast with no action, for VoiceOver's "Dismiss".
     let onDismiss: () -> Void
+    /// Told when the card starts an exit of its own — a fling or a track action's drop —
+    /// at least 220 ms before it is removed, so the stack draws no stand-in for it.
+    let onOwnExit: () -> Void
 
     /// - Parameters:
     ///   - toast: What to draw, and the actions it offers.
@@ -58,7 +61,8 @@ public struct ToastCard: View {
             tapAction: toast.tapAction,
             onInteractionChange: onInteractionChange,
             onAction: onAction,
-            onDismiss: onDismiss
+            onDismiss: onDismiss,
+            onOwnExit: {}
         )
     }
 
@@ -68,7 +72,8 @@ public struct ToastCard: View {
         tapAction: ToastAction?,
         onInteractionChange: @escaping (Bool) -> Void,
         onAction: @escaping (ToastAction) -> Void,
-        onDismiss: @escaping () -> Void
+        onDismiss: @escaping () -> Void,
+        onOwnExit: @escaping () -> Void
     ) {
         self.toast = toast
         self.isInteractive = isInteractive
@@ -76,6 +81,7 @@ public struct ToastCard: View {
         self.onInteractionChange = onInteractionChange
         self.onAction = onAction
         self.onDismiss = onDismiss
+        self.onOwnExit = onOwnExit
     }
 
     @Environment(\.toastStyle) private var style
@@ -84,6 +90,7 @@ public struct ToastCard: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.toastPlacement) private var placement
     @Environment(\.toastTrackLayout) private var trackLayout
+    @Environment(\.toastDragPoses) private var dragPoses
 
     @State private var dragX: CGFloat = 0
     @State private var isFlingingOut = false
@@ -131,7 +138,7 @@ public struct ToastCard: View {
                 reduceMotion: reduceMotion
             ))
             .offset(x: dragX, y: swipeSag)
-            .modifier(ToastTiltEffect(dragX: dragX, enabled: !reduceMotion))
+            .modifier(ToastTiltEffect(degrees: dragPose.rotationDegrees))
             .opacity(dragOpacity)
             .background { actionTrack }
             // Past the limit toast content stops growing, track labels included.
@@ -154,6 +161,10 @@ public struct ToastCard: View {
                     putBack()
                 }
             }
+            // The pose is only meaningful away from rest, whichever path brought it home.
+            .onChange(of: dragX) { _, x in
+                if x == 0 { dragPoses?.clear(toast.id) }
+            }
             .onChange(of: isPressing) { _, pressing in
                 if pressing { liftConsumedTouch = false }
             }
@@ -166,6 +177,7 @@ public struct ToastCard: View {
             .onDisappear {
                 releaseAbandonedDrag()
                 putBack()
+                dragPoses?.clear(toast.id)
             }
             .preference(key: ToastLiftPreferenceKey.self, value: lift == .resting ? nil : toast.id)
             .modifier(ToastLiftFeedback(trigger: liftHaptic))
@@ -221,14 +233,15 @@ public struct ToastCard: View {
     /// time it clears the threshold — and fully gone once a fling starts.
     private var dragOpacity: Double {
         if isFlingingOut { return 0 }
-        return 1 - min(Double(abs(dragX)) / 240, 0.65)
+        return dragPose.opacity
     }
 
-    /// The swipe's path bends gently toward the stack's edge (y ≈ x² ÷ 1800, at most
-    /// 160 pt), so a throw reads as a swing rather than a slide. Flat under Reduce Motion.
-    private var swipeSag: CGFloat {
-        guard !reduceMotion else { return 0 }
-        return placement.curve * min(dragX * dragX / 1_800, 160)
+    /// The swipe's path bends gently toward the stack's edge, so a throw reads as a swing
+    /// rather than a slide. Flat under Reduce Motion. The numbers live in `ToastDragPose`.
+    private var swipeSag: CGFloat { dragPose.sag }
+
+    private var dragPose: ToastDragPose {
+        ToastDragPose(dragX: dragX, curve: placement.curve, reduceMotion: reduceMotion)
     }
 
     private var dragGesture: some Gesture {
@@ -246,6 +259,9 @@ public struct ToastCard: View {
                     leading: swipeActions.leading != nil,
                     trailing: swipeActions.trailing != nil
                 )
+                // Read once, if a batch removes this card mid-drag, to start its stand-in
+                // from here. A plain box, so the drag does not redraw the stack.
+                dragPoses?.set(dragPose, for: toast.id)
             }
             .onEnded { value in
                 guard !isFlingingOut, isInteractive, swipeStarted, lift == .resting else { return }
@@ -263,6 +279,7 @@ public struct ToastCard: View {
                     withAnimation(theme.snapBackMotion.animation(reduceMotion: reduceMotion)) {
                         dragX = 0
                     }
+                    dragPoses?.clear(toast.id)
                     onInteractionChange(false)
                 }
             }
@@ -277,11 +294,13 @@ public struct ToastCard: View {
         withAnimation(theme.snapBackMotion.animation(reduceMotion: reduceMotion)) {
             dragX = 0
         }
+        dragPoses?.clear(toast.id)
         onInteractionChange(false)
     }
 
     private func flingOut(towards direction: CGFloat, running action: ToastAction) {
         isFlingingOut = true
+        onOwnExit()
         // Raised again rather than assumed: whichever way `onEnded` and the gesture
         // state's reset are ordered, the flight must hold the countdown. Idempotent.
         onInteractionChange(true)
@@ -399,6 +418,7 @@ public struct ToastCard: View {
     /// stays held until the action has run.
     private func choose(_ action: ToastAction, at side: ToastTrackSide) {
         guard let geometry = trackGeometry else { return }
+        onOwnExit()
         withAnimation(theme.flingMotion.animation(reduceMotion: reduceMotion)) {
             lift = .committing
             carryX = geometry.labelX(for: side)
@@ -467,18 +487,13 @@ private struct ToastActionAccessibility: ViewModifier {
 
 // MARK: - Tilt
 
-/// A few degrees of rotation following the drag, pivoting off the card's far edge.
-/// Split into a modifier so Reduce Motion can drop it without the call site branching
-/// mid-chain.
+/// A few degrees of rotation following the drag, pivoting off the card's far edge. The
+/// angle comes from `ToastDragPose`, which is zero under Reduce Motion; the modifier is
+/// always applied, so the card's identity does not change as a drag begins.
 private struct ToastTiltEffect: ViewModifier {
-    let dragX: CGFloat
-    let enabled: Bool
+    let degrees: Double
 
     func body(content: Content) -> some View {
-        if enabled {
-            content.rotationEffect(.degrees(Double(dragX) / 36), anchor: .bottom)
-        } else {
-            content
-        }
+        content.rotationEffect(.degrees(degrees), anchor: .bottom)
     }
 }

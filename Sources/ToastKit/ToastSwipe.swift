@@ -33,6 +33,10 @@ enum ToastSwipe {
         trailing: Bool
     ) -> ToastTrackSide? {
         guard abs(travel) >= commitDistance || abs(projected) >= flickDistance else { return nil }
+        // TODO: Not verified on a right-to-left device or simulator. A leftward drag is
+        // always treated as leading here and in ToastCard.flingOut; left unchanged on
+        // purpose. Removal directions resolve leading/trailing by layoutDirection
+        // independently.
         let towardLeading = travel == 0 ? projected < 0 : travel < 0
         if towardLeading {
             return leading ? .leading : nil

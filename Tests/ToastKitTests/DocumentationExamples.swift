@@ -151,6 +151,44 @@ private func postponedExamples(_ toasts: ToastCenter) {
     _ = waiting
 }
 
+// MARK: - Dismissing
+
+@MainActor
+private func dismissalExamples(_ toasts: ToastCenter) {
+    // Toasts that belong together share a group.
+    toasts.present(.normal, title: "Uploading photo 1 of 3", group: "upload")
+    toasts.present(ToastMessage(title: "Uploading photo 2 of 3", group: "upload"))
+    toasts.present(ToastMessage(title: "Uploading photo 3 of 3", group: "upload"))
+
+    // Clear a group — postponed toasts of the group included — or everything that matches.
+    toasts.dismiss(group: "upload")
+    toasts.dismiss(group: "upload", removal: .trail(), scope: .onScreen)
+    let failed = toasts.dismiss(removal: .slide(.trailing)) { $0.status == .error }
+    _ = failed
+
+    // The whole stack, with a choice of exit and of what to reach.
+    toasts.dismissAll()
+    toasts.dismissAll(removal: .trail())
+    toasts.dismissAll(removal: .slide(.degrees(-90)), scope: .everywhere)
+    toasts.dismissAll(removal: .trail(.vector(dx: 1, dy: -1)), scope: .postponed)
+
+    let directions: [ToastRemovalDirection] = [
+        .inPlace, .towardAnchor, .awayFromAnchor, .top, .bottom, .leading, .trailing
+    ]
+    _ = directions.map { ToastRemoval.slide($0) }
+    _ = ToastRemoval.fade
+}
+
+private struct RemovalExample: View {
+    @State private var toasts = ToastCenter()
+
+    var body: some View {
+        Button("Clear") { toasts.dismissAll() }
+            .toasts(toasts)
+            .toastRemoval(.trail())
+    }
+}
+
 // MARK: - Styling
 
 private struct BannerToastStyle: ToastStyle {
@@ -365,6 +403,9 @@ final class DocumentationExamplesTests: XCTestCase {
         presentingExamples(toasts, open: {})
         actionExamples(toasts, store: store)
         postponedExamples(toasts)
+        let dismissing = ToastCenter()
+        dismissalExamples(dismissing)
+        XCTAssertTrue(dismissing.toasts.isEmpty)
         XCTAssertEqual(durationExamples().defaultDuration, 6)
         XCTAssertEqual(stackExamples().capacity, 8)
         let scheduled = ToastCenter(scheduler: ExampleScheduler())
@@ -383,8 +424,9 @@ final class DocumentationExamplesTests: XCTestCase {
             SystemTabBarExample(),
             CustomTabBarExample(),
             ScopeExample(),
-            StaticCardExample()
+            StaticCardExample(),
+            RemovalExample()
         ]
-        XCTAssertEqual(views.count, 10)
+        XCTAssertEqual(views.count, 11)
     }
 }

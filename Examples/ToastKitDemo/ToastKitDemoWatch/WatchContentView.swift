@@ -45,6 +45,7 @@ struct WatchContentView: View {
                         toasts.present(.notification, title: "New message")
                     }
                     Button("Dismiss all", role: .destructive) { toasts.dismissAll() }
+                    Button("Trail all") { toasts.dismissAll(removal: .trail()) }
                     Button("Bring back postponed (\(toasts.postponed.count))") { toasts.restorePostponed() }
                         .disabled(toasts.postponed.isEmpty)
                 }
