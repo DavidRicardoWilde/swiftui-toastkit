@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// What a progress card's buttons do, handed in by the stack.
+struct ToastProgressActions {
+    /// Cancel was tapped, or VoiceOver's Cancel was chosen.
+    let cancel: @MainActor () -> Void
+    /// Retry was tapped, or VoiceOver's Retry was chosen.
+    let retry: @MainActor () -> Void
+}
+
 /// A single toast card: the owner of its tap, swipe and long-press gestures.
 ///
 /// The card draws nothing itself — its body comes from the ``ToastStyle`` in effect —
@@ -39,6 +47,10 @@ public struct ToastCard: View {
     /// Told when the card starts an exit of its own — a fling or a track action's drop —
     /// at least 220 ms before it is removed, so the stack draws no stand-in for it.
     let onOwnExit: () -> Void
+    /// The live value of a progress card, observed by this card alone. `nil` otherwise.
+    let progressCell: ToastProgressCell?
+    /// What the card's Cancel and Retry do. `nil` when the card draws no such buttons.
+    let progressActions: ToastProgressActions?
 
     /// - Parameters:
     ///   - toast: What to draw, and the actions it offers.
@@ -73,7 +85,9 @@ public struct ToastCard: View {
         onInteractionChange: @escaping (Bool) -> Void,
         onAction: @escaping (ToastAction) -> Void,
         onDismiss: @escaping () -> Void,
-        onOwnExit: @escaping () -> Void
+        onOwnExit: @escaping () -> Void,
+        progressCell: ToastProgressCell? = nil,
+        progressActions: ToastProgressActions? = nil
     ) {
         self.toast = toast
         self.isInteractive = isInteractive
@@ -82,9 +96,12 @@ public struct ToastCard: View {
         self.onAction = onAction
         self.onDismiss = onDismiss
         self.onOwnExit = onOwnExit
+        self.progressCell = progressCell
+        self.progressActions = progressActions
     }
 
     @Environment(\.toastStyle) private var style
+    @Environment(\.locale) private var locale
     @Environment(\.toastTheme) private var theme
     @Environment(\.toastMetrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -185,8 +202,9 @@ public struct ToastCard: View {
             .accessibilityLabel(accessibilityLabel)
             .accessibilityAddTraits(isTappable ? .isButton : [])
             .accessibilityHint(isInteractive ? Text(hintKey, bundle: .module) : Text(""))
-            .accessibilityAction(named: Text("toast.a11y.dismiss", bundle: .module)) { onDismiss() }
+            .modifier(ToastDismissAccessibility(isOffered: !isProgressActive, perform: onDismiss))
             .modifier(ToastActionAccessibility(actions: offeredActions, perform: onAction))
+            .modifier(ToastProgressAccessibility(progress: progress))
     }
 
     private var isTappable: Bool { isInteractive && tapAction != nil }
@@ -197,13 +215,44 @@ public struct ToastCard: View {
 
     // MARK: - Content
 
+    @ViewBuilder
     private var cardBody: some View {
-        style.makeBody(configuration: ToastStyleConfiguration(
+        let resolved = metrics.resolved(in: theme)
+        let styled = style.makeBody(configuration: ToastStyleConfiguration(
             toast: toast,
             isLifted: lift != .resting,
             isTappable: isTappable,
-            metrics: metrics.resolved(in: theme)
+            metrics: resolved,
+            progress: progress
         ))
+        if let progress, !style.drawsProgress {
+            // A style written before progress toasts: give it a bar and a button anyway.
+            VStack(spacing: resolved.progressSpacing) {
+                styled
+                ToastProgressAccessory(configuration: progress)
+            }
+        } else {
+            styled
+        }
+    }
+
+    /// The bar, detail and buttons for a card with work behind it. Reads the cell, so only
+    /// this card redraws when its value moves.
+    private var progress: ToastProgressConfiguration? {
+        ToastProgressConfiguration.make(
+            toast: toast,
+            cell: progressCell,
+            actions: progressActions,
+            metrics: metrics.resolved(in: theme),
+            tint: toast.status.tint(in: theme),
+            locale: locale,
+            reduceMotion: reduceMotion,
+            isInteractive: isInteractive
+        )
+    }
+
+    private var isProgressActive: Bool {
+        toast.progressPhase?.isActive ?? false
     }
 
     private var accessibilityLabel: Text {
@@ -332,7 +381,7 @@ public struct ToastCard: View {
 
     /// Only the front card of a stack, with something to swipe into.
     private var canLift: Bool {
-        isInteractive && trackGeometry != nil && !swipeActions.isEmpty
+        isInteractive && trackGeometry != nil && !swipeActions.isEmpty && !isProgressActive
     }
 
     private var liftOffset: CGSize {
@@ -478,10 +527,52 @@ private struct ToastActionAccessibility: ViewModifier {
             if let leading = actions?.leading {
                 Button(leading.title) { perform(leading) }
             }
-            if let trailing = actions?.trailing {
+            // Both sides can be the same action, such as a progress card's Hide.
+            if let trailing = actions?.trailing, trailing.id != actions?.leading?.id {
                 Button(trailing.title) { perform(trailing) }
             }
         }
+    }
+}
+
+/// VoiceOver's "Dismiss". Left out while work is running, where Hide covers it and
+/// dismissing would not stop anything.
+private struct ToastDismissAccessibility: ViewModifier {
+    let isOffered: Bool
+    let perform: () -> Void
+
+    func body(content: Content) -> some View {
+        content.accessibilityActions {
+            if isOffered {
+                Button { perform() } label: { Text("toast.a11y.dismiss", bundle: .module) }
+            }
+        }
+    }
+}
+
+/// A progress card's value, and its Cancel and Retry as named actions.
+///
+/// Cancel here never asks for confirmation: the tap-twice guard is for a finger that may
+/// have landed by accident, and choosing a named action is deliberate.
+private struct ToastProgressAccessibility: ViewModifier {
+    let progress: ToastProgressConfiguration?
+
+    func body(content: Content) -> some View {
+        content
+            .accessibilityValue(progress?.spokenValue ?? "")
+            .accessibilityAddTraits(isRunning ? .updatesFrequently : [])
+            .accessibilityActions {
+                if let progress, isRunning, progress.isCancellationAvailable {
+                    Button { progress.onCancel() } label: { Text("toast.action.cancel", bundle: .module) }
+                }
+                if let progress, progress.isRetryAvailable {
+                    Button { progress.onRetry() } label: { Text("toast.progress.retry", bundle: .module) }
+                }
+            }
+    }
+
+    private var isRunning: Bool {
+        progress?.phase.isRunning ?? false
     }
 }
 

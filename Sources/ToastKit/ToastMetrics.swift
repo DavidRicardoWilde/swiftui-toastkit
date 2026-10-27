@@ -79,6 +79,18 @@ public struct ToastMetrics: Equatable, Sendable {
     /// one, so a card stays a toast rather than filling the screen.
     public var maximumDynamicTypeSize: DynamicTypeSize
 
+    /// Height of the progress bar.
+    public var progressBarHeight: CGFloat
+    /// Gap between the progress card's text and its bar.
+    public var progressSpacing: CGFloat
+    /// The most lines a progress card's title takes while the work runs. `nil` for no limit.
+    public var progressTitleLineLimit: Int?
+    /// The most lines a progress card's detail line takes. 0 hides the line, leaving the
+    /// percentage alone. `nil` for no limit.
+    public var progressDetailLineLimit: Int?
+    /// Side of the Cancel and Retry buttons before the minimum hit target is applied.
+    public var progressButtonSide: CGFloat
+
     public init(
         width: ToastWidth? = nil,
         contentPadding: EdgeInsets = EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16),
@@ -93,7 +105,12 @@ public struct ToastMetrics: Equatable, Sendable {
         actionTrackScale: CGFloat = 1,
         actionTitleFont: Font = .caption.weight(.bold),
         actionSubtitleFont: Font = .caption2.weight(.medium),
-        maximumDynamicTypeSize: DynamicTypeSize = .accessibility1
+        maximumDynamicTypeSize: DynamicTypeSize = .accessibility1,
+        progressBarHeight: CGFloat = ToastMetrics.regularProgressBarHeight,
+        progressSpacing: CGFloat = 8,
+        progressTitleLineLimit: Int? = 1,
+        progressDetailLineLimit: Int? = 1,
+        progressButtonSide: CGFloat = ToastMetrics.regularProgressButtonSide
     ) {
         self.width = width
         self.contentPadding = contentPadding
@@ -109,7 +126,17 @@ public struct ToastMetrics: Equatable, Sendable {
         self.actionTitleFont = actionTitleFont
         self.actionSubtitleFont = actionSubtitleFont
         self.maximumDynamicTypeSize = maximumDynamicTypeSize
+        self.progressBarHeight = progressBarHeight
+        self.progressSpacing = progressSpacing
+        self.progressTitleLineLimit = progressTitleLineLimit
+        self.progressDetailLineLimit = progressDetailLineLimit
+        self.progressButtonSide = progressButtonSide
     }
+
+    // A public default argument can't name the internal `ToastPlatform`, so the regular
+    // values the initializer defaults to are read through these.
+    @usableFromInline static let regularProgressBarHeight: CGFloat = ToastPlatform.current.regularProgressBarHeight
+    @usableFromInline static let regularProgressButtonSide: CGFloat = ToastPlatform.current.regularProgressButtonSide
 
     // MARK: Presets
 
@@ -175,6 +202,23 @@ enum ToastPlatform: CaseIterable {
     var defaultWidth: ToastWidth {
         self == .watchOS ? .fraction(1) : .default
     }
+
+    /// The regular progress bar's height.
+    var regularProgressBarHeight: CGFloat {
+        switch self {
+        case .iOS, .macOS, .watchOS: 4
+        case .visionOS: 5
+        }
+    }
+
+    /// The regular Cancel and Retry button's visual side.
+    var regularProgressButtonSide: CGFloat {
+        switch self {
+        case .iOS: 28
+        case .macOS: 22
+        case .watchOS, .visionOS: 32
+        }
+    }
 }
 
 // MARK: - Preset tables
@@ -193,6 +237,7 @@ extension ToastMetrics {
             actionTitleFont: .caption2.weight(.bold),
             actionSubtitleFont: .caption2.weight(.medium)
         )
+        metrics.progressButtonSide = platform.regularProgressButtonSide
         switch platform {
         case .iOS:
             metrics.width = .fraction(0.5)
@@ -203,6 +248,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 8
             metrics.textSpacing = 2
             metrics.cornerRadius = 16
+            metrics.progressBarHeight = 3
+            metrics.progressTitleLineLimit = 1
+            metrics.progressDetailLineLimit = 1
         case .macOS:
             metrics.width = .points(280)
             metrics.contentPadding = insets(8, 10)
@@ -212,6 +260,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 8
             metrics.textSpacing = 2
             metrics.cornerRadius = 12
+            metrics.progressBarHeight = 3
+            metrics.progressTitleLineLimit = 1
+            metrics.progressDetailLineLimit = 1
         case .watchOS:
             metrics.width = .fraction(1)
             metrics.contentPadding = insets(8, 10)
@@ -221,6 +272,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 6
             metrics.textSpacing = 1
             metrics.cornerRadius = 14
+            metrics.progressBarHeight = 3
+            metrics.progressTitleLineLimit = 1
+            metrics.progressDetailLineLimit = 0
         case .visionOS:
             metrics.width = .fraction(0.5)
             metrics.contentPadding = insets(12, 14)
@@ -230,6 +284,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 10
             metrics.textSpacing = 2
             metrics.cornerRadius = 20
+            metrics.progressBarHeight = 4
+            metrics.progressTitleLineLimit = 1
+            metrics.progressDetailLineLimit = 1
         }
         return metrics
     }
@@ -242,6 +299,7 @@ extension ToastMetrics {
             actionTitleFont: .footnote.weight(.bold),
             actionSubtitleFont: .caption.weight(.medium)
         )
+        metrics.progressButtonSide = platform.regularProgressButtonSide
         switch platform {
         case .iOS:
             metrics.width = .fraction(0.8)
@@ -252,6 +310,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 14
             metrics.textSpacing = 4
             metrics.cornerRadius = 28
+            metrics.progressBarHeight = 6
+            metrics.progressTitleLineLimit = 2
+            metrics.progressDetailLineLimit = 1
         case .macOS:
             metrics.width = .points(480)
             metrics.contentPadding = insets(16, 18)
@@ -261,6 +322,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 14
             metrics.textSpacing = 4
             metrics.cornerRadius = 22
+            metrics.progressBarHeight = 5
+            metrics.progressTitleLineLimit = 2
+            metrics.progressDetailLineLimit = 1
         case .watchOS:
             metrics.width = .fraction(1)
             metrics.contentPadding = insets(12, 14)
@@ -270,6 +334,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 10
             metrics.textSpacing = 2
             metrics.cornerRadius = 24
+            metrics.progressBarHeight = 5
+            metrics.progressTitleLineLimit = 2
+            metrics.progressDetailLineLimit = 1
         case .visionOS:
             metrics.width = .fraction(0.7)
             metrics.contentPadding = insets(20, 24)
@@ -279,6 +346,9 @@ extension ToastMetrics {
             metrics.glyphSpacing = 16
             metrics.textSpacing = 4
             metrics.cornerRadius = 32
+            metrics.progressBarHeight = 7
+            metrics.progressTitleLineLimit = 2
+            metrics.progressDetailLineLimit = 1
         }
         return metrics
     }

@@ -22,6 +22,7 @@ struct ToastDepartureGhost: View {
     @Environment(\.toastMetrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.locale) private var locale
 
     @State private var progress: Double = 0
     @State private var startPose: ToastDragPose
@@ -52,34 +53,62 @@ struct ToastDepartureGhost: View {
     }
 
     var body: some View {
-        style.makeBody(configuration: ToastStyleConfiguration(
+        card
+            .frame(width: cardWidth)
+            .dynamicTypeSize(...metrics.maximumDynamicTypeSize)
+            // Measured before the effect moves it, and only the first value is kept.
+            .onGeometryChange(for: CGRect.self) { proxy in
+                proxy.frame(in: .global)
+            } action: { frame in
+                if cardFrame == nil { cardFrame = frame }
+            }
+            .modifier(ToastDepartureEffect(
+                progress: progress,
+                kind: plan.frames,
+                blurRamp: motion.blurRamp,
+                depth: ToastDepthStyle(depth: departure.depth),
+                start: startPose,
+                unit: unit,
+                distance: distance,
+                peek: placement.peekSign * metrics.stackPeek * CGFloat(departure.depth),
+                anchor: placement.unitPoint
+            ))
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .onAppear(perform: start)
+    }
+
+    /// The card as the style draws it, with a progress card's bar frozen where it stood and
+    /// no buttons. A style that does not draw progress gets the same fallback bar a live
+    /// card does.
+    @ViewBuilder
+    private var card: some View {
+        let resolved = metrics.resolved(in: theme)
+        let frozen = departure.progressSnapshot.map {
+            ToastProgressConfiguration.frozen(
+                snapshot: $0,
+                toast: departure.toast,
+                metrics: resolved,
+                tint: departure.toast.status.tint(in: theme),
+                locale: locale,
+                reduceMotion: reduceMotion
+            )
+        }
+        let styled = style.makeBody(configuration: ToastStyleConfiguration(
             toast: departure.toast,
             isLifted: false,
             isTappable: isTappable,
-            metrics: metrics.resolved(in: theme)
+            metrics: resolved,
+            progress: frozen
         ))
-        .frame(width: cardWidth)
-        .dynamicTypeSize(...metrics.maximumDynamicTypeSize)
-        // Measured before the effect moves it, and only the first value is kept.
-        .onGeometryChange(for: CGRect.self) { proxy in
-            proxy.frame(in: .global)
-        } action: { frame in
-            if cardFrame == nil { cardFrame = frame }
+        if let frozen, !style.drawsProgress {
+            VStack(spacing: resolved.progressSpacing) {
+                styled
+                ToastProgressAccessory(configuration: frozen)
+            }
+        } else {
+            styled
         }
-        .modifier(ToastDepartureEffect(
-            progress: progress,
-            kind: plan.frames,
-            blurRamp: motion.blurRamp,
-            depth: ToastDepthStyle(depth: departure.depth),
-            start: startPose,
-            unit: unit,
-            distance: distance,
-            peek: placement.peekSign * metrics.stackPeek * CGFloat(departure.depth),
-            anchor: placement.unitPoint
-        ))
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-        .onAppear(perform: start)
     }
 
     // MARK: - Plan

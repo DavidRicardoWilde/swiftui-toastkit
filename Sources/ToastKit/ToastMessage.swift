@@ -63,6 +63,17 @@ public struct ToastMessage: Identifiable, Equatable {
     /// ``ToastCenter/dismiss(group:removal:scope:)``. `nil` for a toast that belongs to
     /// none. Presenting a toast never replaces another in the same group.
     public var group: ToastGroup?
+    /// Where the work behind a progress toast is, or `nil` for an ordinary toast. Set by
+    /// the center for toasts made with ``ToastCenter/track(id:title:message:icon:progress:group:options:onCancel:)``
+    /// and ``ToastCenter/withProgress(id:title:message:icon:group:cancellable:success:failure:onRetry:options:operation:)``.
+    ///
+    /// The `running` payload is a snapshot that ticks do not rewrite; see
+    /// ``ToastProgressPhase``. Useful in `dismiss(where:)`:
+    ///
+    /// ```swift
+    /// toasts.dismiss { $0.progressPhase == nil }   // everything but progress
+    /// ```
+    public internal(set) var progressPhase: ToastProgressPhase? = nil
 
     public init(
         id: UUID = UUID(),

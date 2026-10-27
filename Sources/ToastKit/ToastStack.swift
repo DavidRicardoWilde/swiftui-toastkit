@@ -123,6 +123,11 @@ public struct ToastStack: View {
                 ToastAnnouncement.batchDismissed(count: announcement.count)
             ).post()
         }
+        // Progress milestones and outcomes, spoken as they happen. Failures cut in.
+        .onChange(of: center.progressAnnouncement) { _, announcement in
+            guard let announcement else { return }
+            postProgressAnnouncement(announcement)
+        }
         // The page is being opened again: drop exits that finished while it was away, so
         // none replays, then bring back what was put off until now.
         .onAppear {
@@ -144,7 +149,12 @@ public struct ToastStack: View {
                     onInteractionChange: { center.setInteracting($0) },
                     onAction: { perform($0, on: toast) },
                     onDismiss: { center.dismiss(id: toast.id) },
-                    onOwnExit: { center.beginOwnExit(id: toast.id) }
+                    onOwnExit: { center.beginOwnExit(id: toast.id) },
+                    progressCell: center.progressStore.cells[toast.id],
+                    progressActions: ToastProgressActions(
+                        cancel: { center.requestCancel(id: toast.id) },
+                        retry: { center.retryProgress(id: toast.id) }
+                    )
                 )
                 .frame(width: cardWidth)
                 // What a card needs to bend its swipe and lay out its long-press track.
@@ -202,12 +212,30 @@ public struct ToastStack: View {
     private func perform(_ action: ToastAction, on toast: ToastMessage) {
         action.handler?(toast)
         actionObserver?.perform(toast, action)
+        // The swipe that stops the work as well as hiding the card. It is not an `Effect`,
+        // because that enum is public and cannot grow a case.
+        if action.id == ToastAction.cancelProgressID {
+            center.hideAndCancel(id: toast.id)
+            return
+        }
         switch action.effect {
         case .dismiss:
             center.dismiss(id: toast.id)
         case .postpone:
             center.postpone(id: toast.id)
         }
+    }
+
+    /// Speaks a progress line, urgently for a failure.
+    private func postProgressAnnouncement(_ announcement: ToastProgressAnnouncement) {
+        #if os(watchOS) || os(visionOS)
+        // The speech-priority attribute is not available on every deployment target here.
+        AccessibilityNotification.Announcement(announcement.text).post()
+        #else
+        var text = AttributedString(announcement.text)
+        text.accessibilitySpeechAnnouncementPriority = announcement.isUrgent ? .high : .low
+        AccessibilityNotification.Announcement(text).post()
+        #endif
     }
 
     // MARK: - Keeping clear
@@ -287,10 +315,15 @@ private struct ToastArrivalFeedback: ViewModifier {
         #if os(visionOS)
         content
         #else
-        content.sensoryFeedback(trigger: center.topmost?.id) { previous, current in
-            guard let current, current != previous else { return nil }
-            return center.topmost.map { theme.feedback($0.status) } ?? nil
-        }
+        content
+            .sensoryFeedback(trigger: center.topmost?.id) { previous, current in
+                guard let current, current != previous else { return nil }
+                return center.topmost.map { theme.feedback($0.status) } ?? nil
+            }
+            // A card that finished in place was never a new arrival, so it feels its own.
+            .sensoryFeedback(trigger: center.progressOutcome) { _, outcome in
+                outcome.flatMap { theme.feedback($0.status) }
+            }
         #endif
     }
 }

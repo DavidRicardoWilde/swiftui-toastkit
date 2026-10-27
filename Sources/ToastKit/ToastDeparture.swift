@@ -19,6 +19,9 @@ struct ToastDeparture: Identifiable, Equatable {
     /// What was asked for. `nil` means the stack's default.
     let removal: ToastRemoval?
     let departedAt: Date
+    /// Where a running progress card's bar stood as it left, so the stand-in can draw it
+    /// frozen there. `nil` for any other card.
+    let progressSnapshot: ToastProgress?
 
     var id: UUID { token }
 
@@ -28,14 +31,18 @@ struct ToastDeparture: Identifiable, Equatable {
     /// visible (`depth < visibleDepth`) and are not in `excluding` — the ones already
     /// animating their own exit.
     ///
-    /// - Parameter toasts: The stack as the model holds it, oldest first.
+    /// - Parameters:
+    ///   - toasts: The stack as the model holds it, oldest first.
+    ///   - progress: The latest progress of a card by id, asked for running progress cards
+    ///     only.
     static func plan(
         removing: Set<UUID>,
         from toasts: [ToastMessage],
         visibleDepth: Int,
         removal: ToastRemoval?,
         excluding: Set<UUID>,
-        at date: Date
+        at date: Date,
+        progress: (UUID) -> ToastProgress? = { _ in nil }
     ) -> [ToastDeparture] {
         var leaving: [(toast: ToastMessage, depth: Int)] = []
         for (index, toast) in toasts.enumerated().reversed() {
@@ -50,7 +57,8 @@ struct ToastDeparture: Identifiable, Equatable {
                 order: order,
                 batchCount: leaving.count,
                 removal: removal,
-                departedAt: date
+                departedAt: date,
+                progressSnapshot: entry.toast.progressPhase?.isActive == true ? progress(entry.toast.id) : nil
             )
         }
     }

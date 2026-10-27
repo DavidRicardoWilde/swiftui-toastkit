@@ -23,6 +23,29 @@ final class ToastMetricsTests: XCTestCase {
         XCTAssertEqual(regular.actionTrackScale, 1)
     }
 
+    func testTheDefaultInitializerIsStillRegular() {
+        XCTAssertEqual(ToastMetrics(), .regular)
+    }
+
+    func testRegularProgressSizesFollowThePlatform() {
+        let expected: [(ToastPlatform, CGFloat, CGFloat)] = [
+            (.iOS, 4, 28),
+            (.macOS, 4, 22),
+            (.watchOS, 4, 32),
+            (.visionOS, 5, 32)
+        ]
+        for (platform, bar, side) in expected {
+            XCTAssertEqual(platform.regularProgressBarHeight, bar, "\(platform) bar")
+            XCTAssertEqual(platform.regularProgressButtonSide, side, "\(platform) button")
+        }
+        let regular = ToastMetrics.regular
+        XCTAssertEqual(regular.progressBarHeight, ToastPlatform.current.regularProgressBarHeight)
+        XCTAssertEqual(regular.progressButtonSide, ToastPlatform.current.regularProgressButtonSide)
+        XCTAssertEqual(regular.progressSpacing, 8)
+        XCTAssertEqual(regular.progressTitleLineLimit, 1)
+        XCTAssertEqual(regular.progressDetailLineLimit, 1)
+    }
+
     func testRegularIsTheEnvironmentDefault() {
         XCTAssertEqual(EnvironmentValues().toastMetrics, .regular)
     }
@@ -47,6 +70,48 @@ final class ToastMetricsTests: XCTestCase {
             XCTAssertEqual(ToastMetrics.compactTable(on: platform).width, compact, "\(platform) compact")
             XCTAssertEqual(ToastMetrics.largeTable(on: platform).width, large, "\(platform) large")
         }
+    }
+
+    func testPresetProgressSizesFollowTheProposal() {
+        // bar height, title lines, detail lines
+        let compact: [(ToastPlatform, CGFloat, Int, Int)] = [
+            (.iOS, 3, 1, 1),
+            (.macOS, 3, 1, 1),
+            (.watchOS, 3, 1, 0),
+            (.visionOS, 4, 1, 1)
+        ]
+        let large: [(ToastPlatform, CGFloat, Int, Int)] = [
+            (.iOS, 6, 2, 1),
+            (.macOS, 5, 2, 1),
+            (.watchOS, 5, 2, 1),
+            (.visionOS, 7, 2, 1)
+        ]
+        for (platform, bar, title, detail) in compact {
+            let metrics = ToastMetrics.compactTable(on: platform)
+            XCTAssertEqual(metrics.progressBarHeight, bar, "\(platform) compact bar")
+            XCTAssertEqual(metrics.progressTitleLineLimit, title, "\(platform) compact title")
+            XCTAssertEqual(metrics.progressDetailLineLimit, detail, "\(platform) compact detail")
+        }
+        for (platform, bar, title, detail) in large {
+            let metrics = ToastMetrics.largeTable(on: platform)
+            XCTAssertEqual(metrics.progressBarHeight, bar, "\(platform) large bar")
+            XCTAssertEqual(metrics.progressTitleLineLimit, title, "\(platform) large title")
+            XCTAssertEqual(metrics.progressDetailLineLimit, detail, "\(platform) large detail")
+        }
+    }
+
+    func testPresetButtonsAndSpacingStayUniform() {
+        for platform in ToastPlatform.allCases {
+            for metrics in [ToastMetrics.compactTable(on: platform), ToastMetrics.largeTable(on: platform)] {
+                XCTAssertEqual(metrics.progressButtonSide, platform.regularProgressButtonSide, "\(platform)")
+                XCTAssertEqual(metrics.progressSpacing, 8, "\(platform)")
+            }
+        }
+    }
+
+    func testTheCompactWatchHidesTheDetailLine() {
+        XCTAssertEqual(ToastMetrics.compactTable(on: .watchOS).progressDetailLineLimit, 0)
+        XCTAssertEqual(ToastMetrics.largeTable(on: .watchOS).progressTitleLineLimit, 2)
     }
 
     func testPresetPaddingGlyphAndRadiusFollowTheProposal() {
