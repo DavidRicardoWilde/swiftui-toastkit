@@ -8,7 +8,7 @@ import DocPage from '../../components/DocPage.astro';
     <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · 오픈 소스</p>
     <h1>자연스럽게 어울리는<br /><em>알림.</em></h1>
     <p class="hero-copy">SwiftUI 앱에 세련된 스택형 토스트 알림을 추가하세요. 제스처, 타이밍, 스타일을 한 번에 제공합니다.</p>
-    <div class="hero-actions"><a class="primary-button" href="#start">시작하기 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-actions"><a class="primary-button" href="#start">시작하기 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> macOS 14+ <i>·</i> watchOS 10+ <i>·</i> visionOS 1+ <i>·</i> Swift 5.10</span></div>
     <div class="hero-art" aria-hidden="true"><div class="glow"></div><div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>동기화 완료</b><small>모든 항목이 최신 상태예요</small></span></div><div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>변경 사항 저장됨</b><small>작업 내용이 안전하게 저장됐어요.</small></span><span class="spark">✦</span></div><div class="art-caption">작은 피드백이 경험을 바꿉니다 <span>✳</span></div></div>
   </div>
 
@@ -50,7 +50,7 @@ import DocPage from '../../components/DocPage.astro';
 )
 toasts.present(message)</code></pre>
     <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>일반</h3><p>일상적인 확인에 어울리는 차분한 표현입니다.</p></article><article><span class="pill amber">WARNING</span><h3>주의 필요</h3><p>문제가 실패로 이어지기 전에 살펴보도록 알립니다.</p></article><article><span class="pill red">ERROR</span><h3>오류</h3><p>실패를 분명하게 전달하는 시각적 신호입니다.</p></article><article><span class="pill violet">NOTIFICATION</span><h3>알림</h3><p>앱의 강조 색상으로 소식을 전합니다.</p></article></div>
-    <p>이미 표시 중인 토스트와 같은 id로 다시 표시하면 중복을 만들지 않고 내용을 갱신해 맨 앞으로 가져옵니다. “동기화 중…”에서 “동기화 완료”로 바뀌는 상태를 보여줄 때 유용합니다.</p>
+    <p>이미 표시 중인 토스트와 같은 id로 다시 표시하면 중복을 만들지 않고 내용을 갱신해 맨 앞으로 가져옵니다. “동기화 중…”에서 “동기화 완료”로 바뀌는 상태를 보여줄 때 유용합니다. 진행 막대가 필요하거나, 취소할 수 있거나, 실패할 수 있는 작업에는 <a href="#progress">진행률 토스트</a>를 사용하세요.</p>
   </section>
 
   <section class="doc-section" id="timing">
@@ -123,7 +123,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">자연스러운 위치</p><h2>위치와 너비</h2></div></div>
-    <p>기본적으로 카드는 하단에서 쌓이며 사용 가능한 안전 영역 너비의 60%를 사용합니다.</p>
+    <p>기본적으로 카드는 하단에서 쌓이며 사용 가능한 안전 영역 너비의 60%를 사용합니다. watchOS에서는 전체 너비를 사용합니다. 크기별 너비와 우선순위는 <a href="#sizes">크기</a>에서 설명합니다.</p>
     <pre><code><span class="comment">// 상단에 배치</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -131,17 +131,112 @@ MyScreen().toasts(toasts, placement: .top)
 MyScreen().toasts(toasts, width: .fraction(0.9))
 MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <p><code>TabView</code> 안에서는 탭 콘텐츠에 <code>.toasts(toasts)</code>를 붙이세요. 시스템 탭 바와 하단 액세서리는 이미 안전 영역에 반영됩니다. 맞춤형 플로팅 바에는 <code>.toastObstruction()</code>을 지정하면 스택이 겹치지 않게 이동합니다.</p>
-    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>저장됨</b><small>하단 · 60%</small></div><div class="demo-line"></div><div class="demo-label">안전 영역</div></div>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>저장됨</b><small>하단 · 60% · watchOS: 전체 너비</small></div><div class="demo-line"></div><div class="demo-label">안전 영역</div></div>
+  </section>
+
+  <section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">알맞은 크기</p><h2>크기</h2></div></div>
+    <p><code>ToastMetrics</code>는 카드의 크기를 정합니다. 너비, 여백, 글꼴, 아이콘 칩, 모서리 반경, 줄 수 제한이 여기에 속합니다. 테마나 스타일과는 별개라서 자유롭게 조합할 수 있습니다. 프리셋을 고르거나 직접 만들어 보세요.</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact, .regular(기본값), .large 중 선택</span>
+
+<span class="comment">// 직접 만든 크기</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// 명시한 너비가 크기의 너비보다 우선</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>각 칸에는 너비와 모서리 반경을 표시했습니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>프리셋</th><th>iOS</th><th>macOS</th><th>watchOS</th><th>visionOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td><td>280 pt · 12</td><td>전체 너비 · 14</td><td>50% · 20</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td><td>60% · 22</td><td>전체 너비 · 22</td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td><td>480 pt · 22</td><td>전체 너비 · 24</td><td>70% · 32</td></tr></tbody></table></div>
+    <ul class="check-list"><li><code>.toasts</code>에 넘긴 <code>width:</code>는 항상 크기의 너비보다 우선합니다. <code>.default</code>를 넘기면 watchOS에서도 60%가 됩니다.</li><li>macOS에서 compact와 large의 너비는 고정 포인트 값입니다. 창 크기는 제각각이기 때문입니다.</li><li>watchOS에서는 모든 크기가 전체 너비입니다. 그래서 <code>.large</code>는 카드가 넓어지는 것이 아니라 글자가 커진다는 뜻입니다.</li><li><code>ToastTheme</code>에 지정한 글꼴, 모서리 반경, 여백은 크기의 값보다 우선하므로 브랜드 테마는 어떤 크기에서도 모양을 유지합니다.</li><li>Dynamic Type으로 커지는 범위는 <code>accessibility1</code>까지입니다. <code>maximumDynamicTypeSize</code>로 바꿀 수 있습니다.</li><li>진행률 토스트도 크기를 따릅니다. 막대 두께는 3~7pt이고 상세 문구는 한 줄이며, compact watchOS에서는 상세 문구를 숨기고 퍼센트만 보여 줍니다.</li></ul>
+  </section>
+
+  <section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">깔끔하게 닫기</p><h2>토스트 닫기</h2></div></div>
+    <p>id로 토스트 하나를 닫거나, 맨 앞의 토스트를 닫을 수 있습니다. 여러 개를 한 번에 닫으려면 관련 토스트에 <code>ToastGroup</code>을 지정하거나 클로저로 조건을 지정하세요. 한꺼번에 닫는 작업은 하나의 변경으로 처리되며, 호출마다 닫은 개수를 반환합니다.</p>
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// id로 토스트 하나</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// 그룹의 모든 토스트</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// 클로저가 받아들인 모든 토스트</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// 스택 전체</span></code></pre>
+    <p><code>scope</code>는 호출이 어떤 토스트까지 닿을지를 정합니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>대상</th><th>기본값인 호출</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>스택에 있는 토스트</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>나중에 돌아오려고 대기 중인 토스트</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>둘 다</td><td><code>dismiss(id:)</code>, <code>dismiss(group:)</code>, <code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code>은 카드가 사라지는 방식을 고릅니다. 기본값인 <code>nil</code>이면 스택 자체의 설정을 따릅니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>카드의 움직임</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>제자리에서 흐려지며 사라집니다. 기본값입니다.</td></tr><tr><td><code>.slide(direction)</code></td><td>페이드되면서 밀려 나갑니다. 모든 카드가 함께 움직입니다.</td></tr><tr><td><code>.trail(direction)</code></td><td>살짝 움츠렸다가 작아지고 흐려지며 사라집니다. 맨 앞 카드가 먼저입니다.</td></tr></tbody></table></div>
+    <p>slide와 trail에는 방향을 줄 수 있습니다. 기본값은 <code>.towardAnchor</code>이고, <code>.awayFromAnchor</code>, <code>.top</code>, <code>.bottom</code>, <code>.leading</code>, <code>.trailing</code>(오른쪽에서 왼쪽으로 쓰는 언어에서는 반전됩니다), <code>.degrees(_:)</code>, <code>.vector(dx:dy:)</code>, <code>.inPlace</code>도 쓸 수 있습니다. 스택 전체의 기본 퇴장 방식은 <code>.toastRemoval(_:)</code>로 정합니다.</p>
+    <pre><code><span class="comment">// 모든 퇴장의 기본 방식</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// 호출마다: 위쪽으로, 또는 스택이 붙은 가장자리에서 멀어지게</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>동작 줄이기를 켜면 모든 퇴장이 페이드로 바뀌고 카드가 함께 사라집니다.</p>
+    <div class="callout"><span>✳</span><p><strong>진행률 토스트는 숨겨질 뿐, 취소되지 않습니다.</strong> 실행 중인 <a href="#progress">진행률 토스트</a>를 닫으면 카드는 화면에서 사라지지만 작업은 계속됩니다. 작업을 멈추려면 <code>cancelProgress(group:)</code> 등으로 취소해야 합니다. 스와이프로도 취소하게 하려면 옵션으로 켜 주세요.</p></div>
+    <pre><code><span class="comment">// 숨겨도 작업은 계속된다. 취소해야 멈춘다</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 옵션: 스와이프가 숨기면서 취소도 한다</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>
+
+  <section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">진행 중인 작업</p><h2>진행률 토스트</h2></div></div>
+    <p>업로드나 동기화처럼 시간이 걸리는 작업에는 <code>track(title:)</code>으로 카드를 표시하세요. 카드는 계속 남아 진행 정도를 보여 주고 취소도 제공할 수 있습니다. 작업이 진행되는 동안에는 시간이 지나도 사라지지 않습니다. 반환된 핸들을 보관하고, 핸들로 상태를 알리다가 마지막에 결과를 하나만 전달하세요. 카드는 그 자리에서 결과로 바뀝니다.</p>
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 따로 알려 주기 전까지는 불확정</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code>는 진행 정도를 나타냅니다. <code>.indeterminate</code>, <code>.fraction(_:)</code>, <code>.bytes(_:of:)</code>(“12 MB / 30 MB”), <code>.items(_:of:)</code>(“3 / 10”)가 있습니다. 비동기 코드에서는 <code>withProgress</code>가 작업 실행과 카드 관리를 맡습니다. reporter는 어느 스레드에서든 호출할 수 있습니다.</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>작업이 끝나는 방식이 카드를 결정합니다. 값을 반환하면 성공, 취소되면 취소, 그 밖의 오류는 실패로 처리되며 오류는 다시 던져집니다. <code>track</code>은 <code>URLSessionTask.progress</code> 같은 Foundation의 <code>Progress</code>도 받을 수 있으며, 끝나면 스스로 성공 처리합니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>단계</th><th>의미</th></tr></thead><tbody><tr><td><code>running</code></td><td>작업이 진행 중입니다. 시간이 지나도 사라지지 않습니다.</td></tr><tr><td><code>cancelling</code></td><td>취소가 요청되어 작업이 멈추기를 기다리는 중입니다.</td></tr><tr><td><code>succeeded</code></td><td>완료되었습니다. 카드가 결과를 보여 주고 표시 시간이 줄어듭니다.</td></tr><tr><td><code>failed</code></td><td>오류 카드가 8초 동안 표시됩니다. 클로저를 넘겼다면 다시 시도 버튼도 나옵니다.</td></tr><tr><td><code>cancelled</code></td><td>작업이 멈췄습니다. 카드가 사라지며, 옵션을 켜면 짧은 “취소됨”이 표시됩니다.</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// 취소하면 Task도 취소된다</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// 또는 그룹 전체를 취소</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// 같은 id: 카드가 그 자리에서 이어진다</span>
+&#125;</code></pre>
+    <p>취소 버튼은 작업이 실행 중이고 멈출 방법이 있을 때 나타납니다. 누르면 작업이 멈출 때까지 “취소하는 중…”이 표시되고, 10초가 지나면 카드가 어쨌든 마무리되므로 취소가 멈춘 채로 남지 않습니다. 실패 후 다시 시도는 같은 id로 작업을 다시 시작하면 같은 카드를 재사용합니다.</p>
+    <pre><code><span class="comment">// 닫으면 카드만 숨겨지고 작업은 계속된다</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 옵션: 스와이프가 숨기면서 취소도 한다</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>실행 중인 카드를 스와이프하거나 닫아도 숨겨질 뿐이며, 숨겨진 동안 발생한 실패는 새 토스트로 다시 나타납니다. 자세한 내용은 <a href="#dismissing">토스트 닫기</a>를 참고하세요.</p>
+    <div class="callout"><span>✳</span><p><strong>작업이 끝날 때까지 핸들을 보관하세요.</strong> 결과 없이 해제된 핸들은 버려진 것으로 간주되어, 작업이 취소되고 카드가 제거됩니다.</p></div>
+    <ul class="check-list"><li>VoiceOver는 진행 상태를 카드의 값(예: “42%, 12 MB / 30 MB”)으로 읽어 줍니다.</li><li>시작할 때, 4분의 1씩 진행될 때마다(5초 이상 간격을 두고 맨 앞 카드에서만), 그리고 결과가 나왔을 때 알립니다. 실패는 플랫폼이 지원하는 경우 긴급하게 알립니다.</li><li>취소, 숨기기, 다시 시도는 동작 로터에서 이름으로 선택할 수 있습니다.</li><li>동작 줄이기를 켜면 막대가 움직이며 훑지 않고 애니메이션 없이 채워집니다.</li></ul>
   </section>
 
   <section class="doc-section" id="accessibility">
-    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">모두를 위한 설계</p><h2>접근성</h2></div></div>
+    <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">모두를 위한 설계</p><h2>접근성</h2></div></div>
     <p>특정 제스처 없이도 동작을 사용할 수 있으며 SwiftUI 환경의 접근성 설정을 따릅니다.</p>
-    <ul class="check-list"><li>VoiceOver가 각 카드를 읽고 동작 로터에서 양쪽 스와이프 동작을 제공합니다.</li><li>동작 줄이기 설정에서는 슬라이드가 페이드 효과로 바뀝니다.</li><li>투명도 줄이기 설정에서는 유리 표면이 불투명해집니다.</li><li>대비 높이기 설정에서는 유리 테두리가 선명해집니다.</li><li>Dynamic Type에 맞춰 텍스트와 상태 아이콘 크기가 조정됩니다.</li></ul>
+    <ul class="check-list"><li>VoiceOver가 각 카드를 읽고 동작 로터에서 양쪽 스와이프 동작을 제공합니다.</li><li>동작 줄이기 설정에서는 슬라이드가 페이드 효과로 바뀝니다.</li><li>투명도 줄이기 설정에서는 유리 표면이 불투명해집니다.</li><li>대비 높이기 설정에서는 유리 테두리가 선명해집니다.</li><li>Dynamic Type에 맞춰 텍스트와 상태 아이콘 크기가 조정됩니다.</li><li>진행률 토스트는 진행 값(예: “42%, 12 MB / 30 MB”)을 읽어 주고, 진행이 4분의 1씩 이루어질 때마다 알려 주며, 취소와 다시 시도를 동작으로 제공합니다. <a href="#progress">진행률 토스트 자세히 보기</a></li></ul>
   </section>
 
   <section class="doc-section" id="localization">
-    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">사용자의 언어로</p><h2>앱 현지화</h2></div></div>
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">사용자의 언어로</p><h2>앱 현지화</h2></div></div>
     <p>ToastKit의 기본 동작 레이블은 영어, 일본어, 간체 중국어, 번체 중국어로 제공됩니다. 제목, 본문, 맞춤 동작 레이블은 앱에서 현지화하세요.</p>
     <pre><code><span class="comment">// 앱 문구를 String Catalog 또는 Localizable.strings에 추가하세요.</span>
 toasts.present(.warning,

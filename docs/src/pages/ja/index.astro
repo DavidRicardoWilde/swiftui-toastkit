@@ -8,7 +8,7 @@ import DocPage from '../../components/DocPage.astro';
     <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · オープンソース</p>
     <h1>自然になじむ<br /><em>通知を。</em></h1>
     <p class="hero-copy">SwiftUI アプリに、積み重ね表示のトースト通知を追加しましょう。ジェスチャ、タイマー、スタイルがそろっています。</p>
-    <div class="hero-actions"><a class="primary-button" href="#start">使い始める <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-actions"><a class="primary-button" href="#start">使い始める <span>↓</span></a><span class="version">iOS 17+ <i>·</i> macOS 14+ <i>·</i> watchOS 10+ <i>·</i> visionOS 1+ <i>·</i> Swift 5.10</span></div>
     <div class="hero-art" aria-hidden="true"><div class="glow"></div><div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>同期が完了しました</b><small>すべて最新の状態です</small></span></div><div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>変更を保存しました</b><small>内容は安全に保存されています。</small></span><span class="spark">✦</span></div><div class="art-caption">さりげないフィードバックが体験を変える <span>✳</span></div></div>
   </div>
 
@@ -50,7 +50,7 @@ import DocPage from '../../components/DocPage.astro';
 )
 toasts.present(message)</code></pre>
     <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>通常</h3><p>日常的な確認に使う、控えめな表示です。</p></article><article><span class="pill amber">WARNING</span><h3>注意</h3><p>問題が失敗に至る前に確認を促します。</p></article><article><span class="pill red">ERROR</span><h3>エラー</h3><p>失敗を明確に伝える視覚的な合図です。</p></article><article><span class="pill violet">NOTIFICATION</span><h3>お知らせ</h3><p>アプリのアクセントカラーで通知します。</p></article></div>
-    <p>表示中のメッセージと同じ id を使って再度表示すると、複製せずに内容を更新して先頭へ移動します。「同期中…」から「同期完了」への更新に便利です。</p>
+    <p>表示中のメッセージと同じ id を使って再度表示すると、複製せずに内容を更新して先頭へ移動します。「同期中…」から「同期完了」への更新に便利です。進捗バーが必要な処理、キャンセルできる処理、失敗しうる処理には<a href="#progress">進捗 Toast</a>を使います。</p>
   </section>
 
   <section class="doc-section" id="timing">
@@ -123,7 +123,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">適切な場所に表示</p><h2>配置と幅</h2></div></div>
-    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。</p>
+    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。watchOS では全幅です。プリセットごとの幅と優先順位は<a href="#sizes">サイズ</a>で説明します。</p>
     <pre><code><span class="comment">// 上端に配置</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -131,17 +131,112 @@ MyScreen().toasts(toasts, placement: .top)
 MyScreen().toasts(toasts, width: .fraction(0.9))
 MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <p><code>TabView</code> 内では、タブのコンテンツに <code>.toasts(toasts)</code> を付けます。システムのタブバーや下部アクセサリは安全領域に含まれます。独自のフローティングバーには <code>.toastObstruction()</code> を付けると、スタックが重ならないように移動します。</p>
-    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>保存しました</b><small>下部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">セーフエリア</div></div>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>保存しました</b><small>下部 · 60% · watchOS: 全幅</small></div><div class="demo-line"></div><div class="demo-label">セーフエリア</div></div>
+  </section>
+
+  <section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">ちょうどよい大きさ</p><h2>サイズ</h2></div></div>
+    <p><code>ToastMetrics</code> はカードの大きさ（幅、余白、文字、アイコンの枠、角の丸み、行数の上限）を決めます。テーマやスタイルとは独立しているので、自由に組み合わせられます。プリセットを選ぶか、独自の値を作成します。</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact、.regular（既定）、.large から選択</span>
+
+<span class="comment">// 独自のサイズ</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// 明示した幅はサイズの幅より優先</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>各セルには幅と角の丸みを示しています。</p>
+    <div class="table-wrap"><table><thead><tr><th>プリセット</th><th>iOS</th><th>macOS</th><th>watchOS</th><th>visionOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td><td>280 pt · 12</td><td>全幅 · 14</td><td>50% · 20</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td><td>60% · 22</td><td>全幅 · 22</td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td><td>480 pt · 22</td><td>全幅 · 24</td><td>70% · 32</td></tr></tbody></table></div>
+    <ul class="check-list"><li><code>.toasts</code> に渡した <code>width:</code> は、常にサイズ側の幅より優先されます。<code>.default</code> を渡すと、watchOS でも60%になります。</li><li>macOS では、コンパクトと大の幅は固定のポイント値です。ウィンドウの大きさが一定ではないためです。</li><li>watchOS ではどのサイズも全幅なので、<code>.large</code> はカードが広がるのではなく、文字が大きくなります。</li><li><code>ToastTheme</code> で指定したフォント、角の丸み、余白はサイズ側の値より優先されるため、ブランドのテーマはどのサイズでも見た目を保てます。</li><li>Dynamic Type による拡大は <code>accessibility1</code> で止まります。変更するには <code>maximumDynamicTypeSize</code> を使います。</li><li>進捗 Toast もサイズに従います。バーの太さは3〜7 pt、詳細は1行で、コンパクトの watchOS では詳細を隠してパーセントだけを表示します。</li></ul>
+  </section>
+
+  <section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">きれいに閉じる</p><h2>Toast を閉じる</h2></div></div>
+    <p>id を指定して1つ閉じることも、最前面の1つを閉じることもできます。まとめて閉じるには、関連する Toast に <code>ToastGroup</code> を付けるか、クロージャで条件を指定します。まとめて閉じる操作は1回の変更として扱われ、閉じた件数が戻り値で返ります。</p>
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// id を指定して1つ</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// グループ内のすべて</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// クロージャが受け入れたすべて</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// スタック全体</span></code></pre>
+    <p><code>scope</code> は、呼び出しが対象にする Toast を決めます。</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>対象</th><th>既定になる呼び出し</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>スタックにある Toast</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>後で戻る予定の Toast</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>両方</td><td><code>dismiss(id:)</code>、<code>dismiss(group:)</code>、<code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> はカードの消え方を選びます。既定の <code>nil</code> では、スタック側の設定に従います。</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>カードの動き</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>その場で薄れて消えます。既定です。</td></tr><tr><td><code>.slide(direction)</code></td><td>フェードしながらスライドして消えます。すべてのカードが一緒に動きます。</td></tr><tr><td><code>.trail(direction)</code></td><td>少し引いてから、縮みながらぼけて消えます。最前面のカードが先に消えます。</td></tr></tbody></table></div>
+    <p>slide と trail には方向を指定できます。既定は <code>.towardAnchor</code> で、ほかに <code>.awayFromAnchor</code>、<code>.top</code>、<code>.bottom</code>、<code>.leading</code>、<code>.trailing</code>（右から左の言語では反転します）、<code>.degrees(_:)</code>、<code>.vector(dx:dy:)</code>、<code>.inPlace</code> があります。スタック全体の既定の消え方は <code>.toastRemoval(_:)</code> で設定します。</p>
+    <pre><code><span class="comment">// すべての消え方の既定</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// 呼び出しごと: 上方向、またはスタックの端から離れる向き</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>視差効果を減らす設定では、どの消え方もフェードになり、すべてのカードが同時にフェードアウトします。</p>
+    <div class="callout"><span>✳</span><p><strong>進捗 Toast は非表示になるだけで、キャンセルはされません。</strong>実行中の<a href="#progress">進捗 Toast</a>を閉じると、カードは画面から消えますが、処理は続きます。処理を止めるには、<code>cancelProgress(group:)</code> などでキャンセルします。スワイプでキャンセルすることもでき、その場合は設定で有効にします。</p></div>
+    <pre><code><span class="comment">// 非表示にしても処理は続く。キャンセルすると止まる</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 設定でスワイプによるキャンセルも有効にする</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>
+
+  <section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">処理の途中経過</p><h2>進捗 Toast</h2></div></div>
+    <p>アップロードや同期のように時間のかかる処理には、<code>track(title:)</code> でカードを表示します。カードは残り続け、どこまで進んだかを示し、キャンセルも提供できます。処理中は自動で消えません。返されるハンドルを保持し、それを通じて状況を報告して、最後に結果を1つ伝えます。カードはその場で結果の表示に変わります。</p>
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 指定するまでは不確定</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code> は進み具合を表します。<code>.indeterminate</code>、<code>.fraction(_:)</code>、<code>.bytes(_:of:)</code>（「12 MB / 30 MB」）、<code>.items(_:of:)</code>（「3 / 10」）があります。非同期のコードでは、<code>withProgress</code> が処理の実行とカードの管理を引き受けます。reporter はどのスレッドからでも呼べます。</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>処理の終わり方でカードが決まります。値を返せば成功、キャンセルならキャンセル、それ以外のエラーなら失敗となり、エラーは再スローされます。<code>track</code> は <code>URLSessionTask.progress</code> のような Foundation の <code>Progress</code> も受け取り、完了すると自動で成功にします。</p>
+    <div class="table-wrap"><table><thead><tr><th>フェーズ</th><th>意味</th></tr></thead><tbody><tr><td><code>running</code></td><td>処理中です。時間では消えません。</td></tr><tr><td><code>cancelling</code></td><td>キャンセルが要求され、処理の停止を待っています。</td></tr><tr><td><code>succeeded</code></td><td>完了です。結果を表示し、表示時間の計測が始まります。</td></tr><tr><td><code>failed</code></td><td>エラーのカードを8秒間表示します。クロージャを渡した場合は再試行も表示します。</td></tr><tr><td><code>cancelled</code></td><td>処理が止まりました。カードは消えます。設定すると短い「キャンセルしました」を表示します。</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// キャンセルで Task もキャンセル</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// またはグループごとキャンセル</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// 同じ id: カードはその場で再開</span>
+&#125;</code></pre>
+    <p>キャンセルボタンは、処理が実行中で、止める手段があるあいだ表示されます。押すと処理が止まるまで「キャンセル中…」と表示され、10秒たつとカードは強制的に終了するため、キャンセルが止まったままになることはありません。失敗時の再試行は、同じ id で処理をやり直すとカードを再利用します。</p>
+    <pre><code><span class="comment">// dismiss ではカードが隠れるだけで、処理は続く</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 設定でスワイプによるキャンセルも有効にする</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>実行中のカードをスワイプまたは dismiss しても非表示になるだけです。非表示のあいだに失敗した場合は、新しい Toast として戻ってきます。詳しくは<a href="#dismissing">Toast を閉じる</a>を参照してください。</p>
+    <div class="callout"><span>✳</span><p><strong>処理が終わるまでハンドルを保持してください。</strong>結果を伝えずに解放されたハンドルは破棄されたものとみなされ、処理はキャンセルされ、カードは取り除かれます。</p></div>
+    <ul class="check-list"><li>VoiceOver はカードの値として、進捗（「42%、12 MB / 30 MB」など）を読み上げます。</li><li>開始時、4分の1進むごと（5秒以上あけて、最前面のカードのみ）、結果が出たときに知らせます。失敗は、プラットフォームが対応していれば優先度を高くして知らせます。</li><li>キャンセル、非表示、再試行は、アクションローターから名前で選べます。</li><li>視差効果を減らす設定では、バーは動き回らず、アニメーションなしで進みます。</li></ul>
   </section>
 
   <section class="doc-section" id="accessibility">
-    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">すべての人のために</p><h2>アクセシビリティ</h2></div></div>
+    <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">すべての人のために</p><h2>アクセシビリティ</h2></div></div>
     <p>特定のジェスチャを使わなくても操作でき、SwiftUI 環境のアクセシビリティ設定に従います。</p>
-    <ul class="check-list"><li>VoiceOver が各カードを読み上げ、アクションローターから両方の操作を選べます。</li><li>視差効果を減らす設定では、スライドがフェード表示に変わります。</li><li>透明度を下げる設定では、ガラス面が不透明になります。</li><li>コントラストを上げる設定では、ガラスの縁がはっきりした境界線になります。</li><li>Dynamic Type に合わせて文字とアイコンが拡大します。</li></ul>
+    <ul class="check-list"><li>VoiceOver が各カードを読み上げ、アクションローターから両方の操作を選べます。</li><li>視差効果を減らす設定では、スライドがフェード表示に変わります。</li><li>透明度を下げる設定では、ガラス面が不透明になります。</li><li>コントラストを上げる設定では、ガラスの縁がはっきりした境界線になります。</li><li>Dynamic Type に合わせて文字とアイコンが拡大します。</li><li>進捗 Toast は進捗の値（「42%、12 MB / 30 MB」など）を読み上げ、4分の1ずつ進むたびに知らせ、キャンセルと再試行を操作として提供します。<a href="#progress">進捗 Toast の詳細</a></li></ul>
   </section>
 
   <section class="doc-section" id="localization">
-    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">ユーザーの言語で</p><h2>アプリのローカライズ</h2></div></div>
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">ユーザーの言語で</p><h2>アプリのローカライズ</h2></div></div>
     <p>ToastKit の組み込み操作ラベルは英語、日本語、簡体字中国語、繁体字中国語に対応しています。タイトル、本文、独自の操作ラベルはアプリ側でローカライズしてください。</p>
     <pre><code><span class="comment">// アプリの文言は String Catalog または Localizable.strings に登録します。</span>
 toasts.present(.warning,

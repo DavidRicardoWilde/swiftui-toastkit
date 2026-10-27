@@ -52,6 +52,16 @@ public protocol ToastStyle {
     func makeBody(configuration: Configuration) -> Body
 
     typealias Configuration = ToastStyleConfiguration
+
+    /// Whether the style lays out ``ToastStyleConfiguration/progress`` itself. When it does
+    /// not, which is the default, the kit adds a bar and a button under what the style
+    /// draws, so a progress toast is never left without them.
+    static var drawsProgress: Bool { get }
+}
+
+public extension ToastStyle {
+    /// False: the kit adds the bar and button.
+    static var drawsProgress: Bool { false }
 }
 
 /// What a ``ToastStyle`` draws a card from.
@@ -77,9 +87,27 @@ public struct ToastStyleConfiguration {
     /// True when tapping the card runs an action, so a style can hint at it.
     public let isTappable: Bool
 
+    /// The sizes in effect, as set with `toastMetrics(_:)`, with any title font, message
+    /// font, corner radius or content padding the ``ToastTheme`` sets explicitly laid over
+    /// them. ``GlassToastStyle`` draws from them; a custom style may do the same, or
+    /// ignore them.
+    public let metrics: ToastMetrics
+
+    /// The bar, the detail line and the buttons of a progress toast. `nil` for any other
+    /// toast, and for a progress toast that has finished, except a failure that offers
+    /// Retry. Draw it only if the style sets ``ToastStyle/drawsProgress``; otherwise the
+    /// kit adds a bar and a button under the card.
+    public let progress: ToastProgressConfiguration?
+
     public var status: ToastMessage.Status { toast.status }
 
-    init(toast: ToastMessage, isLifted: Bool, isTappable: Bool) {
+    init(
+        toast: ToastMessage,
+        isLifted: Bool,
+        isTappable: Bool,
+        metrics: ToastMetrics = .regular,
+        progress: ToastProgressConfiguration? = nil
+    ) {
         self.toast = toast
         self.icon = toast.icon?.image ?? Image(systemName: toast.status.symbolName)
         self.title = Text(toast.title)
@@ -90,6 +118,8 @@ public struct ToastStyleConfiguration {
         }
         self.isLifted = isLifted
         self.isTappable = isTappable
+        self.metrics = metrics
+        self.progress = progress
     }
 }
 
@@ -111,8 +141,11 @@ public extension View {
 /// A type-erased style, so the environment can hold any of them.
 struct AnyToastStyle {
     private let body: @MainActor (ToastStyleConfiguration) -> AnyView
+    /// Whether the style lays out the progress parts itself.
+    let drawsProgress: Bool
 
     init<S: ToastStyle>(_ style: S) {
+        drawsProgress = S.drawsProgress
         body = { configuration in AnyView(style.makeBody(configuration: configuration)) }
     }
 
@@ -158,6 +191,8 @@ extension ToastIcon {
 public struct GlassToastStyle: ToastStyle {
     public init() {}
 
+    public static var drawsProgress: Bool { true }
+
     public func makeBody(configuration: Configuration) -> some View {
         GlassToastCard(configuration: configuration)
     }
@@ -173,33 +208,101 @@ private struct GlassToastCard: View {
 
     @Environment(\.toastTheme) private var theme
 
-    /// Gap between the glyph and the text column.
-    private let glyphSpacing: CGFloat = 12
-
     var body: some View {
-        HStack(alignment: .top, spacing: glyphSpacing) {
-            ToastGlyph(status: configuration.status, icon: configuration.icon)
+        // Sizes from the metrics, except where the theme sets one explicitly.
+        let metrics = configuration.metrics.resolved(in: theme)
+        HStack(alignment: configuration.progress == nil ? .top : .center, spacing: metrics.glyphSpacing) {
+            ToastGlyph(status: configuration.status, icon: configuration.icon, side: metrics.glyphSide)
 
-            VStack(alignment: .leading, spacing: 3) {
-                configuration.title
-                    .font(theme.titleFont)
-                    .foregroundStyle(theme.textPrimary)
-                    .lineLimit(2)
-
-                if let message = configuration.message {
-                    message
-                        .font(theme.messageFont)
-                        .foregroundStyle(theme.textSecondary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: metrics.textSpacing) {
+                if let progress = configuration.progress {
+                    progressText(progress, metrics: metrics)
+                } else {
+                    text(metrics: metrics)
                 }
             }
+            // A card that finishes in place fades from one wording to the next, without
+            // scaling, so there is nothing for Reduce Motion to take away.
+            .contentTransition(.opacity)
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.25), value: configuration.toast.progressPhase)
 
             Spacer(minLength: 0)
+
+            if let progress = configuration.progress {
+                trailingButton(progress)
+            }
         }
-        .padding(theme.contentPadding)
+        .padding(metrics.contentPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
         .toastGlassSurface(status: configuration.status, lifted: configuration.isLifted)
+    }
+
+    @ViewBuilder
+    private func text(metrics: ToastMetrics) -> some View {
+        configuration.title
+            .font(metrics.titleFont)
+            .foregroundStyle(theme.textPrimary)
+            .lineLimit(metrics.titleLineLimit)
+
+        if let message = configuration.message {
+            message
+                .font(metrics.messageFont)
+                .foregroundStyle(theme.textSecondary)
+                .lineLimit(metrics.messageLineLimit)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// The text of a card with work behind it: the title and percent on one row, the
+    /// message, the detail line and the bar. Line limits are fixed and digits are
+    /// monospaced, so a tick never changes the card's height.
+    @ViewBuilder
+    private func progressText(_ progress: ToastProgressConfiguration, metrics: ToastMetrics) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            configuration.title
+                .font(metrics.titleFont)
+                .foregroundStyle(theme.textPrimary)
+                .lineLimit(progress.phase.isActive ? metrics.progressTitleLineLimit : metrics.titleLineLimit)
+            Spacer(minLength: 0)
+            if progress.phase.isActive, let percent = progress.percent {
+                percent
+                    .font(metrics.messageFont)
+                    .monospacedDigit()
+                    .foregroundStyle(theme.textSecondary)
+                    .lineLimit(1)
+            }
+        }
+
+        if let message = configuration.message {
+            message
+                .font(metrics.messageFont)
+                .foregroundStyle(theme.textSecondary)
+                .lineLimit(metrics.messageLineLimit)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+
+        if metrics.progressDetailLineLimit != 0, progress.phase.isActive {
+            // The slot is always reserved while the work runs, so the first words of a
+            // detail line do not push the bar down.
+            (progress.detail ?? Text(" "))
+                .font(metrics.messageFont)
+                .monospacedDigit()
+                .foregroundStyle(theme.textSecondary)
+                .lineLimit(metrics.progressDetailLineLimit)
+                .opacity(progress.detail == nil ? 0 : 1)
+        }
+
+        if progress.phase.isActive {
+            progress.bar
+                .padding(.top, metrics.progressSpacing - metrics.textSpacing)
+        }
+    }
+
+    @ViewBuilder
+    private func trailingButton(_ progress: ToastProgressConfiguration) -> some View {
+        progress.cancelButton
+        progress.retryButton
     }
 }
 
@@ -209,7 +312,13 @@ private struct ToastGlyph: View {
     let icon: Image
 
     @Environment(\.toastTheme) private var theme
-    @ScaledMetric(relativeTo: .callout) private var side: CGFloat = 30
+    @ScaledMetric private var side: CGFloat
+
+    init(status: ToastMessage.Status, icon: Image, side: CGFloat) {
+        self.status = status
+        self.icon = icon
+        _side = ScaledMetric(wrappedValue: side, relativeTo: .callout)
+    }
 
     var body: some View {
         let tint = status.tint(in: theme)
@@ -244,19 +353,35 @@ private struct ToastGlyph: View {
 public struct PlainToastStyle: ToastStyle {
     public init() {}
 
+    public static var drawsProgress: Bool { true }
+
     public func makeBody(configuration: Configuration) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            configuration.icon
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
-                configuration.title
-                if let message = configuration.message {
-                    message
+        VStack(alignment: .leading, spacing: configuration.metrics.progressSpacing) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                configuration.icon
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    configuration.title
+                    if let message = configuration.message {
+                        message
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let progress = configuration.progress {
+                HStack(spacing: 8) {
+                    if progress.phase.isActive {
+                        progress.bar
+                    } else {
+                        Spacer(minLength: 0)
+                    }
+                    progress.cancelButton
+                    progress.retryButton
                 }
             }
-            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

@@ -19,6 +19,12 @@
 		7D10A0012C00000000000012 /* WatchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000012 /* WatchContentView.swift */; };
 		7D10A0012C00000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000013 /* Assets.xcassets */; };
 		7D10A0012C00000000000014 /* ToastKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7D10A00A2C00000000000011 /* ToastKit */; };
+		7D10A0012C00000000000009 /* SizesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000009 /* SizesView.swift */; };
+		7D10A0012C0000000000000A /* DismissalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C0000000000000A /* DismissalView.swift */; };
+		7D10A0012C0000000000000B /* ProgressDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C0000000000000B /* ProgressDemoView.swift */; };
+		7D10A0012C00000000000015 /* WatchSizesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000015 /* WatchSizesSection.swift */; };
+		7D10A0012C00000000000016 /* WatchDismissSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000016 /* WatchDismissSection.swift */; };
+		7D10A0012C00000000000017 /* WatchProgressSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000017 /* WatchProgressSection.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +40,12 @@
 		7D10A0022C00000000000012 /* WatchContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchContentView.swift; sourceTree = "<group>"; };
 		7D10A0022C00000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7D10A0022C00000000000014 /* ToastKitDemoWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToastKitDemoWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D10A0022C00000000000009 /* SizesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SizesView.swift; sourceTree = "<group>"; };
+		7D10A0022C0000000000000A /* DismissalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissalView.swift; sourceTree = "<group>"; };
+		7D10A0022C0000000000000B /* ProgressDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressDemoView.swift; sourceTree = "<group>"; };
+		7D10A0022C00000000000015 /* WatchSizesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSizesSection.swift; sourceTree = "<group>"; };
+		7D10A0022C00000000000016 /* WatchDismissSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDismissSection.swift; sourceTree = "<group>"; };
+		7D10A0022C00000000000017 /* WatchProgressSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProgressSection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +86,9 @@
 				7D10A0022C00000000000004 /* StylesView.swift */,
 				7D10A0022C00000000000005 /* DemoSettings.swift */,
 				7D10A0022C00000000000006 /* DemoStyles.swift */,
+				7D10A0022C00000000000009 /* SizesView.swift */,
+				7D10A0022C0000000000000A /* DismissalView.swift */,
+				7D10A0022C0000000000000B /* ProgressDemoView.swift */,
 				7D10A0022C00000000000007 /* Assets.xcassets */,
 			);
 			path = ToastKitDemo;
@@ -93,6 +108,9 @@
 			children = (
 				7D10A0022C00000000000011 /* ToastKitDemoWatchApp.swift */,
 				7D10A0022C00000000000012 /* WatchContentView.swift */,
+				7D10A0022C00000000000015 /* WatchSizesSection.swift */,
+				7D10A0022C00000000000016 /* WatchDismissSection.swift */,
+				7D10A0022C00000000000017 /* WatchProgressSection.swift */,
 				7D10A0022C00000000000013 /* Assets.xcassets */,
 			);
 			path = ToastKitDemoWatch;
@@ -211,6 +229,9 @@
 				7D10A0012C00000000000004 /* StylesView.swift in Sources */,
 				7D10A0012C00000000000005 /* DemoSettings.swift in Sources */,
 				7D10A0012C00000000000006 /* DemoStyles.swift in Sources */,
+				7D10A0012C00000000000009 /* SizesView.swift in Sources */,
+				7D10A0012C0000000000000A /* DismissalView.swift in Sources */,
+				7D10A0012C0000000000000B /* ProgressDemoView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,6 +241,9 @@
 			files = (
 				7D10A0012C00000000000011 /* ToastKitDemoWatchApp.swift in Sources */,
 				7D10A0012C00000000000012 /* WatchContentView.swift in Sources */,
+				7D10A0012C00000000000015 /* WatchSizesSection.swift in Sources */,
+				7D10A0012C00000000000016 /* WatchDismissSection.swift in Sources */,
+				7D10A0012C00000000000017 /* WatchProgressSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

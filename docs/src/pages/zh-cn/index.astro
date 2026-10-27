@@ -8,7 +8,7 @@ import DocPage from '../../components/DocPage.astro';
     <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · 开源组件</p>
     <h1>恰到好处的<br /><em>轻提示。</em></h1>
     <p class="hero-copy">为 SwiftUI 应用加入轻巧、堆叠的 Toast 通知。手势、计时和样式都已准备好。</p>
-    <div class="hero-actions"><a class="primary-button" href="#start">开始使用 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-actions"><a class="primary-button" href="#start">开始使用 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> macOS 14+ <i>·</i> watchOS 10+ <i>·</i> visionOS 1+ <i>·</i> Swift 5.10</span></div>
     <div class="hero-art" aria-hidden="true">
       <div class="glow"></div>
       <div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>同步完成</b><small>所有内容均已更新</small></span></div>
@@ -60,7 +60,7 @@ toasts.present(message)</code></pre>
       <article><span class="pill red">ERROR</span><h3>操作失败</h3><p>使用清晰、容易识别的错误信号。</p></article>
       <article><span class="pill violet">NOTIFICATION</span><h3>值得查看</h3><p>通知状态采用应用的强调色。</p></article>
     </div>
-    <p>再次提交相同 id 的消息会更新并将该提示移到最前面，很适合展示“正在同步…”随后变为“同步完成”这样的进度状态。</p>
+    <p>再次提交相同 id 的消息会更新并将该提示移到最前面，很适合展示“正在同步…”随后变为“同步完成”这样的进度状态。若任务带有进度条、可以取消或可能失败，请使用<a href="#progress">进度 Toast</a>。</p>
   </section>
 
   <section class="doc-section" id="timing">
@@ -138,7 +138,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">恰当的位置</p><h2>位置与宽度</h2></div></div>
-    <p>默认情况下，卡片从底部向上堆叠，宽度为可用安全区域的 60%。</p>
+    <p>默认情况下，卡片从底部向上堆叠，宽度为可用安全区域宽度的 60%；在 watchOS 上则占满整个宽度。各档尺寸的宽度与优先级见<a href="#sizes">尺寸</a>。</p>
     <pre><code><span class="comment">// 顶部位置</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -146,17 +146,112 @@ MyScreen().toasts(toasts, placement: .top)
 MyScreen().toasts(toasts, width: .fraction(0.9))
 MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <p>在 <code>TabView</code> 中，将 <code>.toasts(toasts)</code> 附加到标签页内容上。系统标签栏和底部配件已计入安全区域。若有自定义浮动栏，可标记为 <code>.toastObstruction()</code>，堆栈会避开它。</p>
-    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>已保存</b><small>底部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">安全区域</div></div>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>已保存</b><small>底部 · 60% · watchOS：全宽</small></div><div class="demo-line"></div><div class="demo-label">安全区域</div></div>
+  </section>
+
+  <section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">尺寸合身</p><h2>尺寸</h2></div></div>
+    <p><code>ToastMetrics</code> 决定卡片的大小：宽度、内边距、字体、图标底板、圆角和行数上限。它独立于主题和样式，三者可以自由组合。你可以选择预设，也可以自己构建。</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact、.regular（默认）或 .large</span>
+
+<span class="comment">// 自定义尺寸</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// 显式指定的宽度优先于尺寸自带的宽度</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>每个单元格依次标出宽度和圆角半径。</p>
+    <div class="table-wrap"><table><thead><tr><th>预设</th><th>iOS</th><th>macOS</th><th>watchOS</th><th>visionOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td><td>280 pt · 12</td><td>全宽 · 14</td><td>50% · 20</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td><td>60% · 22</td><td>全宽 · 22</td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td><td>480 pt · 22</td><td>全宽 · 24</td><td>70% · 32</td></tr></tbody></table></div>
+    <ul class="check-list"><li>传给 <code>.toasts</code> 的 <code>width:</code> 始终优先于尺寸自带的宽度。传入 <code>.default</code> 表示 60%，在 watchOS 上也是如此。</li><li>在 macOS 上，compact 与 large 的宽度是固定点数，因为窗口可以是任意大小。</li><li>在 watchOS 上，所有尺寸都占满宽度，所以 <code>.large</code> 意味着字更大，而不是卡片更宽。</li><li>在 <code>ToastTheme</code> 中设置的字体、圆角或内边距优先于尺寸自带的值，因此品牌主题在每一档尺寸下都能保持外观。</li><li>动态字体放大到 <code>accessibility1</code> 为止，可用 <code>maximumDynamicTypeSize</code> 调整。</li><li>进度 Toast 同样遵循尺寸：进度条粗细为 3 到 7 pt，详情只占一行；在 compact 的 watchOS 上详情会隐藏，只显示百分比。</li></ul>
+  </section>
+
+  <section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">干净利落地收起</p><h2>移除 Toast</h2></div></div>
+    <p>可以按 id 移除单个 Toast，也可以移除最前面的一个。要一次移除多个，可以给相关的 Toast 指定 <code>ToastGroup</code>，或用闭包筛选。批量移除算作一次变更，每次调用都会返回移除的数量。</p>
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// 按 id 移除单个</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// 移除一个分组里的全部</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// 移除闭包接受的全部</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// 移除整个堆栈</span></code></pre>
+    <p><code>scope</code> 决定调用会影响哪些 Toast：</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>影响范围</th><th>默认用于</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>堆栈中的 Toast</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>等待稍后返回的 Toast</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>两者</td><td><code>dismiss(id:)</code>、<code>dismiss(group:)</code>、<code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> 选择卡片的离场方式。默认的 <code>nil</code> 会沿用堆栈自身的设置。</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>卡片的表现</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>在原处淡出。默认方式。</td></tr><tr><td><code>.slide(direction)</code></td><td>一边淡出一边滑走，所有卡片一起。</td></tr><tr><td><code>.trail(direction)</code></td><td>先微微蓄势，再缩小、模糊着离开，最前面的卡片最先。</td></tr></tbody></table></div>
+    <p>slide 与 trail 可以指定方向：默认是 <code>.towardAnchor</code>，还有 <code>.awayFromAnchor</code>、<code>.top</code>、<code>.bottom</code>、<code>.leading</code>、<code>.trailing</code>（在从右到左的语言中会镜像）、<code>.degrees(_:)</code>、<code>.vector(dx:dy:)</code> 和 <code>.inPlace</code>。整个堆栈的默认离场方式用 <code>.toastRemoval(_:)</code> 设置。</p>
+    <pre><code><span class="comment">// 所有移除的默认离场方式</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// 单次调用：向上，或远离堆栈所靠的边缘</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>开启“减少动态效果”后，所有移除都改为淡出，所有卡片一起淡出。</p>
+    <div class="callout"><span>✳</span><p><strong>进度 Toast 只会被隐藏，不会被取消。</strong>移除一个正在运行的<a href="#progress">进度 Toast</a>，卡片会离开屏幕，但任务会继续。要停止任务，需要显式取消，例如调用 <code>cancelProgress(group:)</code>。如果你选择启用，滑动也可以同时取消。</p></div>
+    <pre><code><span class="comment">// 隐藏后任务继续运行；取消才会停止</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 可选：滑动在隐藏的同时也取消</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>
+
+  <section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">进行中的任务</p><h2>进度 Toast</h2></div></div>
+    <p>上传、同步这类耗时的任务，可以用 <code>track(title:)</code> 显示一张常驻卡片：它展示任务进行到哪里，还能提供取消。任务运行期间，它不会因超时而消失。保留返回的句柄，通过它汇报进度，最后给出唯一的结果。卡片会在原位变成这个结果。</p>
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 在你指定之前为不确定进度</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code> 描述进度：<code>.indeterminate</code>、<code>.fraction(_:)</code>、<code>.bytes(_:of:)</code>（“12 MB / 30 MB”）和 <code>.items(_:of:)</code>（“3 / 10”）。在异步代码中，<code>withProgress</code> 负责运行任务并管理卡片，它的 reporter 可以在任意线程调用。</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>任务如何结束，决定卡片的结果：返回值即成功，被取消即取消，其他错误则失败并继续抛出。<code>track</code> 也接受 Foundation 的 <code>Progress</code>，例如 <code>URLSessionTask.progress</code>，它完成时会自动标记为成功。</p>
+    <div class="table-wrap"><table><thead><tr><th>阶段</th><th>含义</th></tr></thead><tbody><tr><td><code>running</code></td><td>任务进行中，不会因超时而消失。</td></tr><tr><td><code>cancelling</code></td><td>已请求取消，正在等待任务停止。</td></tr><tr><td><code>succeeded</code></td><td>已完成。卡片显示结果并开始倒计时。</td></tr><tr><td><code>failed</code></td><td>卡片变为错误并停留八秒；如果提供了闭包，还会带有“重试”。</td></tr><tr><td><code>cancelled</code></td><td>任务已停止。卡片离开；如果选择启用，会短暂显示“已取消”。</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// 取消会同时取消 Task</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// 或取消整个分组</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// 相同的 id：卡片在原位继续</span>
+&#125;</code></pre>
+    <p>任务运行中且存在停止它的方式时，会显示取消按钮。点按后卡片显示“正在取消…”，直到任务停下；十秒后卡片无论如何都会结束，所以取消不会卡住。失败后若用相同的 id 重新开始任务，“重试”会沿用同一张卡片。</p>
+    <pre><code><span class="comment">// 移除只会隐藏卡片，任务继续</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 可选：滑动在隐藏的同时也取消</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>滑动或移除正在运行的卡片只会把它隐藏；隐藏期间发生的失败会作为新的 Toast 回到屏幕上。详见<a href="#dismissing">移除 Toast</a>。</p>
+    <div class="callout"><span>✳</span><p><strong>请保留句柄，直到任务结束。</strong>句柄在没有给出结果的情况下被释放，会被视为被丢弃：它的任务会被取消，卡片也会被移除。</p></div>
+    <ul class="check-list"><li>VoiceOver 会把进度作为卡片的值朗读，例如“42%，12 MB / 30 MB”。</li><li>它会在开始时、每前进四分之一时（间隔至少五秒，且仅限最前面的卡片）以及出结果时播报。在平台支持的情况下，失败会以紧急优先级播报。</li><li>取消、隐藏和重试都是操作转子中的具名操作。</li><li>开启“减少动态效果”后，进度条不再来回扫动，填充时也没有动画。</li></ul>
   </section>
 
   <section class="doc-section" id="accessibility">
-    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">为所有人打造</p><h2>辅助功能</h2></div></div>
+    <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">为所有人打造</p><h2>辅助功能</h2></div></div>
     <p>ToastKit 无需依赖特定手势即可访问操作，并遵循 SwiftUI 环境中的辅助功能设置。</p>
-    <ul class="check-list"><li>VoiceOver 会朗读每条提示，并在操作转子中提供两侧滑动操作。</li><li>减少动态效果时，滑入动画会改为淡入淡出。</li><li>减少透明度时，磨砂表面会改为不透明。</li><li>增强对比度时，玻璃边缘会显示为实线边框。</li><li>动态字体会同步缩放文本和状态图标。</li></ul>
+    <ul class="check-list"><li>VoiceOver 会朗读每条提示，并在操作转子中提供两侧滑动操作。</li><li>减少动态效果时，滑入动画会改为淡入淡出。</li><li>减少透明度时，磨砂表面会改为不透明。</li><li>增强对比度时，玻璃边缘会显示为实线边框。</li><li>动态字体会同步缩放文本和状态图标。</li><li>进度 Toast 会朗读进度值（例如“42%，12 MB / 30 MB”），每前进四分之一就播报一次，并把取消和重试作为操作提供。<a href="#progress">进度 Toast 详情</a></li></ul>
   </section>
 
   <section class="doc-section" id="localization">
-    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">说用户的语言</p><h2>应用本地化</h2></div></div>
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">说用户的语言</p><h2>应用本地化</h2></div></div>
     <p>ToastKit 内置的操作标签支持英语、日语、简体中文和繁体中文。应用自己的文案由你管理：请为标题、正文和自定义操作标签添加本地化。</p>
     <pre><code><span class="comment">// 将应用文案放在 String Catalog 或 Localizable.strings 中。</span>
 toasts.present(.warning,

@@ -2,7 +2,8 @@ import SwiftUI
 import ToastKit
 
 /// Presents toasts that exercise each behaviour: the stack, tapping, swiping either way,
-/// pressing and holding, placement and the custom tab bar.
+/// pressing and holding, placement and the custom tab bar. Dismissal and progress have
+/// their own tabs.
 struct PlaygroundView: View {
     let toasts: ToastCenter
     @Bindable var settings: DemoSettings
@@ -36,14 +37,13 @@ struct PlaygroundView: View {
                         duration: .indefinite
                     )
                 }
-                Button("Dismiss front toast") { toasts.dismissTopmost() }
                 Button("Dismiss all", role: .destructive) { toasts.dismissAll() }
                 Button("Bring back postponed (\(toasts.postponed.count))") { toasts.restorePostponed() }
                     .disabled(toasts.postponed.isEmpty)
             } header: {
                 Text("Stacking")
             } footer: {
-                Text("Up to three cards show; older ones peek out behind the newest. Swiping right sets a toast aside for later; postponed toasts come back when you switch tabs, or right away with the button above.")
+                Text("Up to three cards show; older ones peek out behind the newest. Swiping right sets a toast aside for later; postponed toasts come back when you switch tabs, or right away with the button above. The Dismissal tab has the single, group, error and trail removals.")
             }
 
             Section("Tap") {

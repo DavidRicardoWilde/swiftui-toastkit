@@ -8,7 +8,7 @@ import DocPage from '../components/DocPage.astro';
     <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · OPEN SOURCE</p>
     <h1>Notifications that<br /><em>feel at home.</em></h1>
     <p class="hero-copy">A guide to adding thoughtful, stacked toast notifications to your SwiftUI app — with gestures, timing, and style built in.</p>
-    <div class="hero-actions"><a class="primary-button" href="#start">Start building <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-actions"><a class="primary-button" href="#start">Start building <span>↓</span></a><span class="version">iOS 17+ <i>·</i> macOS 14+ <i>·</i> watchOS 10+ <i>·</i> visionOS 1+ <i>·</i> Swift 5.10</span></div>
     <div class="hero-art" aria-hidden="true">
       <div class="glow"></div>
       <div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>Sync complete</b><small>Everything is up to date</small></span></div>
@@ -60,7 +60,7 @@ toasts.present(message)</code></pre>
       <article><span class="pill red">ERROR</span><h3>Something failed</h3><p>Give errors a clear, recognizable visual signal.</p></article>
       <article><span class="pill violet">NOTIFICATION</span><h3>Worth a glance</h3><p>Announcements use your app’s accent color.</p></article>
     </div>
-    <p>Presenting a message with an id that is already visible updates and brings that toast forward. This works well for progress states such as “Syncing…” followed by “Synced”.</p>
+    <p>Presenting a message with an id that is already visible updates and brings that toast forward. This works well for progress states such as “Syncing…” followed by “Synced”. For work that has a bar, can be cancelled or can fail, use a <a href="#progress">progress toast</a>.</p>
   </section>
 
   <section class="doc-section" id="timing">
@@ -138,7 +138,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">RIGHT WHERE IT BELONGS</p><h2>Placement &amp; width</h2></div></div>
-    <p>By default, cards hang from the bottom and use 60% of the available safe-area width.</p>
+    <p>By default, cards hang from the bottom and use 60% of the available safe-area width, or the full width on watchOS. <a href="#sizes">Sizes</a> covers the presets and which width wins.</p>
     <pre><code><span class="comment">// Top edge</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -146,17 +146,112 @@ MyScreen().toasts(toasts, placement: .top)
 MyScreen().toasts(toasts, width: .fraction(0.9))
 MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <p>Inside a <code>TabView</code>, attach <code>.toasts(toasts)</code> to the tab’s content. System tab bars and accessories are already part of its safe area. Mark a custom floating bar with <code>.toastObstruction()</code> so the stack can lift clear of it.</p>
-    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>Saved</b><small>bottom · 60%</small></div><div class="demo-line"></div><div class="demo-label">SAFE AREA</div></div>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>Saved</b><small>bottom · 60% · watchOS: full width</small></div><div class="demo-line"></div><div class="demo-label">SAFE AREA</div></div>
+  </section>
+
+  <section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">SIZE TO FIT</p><h2>Sizes</h2></div></div>
+    <p><code>ToastMetrics</code> decides how big a card is: its width, padding, type, icon chip, corner radius and line limits. It is separate from the theme and the style, so they combine freely. Choose a preset, or build your own.</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact, .regular (the default) or .large</span>
+
+<span class="comment">// Your own sizes</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// An explicit width beats the size’s</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>Each cell shows the width and the corner radius.</p>
+    <div class="table-wrap"><table><thead><tr><th>Preset</th><th>iOS</th><th>macOS</th><th>watchOS</th><th>visionOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td><td>280 pt · 12</td><td>full width · 14</td><td>50% · 20</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td><td>60% · 22</td><td>full width · 22</td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td><td>480 pt · 22</td><td>full width · 24</td><td>70% · 32</td></tr></tbody></table></div>
+    <ul class="check-list"><li>A <code>width:</code> you pass to <code>.toasts</code> always beats the size’s. Passing <code>.default</code> asks for 60%, even on watchOS.</li><li>On macOS the compact and large widths are fixed points, because a window can be any size.</li><li>On watchOS every size is the full width, so <code>.large</code> means bigger type, not a wider card.</li><li>A font, corner radius or padding set on a <code>ToastTheme</code> beats the size’s, so a brand theme keeps its look at every size.</li><li>Dynamic Type stops growing toast content at <code>accessibility1</code>. Change that with <code>maximumDynamicTypeSize</code>.</li><li>Progress toasts follow the size as well: the bar is 3 to 7 pt thick, and the detail line is one line, or hidden on compact watchOS, where only the percentage shows.</li></ul>
+  </section>
+
+  <section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">LET IT GO</p><h2>Dismissing toasts</h2></div></div>
+    <p>Remove one toast by id or take whichever is in front. To remove several at once, give related toasts a <code>ToastGroup</code> or match them with a closure. A batch is a single change, and each call returns how many toasts it removed.</p>
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// one toast by id</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// every toast in a group</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// every toast the closure accepts</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// the whole stack</span></code></pre>
+    <p><code>scope</code> says which toasts a call reaches:</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>Reaches</th><th>Default for</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>Toasts in the stack</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>Toasts waiting to come back</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>Both</td><td><code>dismiss(id:)</code>, <code>dismiss(group:)</code>, <code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> chooses how the cards leave. Passing <code>nil</code>, the default, uses the stack’s own setting.</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>The card</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>Dissolves where it stands. The default.</td></tr><tr><td><code>.slide(direction)</code></td><td>Slides off while fading, all cards together.</td></tr><tr><td><code>.trail(direction)</code></td><td>Winds up slightly, then leaves shrinking and blurring, the front card first.</td></tr></tbody></table></div>
+    <p>Slide and trail take a direction: <code>.towardAnchor</code> by default, <code>.awayFromAnchor</code>, <code>.top</code> and <code>.bottom</code>, <code>.leading</code> and <code>.trailing</code> (which flip in right-to-left layouts), <code>.degrees(_:)</code>, <code>.vector(dx:dy:)</code> or <code>.inPlace</code>. Set the default exit for the whole stack with <code>.toastRemoval(_:)</code>.</p>
+    <pre><code><span class="comment">// The default exit for every removal</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// Per call: upward, or away from the edge</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>With Reduce Motion, every removal is a cross-fade and all cards fade together.</p>
+    <div class="callout"><span>✳</span><p><strong>Progress toasts are hidden, not cancelled.</strong> Dismissing a running <a href="#progress">progress toast</a> takes the card off the screen and leaves the work alone. To stop the work, cancel it, for example with <code>cancelProgress(group:)</code>. A swipe can cancel as well, if you opt in.</p></div>
+    <pre><code><span class="comment">// Hiding leaves the work running; cancelling stops it</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// Opt in: swiping cancels as well as hides</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>
+
+  <section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">WORK IN PROGRESS</p><h2>Progress toasts</h2></div></div>
+    <p>For work that takes a while, such as an upload or a sync, <code>track(title:)</code> presents a card that stays up, shows how far the work has got and can offer Cancel. It is never timed while the work runs. Keep the handle it returns, report through it, and finish with one outcome. The card turns into its result where it stands.</p>
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// indeterminate until you say otherwise</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 of 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code> describes how far along the work is: <code>.indeterminate</code>, <code>.fraction(_:)</code>, <code>.bytes(_:of:)</code> (“12 MB of 30 MB”) or <code>.items(_:of:)</code> (“3 of 10”). From async code, <code>withProgress</code> runs the work and manages the card. Its reporter is safe to call from any thread.</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>The operation’s result decides the card: a returned value succeeds, a cancellation cancels, and any other error fails and is rethrown. <code>track</code> also accepts a Foundation <code>Progress</code>, such as <code>URLSessionTask.progress</code>, and succeeds by itself when it finishes.</p>
+    <div class="table-wrap"><table><thead><tr><th>Phase</th><th>Meaning</th></tr></thead><tbody><tr><td><code>running</code></td><td>The work is under way. The bar is never timed.</td></tr><tr><td><code>cancelling</code></td><td>Cancel was requested. Waiting for the work to stop.</td></tr><tr><td><code>succeeded</code></td><td>Done. The card shows the result and counts down.</td></tr><tr><td><code>failed</code></td><td>The card is an error for eight seconds, with Retry if you gave a closure.</td></tr><tr><td><code>cancelled</code></td><td>The work stopped. The card leaves, or shows a short “Cancelled” if you ask.</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// Cancel cancels the Task</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// or cancel a whole group</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// the same id: the card resumes in place</span>
+&#125;</code></pre>
+    <p>Cancel appears while the work runs and a way to stop it exists. Pressing it shows “Cancelling…” until the work stops, and after ten seconds the card finishes anyway, so a cancel cannot hang. A failure with Retry reuses the card when you start the work again with the same id.</p>
+    <pre><code><span class="comment">// Dismissing hides the card; the work goes on</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// Opt in: swiping cancels as well as hides</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>Swiping or dismissing a running card only hides it, and a failure that arrives while it is hidden comes back as a new toast. See <a href="#dismissing">Dismissing toasts</a>.</p>
+    <div class="callout"><span>✳</span><p><strong>Keep the handle until the work ends.</strong> A handle released without an outcome is abandoned: its work is cancelled and its card removed.</p></div>
+    <ul class="check-list"><li>VoiceOver reads the progress as the card’s value, such as “42%, 12 MB of 30 MB”.</li><li>It announces the start, every quarter of the way (at least five seconds apart, front card only) and the outcome. Failures are urgent where the platform allows.</li><li>Cancel, Hide and Retry are named actions in the actions rotor.</li><li>With Reduce Motion the bar stops sweeping and fills without animation.</li></ul>
   </section>
 
   <section class="doc-section" id="accessibility">
-    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">BUILT FOR EVERYONE</p><h2>Accessibility</h2></div></div>
+    <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">BUILT FOR EVERYONE</p><h2>Accessibility</h2></div></div>
     <p>ToastKit keeps actions available without requiring a gesture and follows the accessibility settings in SwiftUI’s environment.</p>
-    <ul class="check-list"><li>VoiceOver announces each card and offers both swipe actions in the actions rotor.</li><li>Reduce Motion replaces sliding movement with a cross-fade.</li><li>Reduce Transparency makes glass surfaces opaque.</li><li>Increase Contrast strengthens the glass border.</li><li>Dynamic Type scales text and the status icon.</li></ul>
+    <ul class="check-list"><li>VoiceOver announces each card and offers both swipe actions in the actions rotor.</li><li>Reduce Motion replaces sliding movement with a cross-fade.</li><li>Reduce Transparency makes glass surfaces opaque.</li><li>Increase Contrast strengthens the glass border.</li><li>Dynamic Type scales text and the status icon.</li><li>Progress toasts read their value aloud (such as “42%, 12 MB of 30 MB”), announce each quarter of the way, and offer Cancel and Retry as actions. <a href="#progress">More on progress toasts</a>.</li></ul>
   </section>
 
   <section class="doc-section" id="localization">
-    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">SPEAK THEIR LANGUAGE</p><h2>App localization</h2></div></div>
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">SPEAK THEIR LANGUAGE</p><h2>App localization</h2></div></div>
     <p>ToastKit ships its built-in action labels in English, Japanese, Simplified Chinese, and Traditional Chinese. Your app’s strings are separate: localize the title, message, and any custom action labels you provide.</p>
     <pre><code><span class="comment">// Keep app copy in your String Catalog or Localizable.strings.</span>
 toasts.present(.warning,

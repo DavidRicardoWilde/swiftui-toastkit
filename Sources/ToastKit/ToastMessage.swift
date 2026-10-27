@@ -18,6 +18,9 @@ import Foundation
 ///     tapAction: ToastAction(title: "Manage storage") { _ in router.open(.storage) },
 ///     swipeActions: ToastSwipeActions(trailing: .later(title: "Remind me"))
 /// )
+///
+/// // A group lets related toasts be dismissed together.
+/// ToastMessage(title: "Uploading…", group: "upload")
 /// ```
 ///
 /// Foundation-only on purpose: the stack's timing rules live in ``ToastCenter`` and are
@@ -56,6 +59,21 @@ public struct ToastMessage: Identifiable, Equatable {
     /// What swiping toward each side does. Delete one way and later the other, unless
     /// told otherwise.
     public var swipeActions: ToastSwipeActions
+    /// A caller-defined kind, so related toasts can be dismissed together with
+    /// ``ToastCenter/dismiss(group:removal:scope:)``. `nil` for a toast that belongs to
+    /// none. Presenting a toast never replaces another in the same group.
+    public var group: ToastGroup?
+    /// Where the work behind a progress toast is, or `nil` for an ordinary toast. Set by
+    /// the center for toasts made with ``ToastCenter/track(id:title:message:icon:progress:group:options:onCancel:)``
+    /// and ``ToastCenter/withProgress(id:title:message:icon:group:cancellable:success:failure:onRetry:options:operation:)``.
+    ///
+    /// The `running` payload is a snapshot that ticks do not rewrite; see
+    /// ``ToastProgressPhase``. Useful in `dismiss(where:)`:
+    ///
+    /// ```swift
+    /// toasts.dismiss { $0.progressPhase == nil }   // everything but progress
+    /// ```
+    public internal(set) var progressPhase: ToastProgressPhase? = nil
 
     public init(
         id: UUID = UUID(),
@@ -75,5 +93,32 @@ public struct ToastMessage: Identifiable, Equatable {
         self.duration = duration
         self.tapAction = tapAction
         self.swipeActions = swipeActions
+        self.group = nil
+    }
+
+    /// Creates a toast that belongs to `group`. `group` is required here so that the
+    /// original initialiser above keeps its exact signature.
+    public init(
+        id: UUID = UUID(),
+        status: Status = .normal,
+        title: String,
+        message: String? = nil,
+        icon: ToastIcon? = nil,
+        duration: ToastDuration = .automatic,
+        tapAction: ToastAction? = nil,
+        swipeActions: ToastSwipeActions = .standard,
+        group: ToastGroup?
+    ) {
+        self.init(
+            id: id,
+            status: status,
+            title: title,
+            message: message,
+            icon: icon,
+            duration: duration,
+            tapAction: tapAction,
+            swipeActions: swipeActions
+        )
+        self.group = group
     }
 }

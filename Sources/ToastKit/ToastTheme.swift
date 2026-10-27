@@ -39,8 +39,9 @@ import SwiftUI
 ///     .toastTheme(.brand)
 /// ```
 ///
-/// Surfaces, content and metrics are read by ``GlassToastStyle`` only; a custom
-/// ``ToastStyle`` is free to ignore them. `edgeInset`, the motions, `actionTint`,
+/// Surfaces and content are read by ``GlassToastStyle`` only; a custom ``ToastStyle`` is
+/// free to ignore them. Sizes come from ``ToastMetrics``; a font, corner radius or padding
+/// set explicitly here wins over the metrics'. `edgeInset`, the motions, `actionTint`,
 /// `actionFadeStart` and `feedback` apply whatever the style.
 ///
 /// Note what is deliberately *not* here: Reduce Motion, Reduce Transparency and
@@ -101,8 +102,18 @@ public struct ToastTheme {
 
     public var textPrimary: Color
     public var textSecondary: Color
-    public var titleFont: Font
-    public var messageFont: Font
+    /// Set explicitly, this wins over the font of the ``ToastMetrics`` in effect; left
+    /// alone it is `.callout` medium and the metrics decide.
+    public var titleFont: Font {
+        get { explicitTitleFont ?? ToastMetrics.regular.titleFont }
+        set { explicitTitleFont = newValue }
+    }
+    /// Set explicitly, this wins over the font of the ``ToastMetrics`` in effect; left
+    /// alone it is `.footnote` and the metrics decide.
+    public var messageFont: Font {
+        get { explicitMessageFont ?? ToastMetrics.regular.messageFont }
+        set { explicitMessageFont = newValue }
+    }
 
     /// The hue for a status. One colour per status — the kit derives the wash, the edge,
     /// the glyph chip and the glow from it at fixed opacities, so a host retunes a
@@ -112,8 +123,18 @@ public struct ToastTheme {
 
     // MARK: Metrics
 
-    public var cornerRadius: CGFloat
-    public var contentPadding: EdgeInsets
+    /// Set explicitly, this wins over the corner radius of the ``ToastMetrics`` in effect;
+    /// left alone it is 22 and the metrics decide.
+    public var cornerRadius: CGFloat {
+        get { explicitCornerRadius ?? ToastMetrics.regular.cornerRadius }
+        set { explicitCornerRadius = newValue }
+    }
+    /// Set explicitly, this wins over the padding of the ``ToastMetrics`` in effect; left
+    /// alone it is 14/16 and the metrics decide.
+    public var contentPadding: EdgeInsets {
+        get { explicitContentPadding ?? ToastMetrics.regular.contentPadding }
+        set { explicitContentPadding = newValue }
+    }
     /// Gap between the stack and the edge it hangs from.
     public var edgeInset: CGFloat
 
@@ -148,6 +169,15 @@ public struct ToastTheme {
     public var feedback: (ToastMessage.Status) -> SensoryFeedback?
     #endif
 
+    // MARK: Explicit sizing
+    // Whether a value was set, as opposed to defaulted, decides whether it beats the
+    // metrics' — see `ToastMetrics.resolved(in:)`.
+
+    var explicitTitleFont: Font?
+    var explicitMessageFont: Font?
+    var explicitCornerRadius: CGFloat?
+    var explicitContentPadding: EdgeInsets?
+
     // MARK: Init
 
     public init(
@@ -157,11 +187,11 @@ public struct ToastTheme {
         borderSubtle: Color = .primary.opacity(0.25),
         textPrimary: Color = .primary,
         textSecondary: Color = .secondary,
-        titleFont: Font = .callout.weight(.medium),
-        messageFont: Font = .footnote,
+        titleFont: Font? = nil,
+        messageFont: Font? = nil,
         tint: @escaping (ToastMessage.Status) -> Color = ToastTheme.standardTint,
-        cornerRadius: CGFloat = 22,
-        contentPadding: EdgeInsets = EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16),
+        cornerRadius: CGFloat? = nil,
+        contentPadding: EdgeInsets? = nil,
         edgeInset: CGFloat = 8,
         shadow: Shadow = Shadow(color: .black.opacity(0.12), radius: 28, y: 12),
         stackMotion: Motion = Motion(duration: 0.38, bounce: 0.28),
@@ -177,11 +207,11 @@ public struct ToastTheme {
         self.borderSubtle = borderSubtle
         self.textPrimary = textPrimary
         self.textSecondary = textSecondary
-        self.titleFont = titleFont
-        self.messageFont = messageFont
+        self.explicitTitleFont = titleFont
+        self.explicitMessageFont = messageFont
         self.tint = tint
-        self.cornerRadius = cornerRadius
-        self.contentPadding = contentPadding
+        self.explicitCornerRadius = cornerRadius
+        self.explicitContentPadding = contentPadding
         self.edgeInset = edgeInset
         self.shadow = shadow
         self.stackMotion = stackMotion

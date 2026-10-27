@@ -114,6 +114,10 @@ public extension ToastAction {
     static let laterID = "toastkit.later"
     /// ``id`` of the action a stack-level `onTap` runs as.
     static let tapID = "toastkit.tap"
+    /// ``id`` of the built-in ``hideProgress`` action.
+    static let hideProgressID = "toastkit.progress.hide"
+    /// ``id`` of the built-in ``cancelProgress`` action.
+    static let cancelProgressID = "toastkit.progress.cancel"
 
     /// Removes the toast. The default leading swipe — to the left, in a left-to-right
     /// layout.
@@ -170,6 +174,36 @@ public extension ToastAction {
     }
 }
 
+// MARK: - Progress actions
+
+public extension ToastAction {
+
+    /// Hides a running progress toast. The work carries on, and a failure brings the card
+    /// back. What swiping a progress toast does unless told otherwise.
+    static var hideProgress: ToastAction {
+        ToastAction(
+            id: hideProgressID,
+            title: String(localized: "toast.action.hide", bundle: .module),
+            icon: .system("eye.slash"),
+            role: .subdued,
+            effect: .dismiss
+        )
+    }
+
+    /// Hides a running progress toast *and* cancels its work. Opt in with
+    /// `ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)`; swiping
+    /// never cancels otherwise.
+    static var cancelProgress: ToastAction {
+        ToastAction(
+            id: cancelProgressID,
+            title: String(localized: "toast.action.cancel", bundle: .module),
+            icon: .system("xmark.circle"),
+            role: .destructive,
+            effect: .dismiss
+        )
+    }
+}
+
 // MARK: - Swipe actions
 
 /// The two things a toast can be swiped into, one toward each side.
@@ -211,6 +245,12 @@ public struct ToastSwipeActions: Equatable {
     /// countdown ends, when it is tapped, or from code.
     public static var disabled: ToastSwipeActions {
         ToastSwipeActions(leading: nil, trailing: nil)
+    }
+
+    /// Hide the card either way. What a running progress toast offers by default: the work
+    /// goes on, and nothing is cancelled by accident.
+    public static var progress: ToastSwipeActions {
+        ToastSwipeActions(leading: .hideProgress, trailing: .hideProgress)
     }
 
     /// True when there is nothing to swipe into.

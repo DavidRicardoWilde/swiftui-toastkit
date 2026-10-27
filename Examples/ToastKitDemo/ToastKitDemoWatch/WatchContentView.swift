@@ -7,6 +7,7 @@ struct WatchContentView: View {
     @State private var toasts = ToastCenter()
     @State private var placement = ToastPlacement.bottom
     @State private var lastAction: String?
+    @State private var size = WatchSize.regular
 
     var body: some View {
         NavigationStack {
@@ -64,9 +65,16 @@ struct WatchContentView: View {
                         Text("Bottom").tag(ToastPlacement.bottom)
                     }
                 }
+
+                WatchSizesSection(size: $size)
+
+                WatchDismissSection(toasts: toasts)
+
+                WatchProgressSection(toasts: toasts)
             }
             .navigationTitle("ToastKit")
-            .toasts(toasts, placement: placement, width: .fraction(1))
+            .toasts(toasts, placement: placement)
+            .toastMetrics(size.metrics)
             .onToastAction { _, action in
                 lastAction = action.title
             }

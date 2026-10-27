@@ -8,7 +8,7 @@ import DocPage from '../../components/DocPage.astro';
     <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · CÓDIGO ABIERTO</p>
     <h1>Avisos que<br /><em>se sienten propios.</em></h1>
     <p class="hero-copy">Añade notificaciones toast apiladas y cuidadas a tu app SwiftUI. Los gestos, los tiempos y el estilo ya están incluidos.</p>
-    <div class="hero-actions"><a class="primary-button" href="#start">Empezar <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-actions"><a class="primary-button" href="#start">Empezar <span>↓</span></a><span class="version">iOS 17+ <i>·</i> macOS 14+ <i>·</i> watchOS 10+ <i>·</i> visionOS 1+ <i>·</i> Swift 5.10</span></div>
     <div class="hero-art" aria-hidden="true"><div class="glow"></div><div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>Sincronización completada</b><small>Todo está actualizado</small></span></div><div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>Cambios guardados</b><small>Tu trabajo está a salvo.</small></span><span class="spark">✦</span></div><div class="art-caption">Un pequeño aviso mejora la experiencia <span>✳</span></div></div>
   </div>
 
@@ -50,7 +50,7 @@ import DocPage from '../../components/DocPage.astro';
 )
 toasts.present(message)</code></pre>
     <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>Normal</h3><p>Confirmaciones cotidianas con un tono discreto.</p></article><article><span class="pill amber">WARNING</span><h3>Atención</h3><p>Invita a revisar algo antes de que falle.</p></article><article><span class="pill red">ERROR</span><h3>Algo falló</h3><p>Comunica los errores con una señal visual clara.</p></article><article><span class="pill violet">NOTIFICATION</span><h3>Notificación</h3><p>Usa el color de énfasis de tu app.</p></article></div>
-    <p>Si vuelves a presentar un mensaje con un id que ya está visible, se actualiza y pasa al frente. Es útil para mostrar estados como «Sincronizando…» y después «Sincronizado».</p>
+    <p>Si vuelves a presentar un mensaje con un id que ya está visible, se actualiza y pasa al frente. Es útil para mostrar estados como «Sincronizando…» y después «Sincronizado». Para un trabajo con barra, que se pueda cancelar o que pueda fallar, usa un <a href="#progress">toast de progreso</a>.</p>
   </section>
 
   <section class="doc-section" id="timing">
@@ -123,7 +123,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">EN EL LUGAR ADECUADO</p><h2>Posición y ancho</h2></div></div>
-    <p>De forma predeterminada, las tarjetas se apilan desde abajo y ocupan el 60% del área segura disponible.</p>
+    <p>De forma predeterminada, las tarjetas se apilan desde abajo y ocupan el 60% del ancho disponible del área segura, o todo el ancho en watchOS. En <a href="#sizes">Tamaños</a> verás los ajustes preestablecidos y qué ancho prevalece.</p>
     <pre><code><span class="comment">// Anclar arriba</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -131,17 +131,112 @@ MyScreen().toasts(toasts, placement: .top)
 MyScreen().toasts(toasts, width: .fraction(0.9))
 MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <p>Dentro de un <code>TabView</code>, aplica <code>.toasts(toasts)</code> al contenido de la pestaña. Las barras del sistema ya forman parte del área segura. Marca una barra flotante personalizada con <code>.toastObstruction()</code> para que la pila deje espacio.</p>
-    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>Guardado</b><small>abajo · 60%</small></div><div class="demo-line"></div><div class="demo-label">ÁREA SEGURA</div></div>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>Guardado</b><small>abajo · 60% · watchOS: ancho completo</small></div><div class="demo-line"></div><div class="demo-label">ÁREA SEGURA</div></div>
+  </section>
+
+  <section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">A SU MEDIDA</p><h2>Tamaños</h2></div></div>
+    <p><code>ToastMetrics</code> define el tamaño de una tarjeta: ancho, márgenes, tipografía, el icono, el radio de las esquinas y el límite de líneas. Es independiente del tema y del estilo, así que se combinan libremente. Elige un ajuste preestablecido o crea el tuyo.</p>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact, .regular (el predeterminado) o .large</span>
+
+<span class="comment">// Tus propias medidas</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// Un ancho explícito prevalece sobre el del tamaño</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>Cada celda indica el ancho y el radio de las esquinas.</p>
+    <div class="table-wrap"><table><thead><tr><th>Ajuste</th><th>iOS</th><th>macOS</th><th>watchOS</th><th>visionOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td><td>280 pt · 12</td><td>ancho completo · 14</td><td>50% · 20</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td><td>60% · 22</td><td>ancho completo · 22</td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td><td>480 pt · 22</td><td>ancho completo · 24</td><td>70% · 32</td></tr></tbody></table></div>
+    <ul class="check-list"><li>Un <code>width:</code> que pases a <code>.toasts</code> siempre prevalece sobre el del tamaño. Con <code>.default</code> pides el 60%, incluso en watchOS.</li><li>En macOS los anchos compact y large son puntos fijos, porque una ventana puede tener cualquier tamaño.</li><li>En watchOS todos los tamaños ocupan el ancho completo, así que <code>.large</code> significa letra más grande, no una tarjeta más ancha.</li><li>Una fuente, un radio o un margen definidos en un <code>ToastTheme</code> prevalecen sobre los del tamaño, de modo que un tema de marca conserva su aspecto en todos.</li><li>Dynamic Type deja de ampliar el contenido en <code>accessibility1</code>. Puedes cambiarlo con <code>maximumDynamicTypeSize</code>.</li><li>Los toasts de progreso también siguen el tamaño: la barra mide entre 3 y 7 pt, y el detalle ocupa una línea, o se oculta en compact de watchOS, donde solo se muestra el porcentaje.</li></ul>
+  </section>
+
+  <section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">SOLTAR LASTRE</p><h2>Descartar toasts</h2></div></div>
+    <p>Descarta un toast por su id o el que esté al frente. Para descartar varios a la vez, asigna a los toasts relacionados un <code>ToastGroup</code> o selecciónalos con un cierre. Un lote es un único cambio, y cada llamada devuelve cuántos toasts ha quitado.</p>
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// un toast por su id</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// todos los toasts de un grupo</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// todos los toasts que acepte el cierre</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// toda la pila</span></code></pre>
+    <p><code>scope</code> indica a qué toasts llega una llamada:</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>Alcanza</th><th>Predeterminado de</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>Los toasts de la pila</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>Los toasts que esperan volver</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>Ambos</td><td><code>dismiss(id:)</code>, <code>dismiss(group:)</code>, <code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> elige cómo salen las tarjetas. Con <code>nil</code>, el valor predeterminado, se usa el ajuste de la propia pila.</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>La tarjeta</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>Se disuelve donde está. Es el valor predeterminado.</td></tr><tr><td><code>.slide(direction)</code></td><td>Se desliza fuera mientras se desvanece, todas a la vez.</td></tr><tr><td><code>.trail(direction)</code></td><td>Se repliega un poco y sale encogiéndose y desenfocándose, la de delante primero.</td></tr></tbody></table></div>
+    <p>Slide y trail aceptan una dirección: <code>.towardAnchor</code> por defecto, <code>.awayFromAnchor</code>, <code>.top</code> y <code>.bottom</code>, <code>.leading</code> y <code>.trailing</code> (que se invierten en idiomas de derecha a izquierda), <code>.degrees(_:)</code>, <code>.vector(dx:dy:)</code> o <code>.inPlace</code>. La salida predeterminada de toda la pila se define con <code>.toastRemoval(_:)</code>.</p>
+    <pre><code><span class="comment">// La salida predeterminada para toda retirada</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// Por llamada: hacia arriba, o alejándose del borde</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>Con Reducir movimiento, toda salida es un fundido y todas las tarjetas se desvanecen a la vez.</p>
+    <div class="callout"><span>✳</span><p><strong>Los toasts de progreso se ocultan, no se cancelan.</strong> Descartar un <a href="#progress">toast de progreso</a> en curso lo quita de la pantalla, pero el trabajo continúa. Para detenerlo hay que cancelarlo, por ejemplo con <code>cancelProgress(group:)</code>. Si lo activas, deslizar también puede cancelar.</p></div>
+    <pre><code><span class="comment">// Ocultar deja el trabajo en marcha; cancelar lo detiene</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// Opcional: deslizar cancela además de ocultar</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>
+
+  <section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">TRABAJO EN CURSO</p><h2>Toasts de progreso</h2></div></div>
+    <p>Para un trabajo que tarda, como una subida o una sincronización, <code>track(title:)</code> presenta una tarjeta que permanece, muestra cuánto se ha avanzado y puede ofrecer Cancelar. Mientras el trabajo dura, nunca se cierra por tiempo. Conserva el manejador que devuelve, informa a través de él y termina con un único resultado. La tarjeta se transforma en ese resultado sin moverse.</p>
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// indeterminado hasta que indiques otra cosa</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 de 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code> describe el avance: <code>.indeterminate</code>, <code>.fraction(_:)</code>, <code>.bytes(_:of:)</code> («12 MB de 30 MB») o <code>.items(_:of:)</code> («3 de 10»). Desde código asíncrono, <code>withProgress</code> ejecuta el trabajo y gestiona la tarjeta. Su reporter se puede llamar desde cualquier hilo.</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>El resultado de la operación decide la tarjeta: si devuelve un valor, es un éxito; una cancelación cancela; cualquier otro error falla y se relanza. <code>track</code> también acepta un <code>Progress</code> de Foundation, como <code>URLSessionTask.progress</code>, y se completa solo cuando este termina.</p>
+    <div class="table-wrap"><table><thead><tr><th>Fase</th><th>Significado</th></tr></thead><tbody><tr><td><code>running</code></td><td>El trabajo está en curso. No hay cierre por tiempo.</td></tr><tr><td><code>cancelling</code></td><td>Se pidió cancelar. Se espera a que el trabajo se detenga.</td></tr><tr><td><code>succeeded</code></td><td>Terminado. La tarjeta muestra el resultado y empieza la cuenta atrás.</td></tr><tr><td><code>failed</code></td><td>La tarjeta es un error durante ocho segundos, con Reintentar si diste un cierre.</td></tr><tr><td><code>cancelled</code></td><td>El trabajo se detuvo. La tarjeta se va, o muestra un breve «Cancelado» si lo pides.</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// Cancelar cancela la Task</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// o cancela todo un grupo</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// el mismo id: la tarjeta se reanuda donde está</span>
+&#125;</code></pre>
+    <p>Cancelar aparece mientras el trabajo está en marcha y existe un modo de detenerlo. Al pulsarlo se muestra «Cancelando…» hasta que el trabajo se detiene, y pasados diez segundos la tarjeta termina de todos modos, así que una cancelación nunca se queda colgada. Un fallo con Reintentar reutiliza la tarjeta si vuelves a lanzar el trabajo con el mismo id.</p>
+    <pre><code><span class="comment">// Descartar oculta la tarjeta; el trabajo sigue</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// Opcional: deslizar cancela además de ocultar</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>Deslizar o descartar una tarjeta en curso solo la oculta, y un fallo que llegue mientras está oculta vuelve como un toast nuevo. Consulta <a href="#dismissing">Descartar toasts</a>.</p>
+    <div class="callout"><span>✳</span><p><strong>Conserva el manejador hasta que termine el trabajo.</strong> Un manejador liberado sin resultado se considera abandonado: se cancela su trabajo y se retira su tarjeta.</p></div>
+    <ul class="check-list"><li>VoiceOver lee el progreso como valor de la tarjeta, por ejemplo «42 %, 12 MB de 30 MB».</li><li>Anuncia el inicio, cada cuarto del avance (con al menos cinco segundos entre anuncios y solo en la tarjeta de delante) y el resultado. Los fallos son urgentes donde la plataforma lo permite.</li><li>Cancelar, Ocultar y Reintentar son acciones con nombre en el rotor de acciones.</li><li>Con Reducir movimiento, la barra deja de recorrerse y se rellena sin animación.</li></ul>
   </section>
 
   <section class="doc-section" id="accessibility">
-    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">PARA TODAS LAS PERSONAS</p><h2>Accesibilidad</h2></div></div>
+    <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">PARA TODAS LAS PERSONAS</p><h2>Accesibilidad</h2></div></div>
     <p>Las acciones están disponibles sin depender de un gesto y respetan los ajustes de accesibilidad del entorno SwiftUI.</p>
-    <ul class="check-list"><li>VoiceOver lee cada tarjeta y ofrece ambas acciones en el rotor.</li><li>Reducir movimiento sustituye los deslizamientos por fundidos.</li><li>Reducir transparencia vuelve opacas las superficies de cristal.</li><li>Aumentar contraste refuerza el borde de la tarjeta.</li><li>Dynamic Type escala el texto y el icono de estado.</li></ul>
+    <ul class="check-list"><li>VoiceOver lee cada tarjeta y ofrece ambas acciones en el rotor.</li><li>Reducir movimiento sustituye los deslizamientos por fundidos.</li><li>Reducir transparencia vuelve opacas las superficies de cristal.</li><li>Aumentar contraste refuerza el borde de la tarjeta.</li><li>Dynamic Type escala el texto y el icono de estado.</li><li>Los toasts de progreso leen su valor en voz alta (por ejemplo, «42 %, 12 MB de 30 MB»), anuncian cada cuarto del avance y ofrecen Cancelar y Reintentar como acciones. <a href="#progress">Más sobre los toasts de progreso</a>.</li></ul>
   </section>
 
   <section class="doc-section" id="localization">
-    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">EN SU IDIOMA</p><h2>Localización de la app</h2></div></div>
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">EN SU IDIOMA</p><h2>Localización de la app</h2></div></div>
     <p>Las etiquetas integradas de ToastKit están disponibles en inglés, japonés, chino simplificado y chino tradicional. Localiza en tu app los títulos, mensajes y etiquetas personalizadas.</p>
     <pre><code><span class="comment">// Guarda el texto de la app en un String Catalog o Localizable.strings.</span>
 toasts.present(.warning,

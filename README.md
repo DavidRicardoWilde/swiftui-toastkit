@@ -15,6 +15,8 @@ a `ToastStyle`: the frosted-glass default, the bare `.plain` style, or your own.
   curved track with both swipe actions laid out at its ends: icon, title and subtitle.
 - **Timing that waits for the user.** Only the front toast counts down. The countdown
   pauses while a finger is on the stack or the app is in the background.
+- **Progress that stays up.** A progress toast shows a bar while work runs, can offer
+  Cancel, and turns into its result in place when the work ends.
 - **Bottom by default, clear of whatever is there.** The stack sits above system tab bars
   and their accessories in any placement. Mark anything else, such as a custom tab bar, and
   the stack lifts itself clear of it.
@@ -32,11 +34,13 @@ iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyon
 - [Quick start](#quick-start)
 - [Running the example](#running-the-example)
 - [Presenting toasts](#presenting-toasts)
+- [Dismissing toasts](#dismissing-toasts)
 - [How long a toast stays](#how-long-a-toast-stays)
+- [Progress toasts](#progress-toasts)
 - [Actions: tap, swipe, press and hold](#actions-tap-swipe-press-and-hold)
 - [Styling](#styling)
 - [Placement](#placement)
-- [Width](#width)
+- [Sizing](#sizing)
 - [Accessibility](#accessibility)
 - [Platforms and localization](#platforms-and-localization)
 - [Testing your code](#testing-your-code)
@@ -130,8 +134,18 @@ choose your own team under **Signing & Capabilities** and change the bundle
 identifiers to ones you own.
 
 The watch app is a compact version of the playground: each status, a short
-stack, swipe actions, a tap action and top or bottom placement. On iPhone,
-iPad, Mac and Apple Vision Pro, the demo has two tabs:
+stack, swipe actions, a tap action and top or bottom placement. It is one list, with
+three more sections:
+
+- **Sizes** switches between the compact, regular and large sizes. Every size is the
+  full width on the watch.
+- **Dismiss** removes the front toast, the "upload" group or everything, with a trail
+  and a choice of direction.
+- **Progress** runs a workout-sync style flow: an indeterminate "Connecting…", then a
+  determinate bar, with Cancel and a success haptic. The compact size shows the
+  percentage only.
+
+On iPhone, iPad, Mac and Apple Vision Pro, the demo has five tabs:
 
 - **Playground** shows each status, a burst of stacked toasts, a persistent
   toast, tap actions, swipe actions on both sides, press and hold, postponed
@@ -139,7 +153,20 @@ iPad, Mac and Apple Vision Pro, the demo has two tabs:
   taller, so you can watch toasts move to stay clear of it.
 - **Styles** switches between the glass style, `.plain` and a custom
   `ToastStyle`, and between the standard theme and a custom `ToastTheme`
-  built with `statusTint`.
+  built with `statusTint`, and between the compact, regular and large sizes.
+- **Sizes** shows the three sizes side by side, each in its own pane, and lets you
+  pin an explicit width to see that it beats the size's. On iPhone a picker changes
+  Dynamic Type, on Mac the panes are 280 and 480 pt and follow the window, and on
+  Apple Vision Pro they use fractional widths.
+- **Dismissal** has one section for each way out: a single toast, a group ("Uploads
+  ×3"), the toasts that match a test, and everything, with a picker for the scope,
+  postponed toasts included. Fade, slide and trail combine with every direction.
+- **Progress** uploads a photo with byte counts, uploads a video whose Cancel cancels
+  the Task, fails and retries on the same card, runs a burst of six to show running
+  cards being hidden, and hides a card that then fails and comes back. Switches turn
+  on the swipe that cancels and the second tap before Cancel. On Mac it copies a
+  folder through a Foundation `Progress`, and on Apple Vision Pro an indeterminate
+  "Preparing…" turns determinate.
 
 ## Presenting toasts
 
@@ -169,8 +196,11 @@ toasts.present(ToastMessage(
 | `duration` | `.automatic` | See [How long a toast stays](#how-long-a-toast-stays). |
 | `tapAction` | `nil` | What a tap does. See [Actions](#actions-tap-swipe-press-and-hold). |
 | `swipeActions` | `.standard` | What swiping each way does: delete one way, later the other. |
+| `group` | `nil` | A `ToastGroup` of your choosing, such as `"upload"`, to dismiss related toasts together. See [Dismissing toasts](#dismissing-toasts). |
 
-Re-presenting an id updates a toast in place, which suits progress:
+Re-presenting an id updates a toast in place, which suits a status that changes. For
+work that has a progress bar, can be cancelled or can fail, see
+[Progress toasts](#progress-toasts).
 
 ```swift
 let syncID = UUID()
@@ -179,7 +209,8 @@ toasts.present(ToastMessage(id: syncID, title: "Syncing 3 items…", duration: .
 toasts.present(ToastMessage(id: syncID, title: "Synced"))
 ```
 
-Remove toasts from code with `dismiss(id:)`, `dismissTopmost()` or `dismissAll()`.
+Remove toasts from code with `dismiss(id:)`, `dismissTopmost()` or `dismissAll()`, or
+several at once: see [Dismissing toasts](#dismissing-toasts).
 
 ### The stack
 
@@ -191,6 +222,117 @@ acknowledge (`duration: .indefinite`) survives a burst of routine ones.
 ```swift
 let toasts = ToastCenter(visibleDepth: 2, capacity: 8)
 ```
+
+## Dismissing toasts
+
+One toast at a time, with `dismiss(id:)` or `dismissTopmost()`:
+
+```swift
+let savedID = UUID()
+toasts.present(ToastMessage(id: savedID, title: "Saved"))
+
+toasts.dismiss(id: savedID)     // this one, showing or postponed
+toasts.dismissTopmost()         // whichever is in front
+```
+
+Several at once, give related toasts a **group**, or match them with a closure:
+
+```swift
+toasts.present(.normal, title: "Uploading photo 1 of 3", group: "upload")
+toasts.present(ToastMessage(title: "Uploading photo 2 of 3", group: "upload"))
+
+toasts.dismiss(group: "upload")                                     // every toast in the group
+toasts.dismiss(group: "upload", removal: .slide(.trailing))         // the same, leaving by sliding
+toasts.dismiss(removal: .trail()) { $0.status == .error }           // every toast the closure accepts
+toasts.dismissAll(removal: .trail(), scope: .everywhere)            // the whole stack, postponed included
+```
+
+A group is a name you choose, `"sync"` or `"upload:\(id)"`. Presenting a toast never
+replaces another in the same group, and a toast without a group never matches
+`dismiss(group:)`. Each call returns how many toasts it removed, postponed ones included,
+and a batch is one change: the countdown is reconciled once, and a toast beneath is timed
+from the moment the batch lands. It never waits for an animation.
+
+`group:` is a required parameter of its own `ToastMessage.init` and `present` overloads,
+so the original ones are unchanged.
+
+### Scope
+
+| `scope` | Reaches | Default for |
+| --- | --- | --- |
+| `.onScreen` | Toasts in the stack | `dismissAll()`, `dismissAll(removal:scope:)` |
+| `.postponed` | Toasts waiting in `postponed` | |
+| `.everywhere` | Both | `dismiss(id:)`, `dismiss(group:)`, `dismiss(where:)` |
+
+### Removal styles
+
+`removal:` chooses how the cards leave; `nil`, the default, uses the stack's own setting.
+
+| `removal` | The card |
+| --- | --- |
+| `.fade` | Dissolves where it stands. The default, and what every removal used to look like. |
+| `.slide(direction)` | Slides off while fading, all cards together. |
+| `.trail(direction)` | Winds up slightly, then leaves shrinking and blurring, front card first and the others a beat behind. Three cards take about 0.43 s; no batch takes more than 0.6 s. |
+
+Both take a direction, `.towardAnchor` by default:
+
+| `direction` | Travels |
+| --- | --- |
+| `.inPlace` | Not at all |
+| `.towardAnchor`, `.awayFromAnchor` | Toward or away from the edge the stack hangs from |
+| `.top`, `.bottom` | Up or down the screen |
+| `.leading`, `.trailing` | To the layout direction's start or end; they flip in right-to-left layouts |
+| `.degrees(_:)` | 0° is right and angles grow clockwise, so 90° is down and −90° is up. Never mirrored |
+| `.vector(dx:dy:)` | Along the vector, in screen space where y grows downward. Never mirrored |
+
+Cards travel far enough to leave the region the stack was given.
+
+```swift
+toasts.dismiss(group: "upload", removal: .trail(.degrees(-90)))   // wind up, then leave upward
+toasts.dismissAll(removal: .slide(.awayFromAnchor))               // away from the edge the stack hangs from
+```
+
+`.toastRemoval(_:)` sets the default for removals that do not choose one, which covers a
+toast that expires, one dropped for capacity, `dismiss(id:)` and `dismissAll()`:
+
+```swift
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+```
+
+A card the user swipes away, or one they choose an action for, keeps its own exit. A card
+held on its action track when code removes it leaves at once and its hold is cancelled.
+With Reduce Motion, every removal is a cross-fade and all cards fade together.
+
+A stack should be shown by one view per center: two stacks drawing the same center would
+both draw an exit. Do not reference the dismiss methods bare (`let f = toasts.dismiss`);
+with the overloads, that needs a type annotation. Calls and full names such as
+`dismiss(id:)` are fine.
+
+### Progress toasts are hidden, not cancelled
+
+Dismissing never stops work. Every call above hides a running [progress toast](#progress-toasts)
+instead of removing it: the card leaves the stack, `handle.isVisible` turns `false`, and
+the work carries on. Hidden cards count in the number a call returns and in the VoiceOver
+announcement, but no `scope` reaches them, because a hidden card is neither on screen nor
+postponed. Swiping a running card hides it too, and so does `.later`.
+
+To stop the work, cancel it. `cancelProgress(group:)` cancels every running card in a
+group, hidden ones included, and returns how many it asked. To make swiping cancel as
+well, opt in:
+
+```swift
+toasts.cancelProgress(group: "upload")
+
+var options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)
+```
+
+Capacity follows the same rule. Past `capacity`, the oldest *timed* toasts go first,
+finished progress cards among them. Next the oldest running cards are hidden, which loses
+nothing: the work continues, and a failure brings the card back. Only then are ordinary
+persistent toasts dropped.
 
 ## How long a toast stays
 
@@ -215,6 +357,254 @@ A duration counts time *seen in front*, not time since presenting:
    background, then resumes with the time that was left.
 
 `duration: 0` still means "until dismissed", as it did before `.indefinite` existed.
+
+## Progress toasts
+
+Work that takes a while, such as an upload, an export or a sync, needs a toast that stays
+up, shows how far it has got, and turns into its result where it stands. A progress toast
+is that. It is never timed while the work runs. It can draw a bar, offer Cancel, and
+survive being swiped away. When the work ends, the same card becomes a success or a
+failure, keeping its place in the stack.
+
+### Values
+
+`ToastProgress` says how far the work has got. It is a plain `Sendable` value, so any
+thread can build one:
+
+```swift
+handle.update(.indeterminate)                       // a sweeping bar, no number
+handle.update(.fraction(0.4))                       // 40%
+handle.update(.fraction(0.4, subtitle: "Resizing")) // your own detail line
+handle.update(.bytes(12_000_000, of: 30_000_000))   // "12 MB of 30 MB"
+handle.update(.items(3, of: 10))                    // "3 of 10"
+handle.update(fraction: nil)                        // back to indeterminate
+```
+
+A fraction is clamped to 0…1. `.bytes` and `.items` work the fraction out from the counts,
+or stay indeterminate when the total is `nil`, and write the detail line in the user's
+locale. A `subtitle` replaces the generated line.
+
+### The handle
+
+`track(title:)` presents the card and returns a `ToastProgressHandle`. Report on the work
+through it, then finish with exactly one outcome:
+
+```swift
+let handle = toasts.track(title: "Syncing", group: "sync")   // indeterminate; never times out
+handle.update(.items(3, of: 10))                             // "3 of 10"
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: "Synced", message: "10 items"))
+```
+
+`track` also takes `message`, `icon`, a starting `progress`, `options` and `onCancel`.
+The handle lives on the main actor, and `phase`, `isCancellationRequested` and
+`isVisible` can be observed. Calls after the first outcome are ignored, as are calls
+from a handle of an earlier run of the same id.
+
+**Keep the handle until the work ends.** A handle released without an outcome is
+abandoned: the work is cancelled through its cancel route, if it has one, the card is
+removed, and a debug build prints a warning.
+
+`update(title:message:)` rewords the card while the work goes on, which suits a state
+such as "Waiting for network…". Pass `.some(nil)` as the message to remove that line:
+
+```swift
+handle.update(title: "Waiting for network…")                   // reword; the bar stays
+handle.update(message: "Will resume when you're back online")
+handle.update(title: "Uploading video", message: .some(nil))   // back again, second line removed
+```
+
+ToastKit does not detect stalled work. If you know the work is waiting, say so this way.
+
+### `withProgress`
+
+From async code, `withProgress` runs the work and looks after the card. The example is an
+iOS and macOS upload; the API is the same on every platform:
+
+```swift
+let url = try await toasts.withProgress(
+    title: "Uploading video",
+    group: "upload",
+    operation: { report in
+        try await uploader.upload(file) { sent, total in report(.bytes(sent, of: total)) }
+    }
+)
+```
+
+`withProgress` returns what the operation returns and rethrows what it throws. The
+`report` value is `Sendable`, so call it from any thread. Updates coalesce, so only the
+latest value of a burst reaches the card, and reporting often costs the main actor next to
+nothing. Besides `report(_:)` and `report(fraction:)`, it has `update(title:message:)`
+and `follow(_:)`, which adopts a Foundation `Progress` such as `URLSessionTask.progress`.
+
+The operation runs off the main actor in a task of its own, so capture only `Sendable`
+values. How it ends decides the card:
+
+| The operation | The card |
+| --- | --- |
+| returns | Succeeds, using `success:` to build the result from the value. |
+| throws `CancellationError`, or throws after a cancel | Cancels. |
+| throws anything else | Fails, using `failure:` to build the result from the error, and rethrows. |
+
+### Tracking a `Progress`
+
+Foundation's `Progress` can drive a card directly, which suits `URLSessionTask`:
+
+```swift
+// .automatic, the default: the card succeeds when the Progress finishes, so the handle can go.
+toasts.track(task.progress, title: "Downloading", group: "download")
+
+// .manual: the outcome is yours, for example once the server has answered.
+let handle = toasts.track(task.progress, title: "Uploading", completion: .manual)
+handle.succeed(ToastProgressResult(title: "Uploaded"))
+```
+
+The fraction comes from `fractionCompleted`, and the counts from `completedUnitCount` and
+`totalUnitCount`: bytes when `kind` is `.file`, items otherwise. Cancel is offered when
+`isCancellable` and calls `progress.cancel()`. With `.automatic` the kit watches the
+`Progress` itself and the handle may be dropped. With `.manual` the handle is yours to
+keep, and the abandonment rule above applies. Use it when the server replies after the
+last byte is sent.
+
+To show several uploads as one card, give them a parent `Progress` and track that:
+
+```swift
+let batch = Progress(totalUnitCount: Int64(photos.count))
+toasts.track(batch, title: "Uploading \(photos.count) photos", group: "upload")
+for photo in photos {
+    batch.addChild(photo, withPendingUnitCount: 1)
+}
+```
+
+### Completion and retry
+
+The card changes where it stands. It keeps its id and its place, and nothing moves to the
+front or restarts a countdown.
+
+| | Success | Failure |
+| --- | --- | --- |
+| Title | "Done", or `result.title` | "Couldn't finish", or `result.title` |
+| Status | Unchanged | `.error` |
+| Icon | A checkmark, or `result.icon` | The error glyph, or `result.icon` |
+| Buttons | None | **Retry**, when there is something to run |
+| Stays | `successDuration`: `.automatic` | `failureDuration`: 8 seconds |
+| Swipe actions | `.standard` | `.standard` |
+| Haptic | The theme's `.normal` | The theme's `.error` |
+
+A finished card is an ordinary timed toast. It starts counting down once it is in front,
+or waits its turn if it is buried, so a result is never lost. There is no haptic on
+visionOS.
+
+Retry reuses the card. Give `fail` a closure, and start the work again with the same `id`:
+
+```swift
+func send(_ toasts: ToastCenter, id: UUID = UUID()) {
+    let handle = toasts.track(id: id, title: "Sending", onCancel: { /* stop the request */ })
+    Task {
+        do {
+            try await client.send(progress: { handle.update(fraction: $0) })
+            handle.succeed()
+        } catch {
+            handle.fail(ToastProgressResult(message: "No connection")) {
+                send(toasts, id: id)     // the same id: the card resumes in place
+            }
+        }
+    }
+}
+```
+
+Tapping Retry runs the closure, then removes the card unless the same id was tracked again.
+Start the new run **synchronously**, or in a `Task` created inside the closure, as above;
+a run started later finds the card gone. `withProgress` takes the same `onRetry:` closure.
+
+### Cancellation
+
+The card shows a Cancel button while the work runs and a way to stop it exists: an
+`onCancel` closure, `handle.cancels(_:)`, a cancellable `Progress`, or
+`withProgress(cancellable: true)`, the default. Pressing it moves the card to
+`.cancelling`: the button dims, the detail line reads "Cancelling…" and the bar goes
+indeterminate. Then the work is asked to stop:
+
+```swift
+// Cancel cancels the Task, and the card finishes when the Task ends.
+let handle = toasts.track(title: "Uploading video", group: "upload")
+handle.cancels(upload)
+
+// From code: one card, or every running card in a group.
+handle.cancel()
+toasts.cancelProgress(group: "upload")
+
+// Cancelling the Task that awaits withProgress cancels its operation too.
+let job = Task {
+    try await toasts.withProgress(title: "Exporting", operation: { _ in
+        try await Task.sleep(nanoseconds: 5_000_000_000)
+    })
+}
+job.cancel()
+
+// Ask twice before cancelling, and allow the work longer to stop.
+var options = ToastProgressOptions()
+options.confirmsCancel = true
+options.cancellationGrace = 20
+toasts.track(title: "Deleting", options: options, onCancel: { /* stop the work */ })
+```
+
+- With `withProgress` or `handle.cancels(_:)`, the card finishes when the task ends.
+- With a bare `onCancel`, call `handle.finishCancelled()` once the work has stopped.
+- With no cancel route, the cancel finishes at once.
+- The card then leaves with the stack's removal, and VoiceOver announces the cancel. A
+  short "Cancelled" card replaces that when `showsCancelledResult` is on.
+- **A cancel cannot hang.** If the work has not stopped after `cancellationGrace`, 10
+  seconds by default, the card finishes as cancelled anyway. It is measured on the
+  center's clock and checked at the next update or countdown change.
+- `confirmsCancel` asks for a second tap within three seconds, and the button reads "Tap
+  again to cancel" in between. VoiceOver's Cancel action never asks.
+
+### Hidden or cancelled
+
+Hiding and cancelling are different. Hiding takes the card off the screen and leaves the
+work alone; see [Progress toasts are hidden, not cancelled](#progress-toasts-are-hidden-not-cancelled).
+What happens when hidden work ends is up to `resultWhenHidden`:
+
+```swift
+// Dismissing hides a running card; the work, and the handle, carry on.
+let handle = toasts.track(title: "Uploading", group: "upload")
+toasts.dismiss(id: handle.id)
+
+var options = ToastProgressOptions()
+options.resultWhenHidden = .always          // .failureOnly (the default), .always or .never
+options.showsCancelledResult = true
+options.announcements = .startAndEnd        // .milestones(step:minimumInterval:) by default
+options.successDuration = .seconds(2)
+options.failureDuration = .indefinite
+
+// Swiping cancels as well as hides.
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)
+let backup = toasts.track(title: "Backing up", options: options, onCancel: { /* stop the work */ })
+backup.succeed()
+```
+
+| `resultWhenHidden` | A result that arrives while the card is hidden |
+| --- | --- |
+| `.failureOnly` | A failure is presented as a new arrival, because the user may need to act on it. A success passes silently. The default. |
+| `.always` | Success and failure are both presented. |
+| `.never` | Neither is. |
+
+A cancel while hidden is always silent. `isTracking(id:)` stays `true` for a hidden card
+for as long as its work goes on.
+
+### Options
+
+| `ToastProgressOptions` | Default | Meaning |
+| --- | --- | --- |
+| `successDuration` | `.automatic` | How long a success stays up once it is in front. |
+| `failureDuration` | `.seconds(8)` | The same for a failure, long enough to reach Retry. `.indefinite` asks for acknowledgement. |
+| `resultWhenHidden` | `.failureOnly` | See above. |
+| `announcements` | `.milestones(step: 0.25, minimumInterval: 5)` | What VoiceOver is told while the work runs. `.startAndEnd` and `.none` say less. |
+| `cancellationGrace` | `10` | Seconds a cancel may take. |
+| `showsCancelledResult` | `false` | Show a short "Cancelled" card instead of just removing the card. |
+| `confirmsCancel` | `false` | Ask for a second tap before Cancel takes effect. |
+| `swipeActions` | `.progress` | What swiping does while the work runs: hide, both ways. |
 
 ## Actions: tap, swipe, press and hold
 
@@ -360,9 +750,11 @@ toasts.restorePostponed()   // bring them back now
 toasts.discardPostponed()   // forget them
 ```
 
-Postponed toasts live as long as the center. `dismiss(id:)` forgets a postponed toast too.
-`dismissAll()` clears only the screen, so whatever was put off stays put off. To keep
-postponed toasts across launches, save what you need from `postponed` and present again.
+Postponed toasts live as long as the center. `dismiss(id:)` forgets a postponed toast too,
+and so does `dismiss(group:)` by default. `dismissAll()` clears only the screen, so
+whatever was put off stays put off; `dismissAll(removal: nil, scope: .everywhere)` clears
+both. See [Dismissing toasts](#dismissing-toasts). To keep postponed toasts across
+launches, save what you need from `postponed` and present again.
 
 ## Styling
 
@@ -385,9 +777,9 @@ MyScreen()
 | Token | Default | Used for |
 | --- | --- | --- |
 | `material`, `surfaceFill`, `opaqueSurfaceFill`, `borderSubtle` | regular material, 4% primary, background, 25% primary | The glass pane, and its Reduce Transparency and Increase Contrast fallbacks. |
-| `textPrimary`, `textSecondary`, `titleFont`, `messageFont` | primary, secondary, callout medium, footnote | The text. |
+| `textPrimary`, `textSecondary`, `titleFont`, `messageFont` | primary, secondary, callout medium, footnote | The text. A font set here beats the one in `ToastMetrics`. |
 | `tint` | secondary, orange, red, accent | One colour per status. The wash, edge, glyph and glow all derive from it. Build one with `ToastTheme.statusTint(normal:warning:error:notification:)`. |
-| `cornerRadius`, `contentPadding`, `shadow` | 22, 14/16, soft | The card's shape and elevation. |
+| `cornerRadius`, `contentPadding`, `shadow` | 22, 14/16, soft | The card's shape and elevation. A radius or padding set here beats the one in `ToastMetrics`. |
 | `edgeInset` | 8 | The gap between the stack and its edge. Applies to every style. |
 | `stackMotion`, `flingMotion`, `snapBackMotion` | springs | Cards arriving and restacking, the swipe-out, the spring-back. Applies to every style. |
 | `actionTint` | red, indigo, graphite | One colour per action role, on the track. |
@@ -490,6 +882,8 @@ The configuration offers the parts ready to use, and the raw toast for anything 
 | `status` | The toast's status, for choosing colours. |
 | `isLifted` | True while the card rides the press-and-hold track. The kit already shrinks it; a style may also thin its surface so the track shows through. |
 | `isTappable` | True when tapping runs an action, for a chevron or similar hint. |
+| `metrics` | The `ToastMetrics` in effect, with the theme's explicit fonts, radius and padding laid over the size's. See [Sizes](#sizes). |
+| `progress` | A `ToastProgressConfiguration` for a [progress toast](#progress-toasts), otherwise `nil`. |
 | `toast` | The whole `ToastMessage`. |
 
 Fill the width you are given; the stack sets each card's width. The kit scales, moves,
@@ -499,6 +893,8 @@ Wrapping the plain style is a quick way to get a custom surface:
 
 ```swift
 struct CardToastStyle: ToastStyle {
+    static var drawsProgress: Bool { PlainToastStyle.drawsProgress }
+
     func makeBody(configuration: Configuration) -> some View {
         PlainToastStyle().makeBody(configuration: configuration)
             .padding()
@@ -507,6 +903,51 @@ struct CardToastStyle: ToastStyle {
     }
 }
 ```
+
+### A progress toast in your own style
+
+`configuration.progress` is `nil` for an ordinary toast, and for a progress toast that has
+finished, other than a failure that offers Retry. Otherwise it holds the `phase`, the
+live `value`, the `detail` and `percent` as `Text?`, whether Cancel and Retry are
+available, and the parts ready to lay out: `bar`, `cancelButton` and `retryButton`.
+Declare that your style draws them with `drawsProgress`, and size things from
+`configuration.metrics`:
+
+```swift
+struct ProgressStyleExample: ToastStyle {
+    static var drawsProgress: Bool { true }
+
+    func makeBody(configuration: Configuration) -> some View {
+        let metrics = configuration.metrics
+        VStack(alignment: .leading, spacing: metrics.progressSpacing) {
+            configuration.title
+                .font(metrics.titleFont)
+                .lineLimit(configuration.progress == nil ? metrics.titleLineLimit : metrics.progressTitleLineLimit)
+            if let progress = configuration.progress {
+                if let detail = progress.detail {
+                    detail.font(metrics.messageFont).monospacedDigit()
+                }
+                HStack(spacing: 8) {
+                    progress.bar
+                    progress.cancelButton
+                    progress.retryButton
+                }
+            } else if let message = configuration.message {
+                message.font(metrics.messageFont)
+            }
+        }
+        .padding(metrics.contentPadding)
+        .background(.background, in: .rect(cornerRadius: metrics.cornerRadius))
+    }
+}
+```
+
+A style that leaves `drawsProgress` at its default, `false`, still works: the kit adds a
+default bar and button under whatever it draws, so a style written before progress
+toasts never shows a progress toast without them. `GlassToastStyle` and `PlainToastStyle`
+draw their own. `ToastProgressBar(value:metrics:)` is public too, for a bar of your own
+anywhere: `nil` is indeterminate. A style that wraps `.plain` or `.glass` must forward
+`drawsProgress`, or the progress parts are drawn twice.
 
 ## Placement
 
@@ -587,7 +1028,9 @@ hosts the stack, it is in the safe area already and needs no marking.
 corner placement can be added without breaking anyone's `switch`. See
 [Roadmap](#roadmap).
 
-## Width
+## Sizing
+
+### Width
 
 Cards are measured against the width available inside the safe area:
 
@@ -598,6 +1041,86 @@ Cards are measured against the width available inside the safe area:
 .toasts(toasts, width: .points(320))     // a fixed width, clamped to the maximum
 ```
 
+On watchOS the default is the full width, since 60% of a watch is too narrow to read.
+
+### Sizes
+
+`ToastMetrics` sets how big cards are: width, padding, type, the glyph chip, corner
+radius, line limits and the long-press track. It is separate from the theme and the style,
+so they combine freely. Choose one of three presets, or build your own:
+
+```swift
+.toasts(toasts)
+.toastMetrics(.compact)     // .compact, .regular (the default) or .large
+
+.toastMetrics(ToastMetrics(
+    width: .fraction(0.8),
+    cornerRadius: 12,
+    messageLineLimit: 3,
+    progressBarHeight: 6
+))
+```
+
+Like the style and the theme, `toastMetrics(_:)` is read from the environment, so it goes
+outside `.toasts(_:)`. `.regular` matches what the kit drew before on iOS, macOS and
+visionOS, and is the full width on watchOS. The one other difference is that Dynamic Type
+is now capped at `accessibility1`, so text no longer grows through the largest accessibility
+sizes. Every parameter of the initializer defaults to its
+`.regular` value.
+
+| Preset | iOS | macOS | watchOS | visionOS |
+| --- | --- | --- | --- | --- |
+| `.compact` | 50% wide, 10/12 padding, radius 16 | 280 pt, 8/10, 12 | full width, 8/10, 14 | 50%, 12/14, 20 |
+| `.regular` | 60%, 14/16, 22 | 60%, 14/16, 22 | full width, 14/16, 22 | 60%, 14/16, 22 |
+| `.large` | 80%, 18/20, 28 | 480 pt, 16/18, 22 | full width, 12/14, 24 | 70%, 20/24, 32 |
+
+The size of a [progress toast](#progress-toasts)'s parts follows the preset as well. For
+each, the table gives the bar's height, then the lines the title and the detail take
+while the work runs:
+
+| Preset | iOS | macOS | watchOS | visionOS |
+| --- | --- | --- | --- | --- |
+| `.compact` | 3 pt, 1, 1 | 3 pt, 1, 1 | 3 pt, 1, none: the percentage only | 4 pt, 1, 1 |
+| `.regular` | 4 pt, 1, 1 | 4 pt, 1, 1 | 4 pt, 1, 1 | 5 pt, 1, 1 |
+| `.large` | 6 pt, 2, 1 | 5 pt, 2, 1 | 5 pt, 2, 1 | 7 pt, 2, 1 |
+
+Type and the glyph chip step along with them. On macOS the compact and large widths are
+fixed points, because a window can be any size. On watchOS every preset is the full width,
+so `.large` means bigger type rather than a wider card.
+
+How the settings combine:
+
+- **Width:** a `width:` you pass to `.toasts(_:width:)` always beats the preset's. Passing
+  `.default` asks for 60%, even on the watch.
+- **Theme:** a title font, message font, corner radius or content padding you set on a
+  `ToastTheme` beats the preset's, so a brand theme keeps its look in every size.
+- **Stack:** each buried card peeks out by the average of the preset's top and bottom
+  padding (14 pt for `.regular`), so a roomier preset shows a deeper stack. A theme's
+  `contentPadding` does not change it.
+- **Long press:** the track's band, its height and its labels scale with the preset, so a
+  large card still fits. The distance a finger travels to arm an action does not change.
+- **Line limits:** `titleLineLimit` and `messageLineLimit` live in the metrics: 2 and 2,
+  or 3 and 4 for `.large`. Set one to `nil` for no limit.
+- **Dynamic Type:** toast content stops growing at `accessibility1`. Change it with
+  `maximumDynamicTypeSize`.
+- **Progress:** `progressBarHeight` is the bar's thickness and `progressSpacing` the gap
+  between the text and the bar, 8 pt. `progressTitleLineLimit` and
+  `progressDetailLineLimit` are the lines the title and the detail line may take while the
+  work runs; a detail limit of `0` hides the line, which is how the compact size on
+  watchOS shows only the percentage. `progressButtonSide` is the drawn size of Cancel and
+  Retry: 28 pt on iOS, 22 on macOS, 32 on watchOS and visionOS. The touch target around
+  it is larger: at least 44 pt on iOS and watchOS, 60 on visionOS, 28 on macOS.
+- **Height:** a running card keeps one height. While the work runs, the title uses the
+  progress line limit and the detail line uses monospaced digits, so a tick never
+  changes the card and the cards beneath do not shift. When the work ends, the normal
+  `titleLineLimit` and `messageLineLimit` apply again.
+
+Width, the stack offset, the long-press track's scale and label fonts, and the Dynamic Type
+limit apply to every style, `.plain` included. Padding, title and message fonts, the glyph
+chip, corner radius and line limits are drawn only by the glass style; `.plain` and your own
+styles can read them from `configuration.metrics`, which already has the theme's explicit
+fonts, radius and padding laid over the preset's.
+
 ## Accessibility
 
 - Each card is one VoiceOver element: title, then message. A tappable card is a button,
@@ -606,11 +1129,29 @@ Cards are measured against the width available inside the safe area:
   gesture is ever the only way to reach an action.
 - Buried cards are hidden from VoiceOver; only the front card is reachable.
 - **Reduce Motion:** cards cross-fade instead of sliding, the swipe path flattens, and the
-  tilt is dropped.
+  tilt is dropped. Every removal, whatever `removal:` asks for, is a cross-fade, and all
+  departing cards fade together. A progress bar stops sweeping and fills without
+  animating, and an indeterminate bar becomes a still, half-opaque track with "In
+  progress" for its detail. A card that finishes cross-fades into its result.
+- A batch removal (`dismiss(group:)`, `dismiss(where:)`, `dismissAll()`) is announced
+  once, as "3 notifications dismissed", instead of leaving VoiceOver to notice cards
+  vanishing. The text is localized and pluralized.
+- **Progress toasts** are read with their progress, such as "42%, 12 MB of 30 MB", as the
+  card's value, and are marked as updating often, so VoiceOver does not announce every
+  tick. Cancel, Hide and Retry are named actions in the rotor; Cancel only while the work
+  runs, and Dismiss is left out while it does. The buttons on the card are hidden from
+  VoiceOver, because the card is one element.
+- While the work runs, VoiceOver is told when it starts, at every quarter of the way and
+  at the end, never more often than every five seconds, and only for the front card
+  while the app is active. A milestone held back by the interval is folded into the next
+  one, which gives the latest value. A card that is buried or hidden announces only
+  its outcome. Failures are announced as urgent on iOS and macOS; on watchOS and
+  visionOS they are announced without a priority. Change what is said with
+  `ToastProgressOptions.announcements`.
 - **Reduce Transparency:** the glass pane and the track turn opaque. The status colour
   stays, because it carries meaning.
 - **Increase Contrast:** the glass style's gradient edge becomes a solid border.
-- **Dynamic Type:** text and the glyph chip scale.
+- **Dynamic Type:** text and the glyph chip scale, up to `accessibility1`.
 
 These are read from the SwiftUI environment, so they work on every platform with no setup.
 
@@ -619,9 +1160,9 @@ These are read from the SwiftUI environment, so they work on every platform with
 | Platform | Minimum | Notes |
 | --- | --- | --- |
 | iOS, iPadOS | 17 | |
-| macOS | 14 | Swipe by clicking and dragging. |
-| watchOS | 10 | Use a narrow `width`; the track fits down to about 184 pt. |
-| visionOS | 1 | No haptics: `SensoryFeedback` arrived in visionOS 26, and a headset has nothing to vibrate. |
+| macOS | 14 | Swipe by clicking and dragging. Cancel and Retry have a tooltip. |
+| watchOS | 10 | Toasts are full width by default; the track fits down to about 184 pt. Progress toasts show only the percentage at the compact size, and Cancel is 32 pt drawn inside a 44 pt target. A watch app may be suspended, so run long transfers in your own background `URLSession` and let the toast report on them. |
+| visionOS | 1 | No haptics: `SensoryFeedback` arrived in visionOS 26, and a headset has nothing to vibrate. Buttons react to the gaze and have a 60 pt target. |
 | tvOS | — | Not supported: there is no drag gesture, and swiping is the primary interaction. A tvOS toast needs focus-driven dismissal, which is a redesign. |
 
 The kit's own strings, such as the built-in action titles and VoiceOver hints, ship in
@@ -647,8 +1188,36 @@ final class FakeScheduler: ToastScheduling {
 let toasts = ToastCenter(scheduler: FakeScheduler())
 ```
 
+A running progress toast has no countdown, and a cancel gives up after its grace
+period, both of which the fake scheduler shows without waiting. The milestone
+announcements are internal, so the package's own tests cover those.
+
+```swift
+let scheduler = FakeScheduler()
+let toasts = ToastCenter(scheduler: scheduler)
+
+// A running progress toast is never timed.
+let upload = toasts.track(title: "Uploading", onCancel: {})
+scheduler.fire()
+XCTAssertTrue(toasts.isTracking(id: upload.id))
+
+// Cancel waits for the work to stop, but only for the grace period.
+upload.cancel()
+XCTAssertEqual(upload.phase, .cancelling)
+scheduler.now += 11
+toasts.present(.normal, title: "Anything")          // any update or reconcile checks the grace
+XCTAssertFalse(toasts.isTracking(id: upload.id))
+```
+
 The package's own tests run with `swift test`. They cover the countdown rules, durations,
-postponing, swipe thresholds, the track's geometry and the obstruction lift. They also
+postponing, swipe thresholds, the track's geometry and the obstruction lift. Dismissal is
+tested on the model alone: groups, scopes, the countdown across a batch, the departures
+the stack draws, the direction maths and the trail's stagger and keyframes. A batch
+removal needs no clock beyond the fake scheduler, because the countdown never waits for
+the animation. Progress
+toasts are tested on the model too: phases and outcomes, hiding and eviction, retry and
+cancel, the coalescing of updates, the milestone throttle and the VoiceOver announcements,
+and the Foundation `Progress` mapping. They also
 compile this README's examples against the public API
 (`Tests/ToastKitTests/DocumentationExamples.swift`). The exception is the iOS 26
 `TabView` snippet, which needs a newer SDK than the package's minimum.
@@ -657,9 +1226,9 @@ compile this README's examples against the public API
 
 | Layer | Types | Imports |
 | --- | --- | --- |
-| Model | `ToastCenter`, `ToastMessage`, `ToastDuration`, `ToastAction`, `ToastSwipeActions`, `ToastIcon`, `ToastWidth`, `ToastScheduling` | Foundation |
+| Model | `ToastCenter`, `ToastMessage`, `ToastDuration`, `ToastAction`, `ToastSwipeActions`, `ToastIcon`, `ToastWidth`, `ToastScheduling`, `ToastGroup`, `ToastDismissalScope`, `ToastRemoval`, `ToastRemovalDirection`, `ToastProgress`, `ToastProgressPhase`, `ToastProgressHandle`, `ToastProgressReporter`, `ToastProgressOptions`, `ToastProgressResult`, `ToastProgressCompletion`, and the departure planning and trail timing behind them | Foundation, CoreGraphics |
 | Behaviour | `ToastStack`, `ToastCard`, the press-and-hold track, obstructions | SwiftUI |
-| Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme` | SwiftUI |
+| Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme`, `ToastMetrics`, `ToastProgressConfiguration`, `ToastProgressBar` | SwiftUI |
 
 - The model holds no colours or views, so its rules are unit-tested without a host.
 - The behaviour layer draws nothing; it hands each card to the style in effect.
