@@ -9,12 +9,12 @@ interface Props {
 
 const { lang, title, description } = Astro.props;
 const sectionLabels: Record<Props['lang'], string[]> = {
-  en: ['Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Accessibility', 'App localization'],
-  'zh-cn': ['快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '辅助功能', '应用本地化'],
-  'zh-hant': ['快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '輔助使用', '應用程式本地化'],
-  ja: ['はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'アクセシビリティ', 'アプリのローカライズ'],
-  ko: ['시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '접근성', '앱 현지화'],
-  es: ['Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Accesibilidad', 'Localización de la app'],
+  en: ['Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Sizes', 'Dismissing toasts', 'Progress toasts', 'Accessibility', 'App localization'],
+  'zh-cn': ['快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '尺寸', '移除 Toast', '进度 Toast', '辅助功能', '应用本地化'],
+  'zh-hant': ['快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '尺寸', '移除 Toast', '進度 Toast', '輔助使用', '應用程式本地化'],
+  ja: ['はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'サイズ', 'Toast を閉じる', '進捗 Toast', 'アクセシビリティ', 'アプリのローカライズ'],
+  ko: ['시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '크기', '토스트 닫기', '진행률 토스트', '접근성', '앱 현지화'],
+  es: ['Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Tamaños', 'Descartar toasts', 'Toasts de progreso', 'Accesibilidad', 'Localización de la app'],
 };
 const guideLabel: Record<Props['lang'], string> = {
   en: 'GUIDES', 'zh-cn': '使用指南', 'zh-hant': '使用指南', ja: 'ガイド', ko: '가이드', es: 'GUÍAS',
@@ -29,7 +29,7 @@ const languageNames: Array<{ code: Props['lang']; label: string; native: string;
 ];
 const htmlLang = lang === 'zh-hant' ? 'zh-Hant' : lang === 'zh-cn' ? 'zh-CN' : lang;
 const sections = sectionLabels[lang].map((label, index) => [
-  ['start', 'messages', 'timing', 'actions', 'styling', 'layout', 'accessibility', 'localization'][index], label,
+  ['start', 'messages', 'timing', 'actions', 'styling', 'layout', 'sizes', 'dismissing', 'progress', 'accessibility', 'localization'][index], label,
 ]);
 const isCjk = ['zh-cn', 'zh-hant', 'ja', 'ko'].includes(lang);
 const home = languageNames.find((language) => language.code === lang)?.href ?? '/';
@@ -79,7 +79,7 @@ const activeLanguage = languageNames.find((language) => language.code === lang)?
         <div class="sidebar-note">
           <span class="note-dot"></span>
           <p>{lang === 'ja' ? 'SwiftUI 向け' : lang === 'ko' ? 'SwiftUI 기반' : lang === 'es' ? 'Hecho para SwiftUI' : isCjk ? 'SwiftUI 原生构建' : 'Built for SwiftUI'}</p>
-          <small>iOS 17+ · macOS 14+</small>
+          <small>iOS 17+ · macOS 14+ · watchOS 10+ · visionOS 1+</small>
         </div>
       </aside>
 

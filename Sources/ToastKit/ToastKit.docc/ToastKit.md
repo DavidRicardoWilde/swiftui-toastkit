@@ -53,6 +53,18 @@ toasts.dismiss(removal: .slide(.trailing)) { $0.status == .error }
 toasts.dismissAll(removal: .trail(.towardAnchor))
 ```
 
+Work that takes a while can have a card of its own. ``ToastCenter/track(id:title:message:icon:progress:group:options:onCancel:)``
+presents a progress toast that is never timed while the work runs, draws a bar, and can
+offer Cancel. The handle it returns reports the work and ends it, and the card turns into
+its success or failure where it stands. Dismissing a running card hides it and leaves the
+work alone; cancelling is a separate call. See <doc:ProgressToasts>.
+
+```swift
+let handle = toasts.track(title: "Syncing", group: "sync")
+handle.update(.items(3, of: 10))
+handle.succeed(ToastProgressResult(title: "Synced"))
+```
+
 The stack sits at the bottom of the safe area by default, above a tab bar and its
 accessory. To keep it clear of anything the safe area does not cover, such as a custom
 tab bar, mark that view with `toastObstruction()`.
@@ -68,6 +80,19 @@ The package README is the full guide, with examples for every feature.
 - ``ToastDuration``
 - ``ToastIcon``
 
+### Progress
+
+- <doc:ProgressToasts>
+- ``ToastProgress``
+- ``ToastProgressPhase``
+- ``ToastProgressHandle``
+- ``ToastProgressReporter``
+- ``ToastProgressResult``
+- ``ToastProgressCompletion``
+- ``ToastProgressOptions``
+- ``ToastProgressConfiguration``
+- ``ToastProgressBar``
+
 ### Dismissing
 
 - ``ToastGroup``
@@ -79,6 +104,7 @@ The package README is the full guide, with examples for every feature.
 
 - ``ToastAction``
 - ``ToastSwipeActions``
+- ``ToastSwipeActions/progress``
 
 ### Drawing the stack
 

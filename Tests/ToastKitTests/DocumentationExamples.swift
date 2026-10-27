@@ -155,6 +155,13 @@ private func postponedExamples(_ toasts: ToastCenter) {
 
 @MainActor
 private func dismissalExamples(_ toasts: ToastCenter) {
+    // One toast: by id, or whichever is in front.
+    let savedID = UUID()
+    toasts.present(ToastMessage(id: savedID, title: "Saved"))
+    toasts.dismiss(id: savedID)
+    toasts.present(.normal, title: "Copied")
+    toasts.dismissTopmost()
+
     // Toasts that belong together share a group.
     toasts.present(.normal, title: "Uploading photo 1 of 3", group: "upload")
     toasts.present(ToastMessage(title: "Uploading photo 2 of 3", group: "upload"))
@@ -162,8 +169,9 @@ private func dismissalExamples(_ toasts: ToastCenter) {
 
     // Clear a group — postponed toasts of the group included — or everything that matches.
     toasts.dismiss(group: "upload")
+    toasts.dismiss(group: "upload", removal: .slide(.trailing))
     toasts.dismiss(group: "upload", removal: .trail(), scope: .onScreen)
-    let failed = toasts.dismiss(removal: .slide(.trailing)) { $0.status == .error }
+    let failed = toasts.dismiss(removal: .trail()) { $0.status == .error }
     _ = failed
 
     // The whole stack, with a choice of exit and of what to reach.
@@ -171,6 +179,11 @@ private func dismissalExamples(_ toasts: ToastCenter) {
     toasts.dismissAll(removal: .trail())
     toasts.dismissAll(removal: .slide(.degrees(-90)), scope: .everywhere)
     toasts.dismissAll(removal: .trail(.vector(dx: 1, dy: -1)), scope: .postponed)
+
+    // Directions: wind up and leave upward, or slide away from the edge the stack hangs from.
+    toasts.dismiss(group: "upload", removal: .trail(.degrees(-90)))
+    toasts.dismissAll(removal: .slide(.awayFromAnchor))
+    toasts.dismissAll(removal: .trail(), scope: .everywhere)
 
     let directions: [ToastRemovalDirection] = [
         .inPlace, .towardAnchor, .awayFromAnchor, .top, .bottom, .leading, .trailing
@@ -186,6 +199,174 @@ private struct RemovalExample: View {
         Button("Clear") { toasts.dismissAll() }
             .toasts(toasts)
             .toastRemoval(.trail())
+    }
+}
+
+// MARK: - Progress
+
+private struct ExampleUploader: Sendable {
+    func upload(_ file: URL, progress: @Sendable (Int64, Int64) -> Void) async throws -> URL { file }
+}
+
+private struct ExampleClient {
+    func send(progress: (Double) -> Void) async throws {}
+}
+
+@MainActor
+private func progressHandleExample(_ toasts: ToastCenter) -> ToastProgressHandle {
+    let handle = toasts.track(title: "Syncing", group: "sync")   // indeterminate; never times out
+    progressValuesExample(handle)
+    handle.update(.items(3, of: 10))                             // "3 of 10"
+    handle.update(fraction: 0.8)
+    waitingExample(handle)
+    handle.update(fraction: 0.9)
+    handle.succeed(ToastProgressResult(title: "Synced", message: "10 items"))
+    return handle
+}
+
+@MainActor
+private func progressValuesExample(_ handle: ToastProgressHandle) {
+    handle.update(.indeterminate)                                 // a sweeping bar, no number
+    handle.update(.fraction(0.4))                                 // 40%
+    handle.update(.fraction(0.4, subtitle: "Resizing"))           // your own detail line
+    handle.update(.bytes(12_000_000, of: 30_000_000))             // "12 MB of 30 MB"
+    handle.update(.items(3, of: 10))                              // "3 of 10"
+    handle.update(fraction: nil)                                  // back to indeterminate
+}
+
+#if os(iOS) || os(macOS)
+@MainActor
+private func uploadExample(_ toasts: ToastCenter, uploader: ExampleUploader, file: URL) async throws -> URL {
+    try await toasts.withProgress(
+        title: "Uploading video",
+        group: "upload",
+        operation: { report in
+            try await uploader.upload(file) { sent, total in report(.bytes(sent, of: total)) }
+        }
+    )
+}
+#endif
+
+// Compile-only: it needs a live URLSession task.
+@MainActor
+private func foundationProgressExample(_ toasts: ToastCenter, _ task: URLSessionTask) {
+    // .automatic, the default: the card succeeds when the Progress finishes, so the handle can go.
+    toasts.track(task.progress, title: "Downloading", group: "download")
+
+    // .manual: the outcome is yours, for example once the server has answered.
+    let handle = toasts.track(task.progress, title: "Uploading", completion: .manual)
+    handle.succeed(ToastProgressResult(title: "Uploaded"))
+}
+
+// Compile-only: it follows each photo's Progress.
+@MainActor
+private func aggregateExample(_ toasts: ToastCenter, photos: [Progress]) {
+    let batch = Progress(totalUnitCount: Int64(photos.count))
+    toasts.track(batch, title: "Uploading \(photos.count) photos", group: "upload")
+    for photo in photos {
+        batch.addChild(photo, withPendingUnitCount: 1)
+    }
+}
+
+@MainActor
+private func waitingExample(_ handle: ToastProgressHandle) {
+    handle.update(title: "Waiting for network…")                   // reword; the bar stays
+    handle.update(message: "Will resume when you're back online")
+    handle.update(title: "Uploading video", message: .some(nil))   // back again, second line removed
+}
+
+// Compile-only: the retry runs a Task.
+@MainActor
+private func retryExample(_ toasts: ToastCenter, client: ExampleClient, id: UUID = UUID()) {
+    let handle = toasts.track(id: id, title: "Sending", onCancel: {})
+    Task {
+        do {
+            try await client.send(progress: { handle.update(fraction: $0) })
+            handle.succeed()
+        } catch {
+            handle.fail(ToastProgressResult(message: "No connection")) {
+                retryExample(toasts, client: client, id: id)      // the same id: the card resumes in place
+            }
+        }
+    }
+}
+
+// Compile-only: it hands the handle a Task.
+@MainActor
+private func cancelExamples(_ toasts: ToastCenter, upload: Task<Void, Error>) {
+    // Cancel cancels the Task, and the card finishes when the Task ends.
+    let handle = toasts.track(title: "Uploading video", group: "upload")
+    handle.cancels(upload)
+
+    // From code: one card, or every running card in a group.
+    handle.cancel()
+    toasts.cancelProgress(group: "upload")
+
+    // Cancelling the Task that awaits withProgress cancels its operation too.
+    let job = Task {
+        try await toasts.withProgress(title: "Exporting", operation: { _ in
+            try await Task.sleep(nanoseconds: 5_000_000_000)
+        })
+    }
+    job.cancel()
+
+    // Ask twice before cancelling, and allow the work longer to stop.
+    var options = ToastProgressOptions()
+    options.confirmsCancel = true
+    options.cancellationGrace = 20
+    toasts.track(title: "Deleting", options: options, onCancel: {})
+}
+
+@MainActor
+private func hiddenExamples(_ toasts: ToastCenter) -> ToastProgressHandle {
+    // Dismissing hides a running card; the work, and the handle, carry on.
+    let handle = toasts.track(title: "Uploading", group: "upload")
+    toasts.dismiss(id: handle.id)
+
+    var options = ToastProgressOptions()
+    options.resultWhenHidden = .always          // .failureOnly (the default), .always or .never
+    options.showsCancelledResult = true
+    options.announcements = .startAndEnd        // .milestones(step:minimumInterval:) by default
+    options.successDuration = .seconds(2)
+    options.failureDuration = .indefinite
+
+    // Swiping cancels as well as hides.
+    options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)
+    let backup = toasts.track(title: "Backing up", options: options, onCancel: {})
+    backup.succeed()
+    return handle
+}
+
+@MainActor
+private func progressTestingExample() {
+    let scheduler = ExampleScheduler()
+    let toasts = ToastCenter(scheduler: scheduler)
+
+    // A running progress toast is never timed.
+    let upload = toasts.track(title: "Uploading", onCancel: {})
+    scheduler.fire()
+    XCTAssertTrue(toasts.isTracking(id: upload.id))
+
+    // Cancel waits for the work to stop, but only for the grace period.
+    upload.cancel()
+    XCTAssertEqual(upload.phase, .cancelling)
+    scheduler.now += 11
+    toasts.present(.normal, title: "Anything")          // any update or reconcile checks the grace
+    XCTAssertFalse(toasts.isTracking(id: upload.id))
+}
+
+private struct ProgressExample: View {
+    @State private var toasts = ToastCenter()
+
+    var body: some View {
+        VStack {
+            Color.clear
+                .toasts(toasts)
+                .toastStyle(ProgressStyleExample())
+            // The bar on its own: indeterminate, or at a fraction.
+            ToastProgressBar(value: nil)
+            ToastProgressBar(value: 0.4, metrics: .compact)
+        }
     }
 }
 
@@ -209,6 +390,8 @@ private struct BannerToastStyle: ToastStyle {
 }
 
 private struct CardToastStyle: ToastStyle {
+    static var drawsProgress: Bool { PlainToastStyle.drawsProgress }
+
     func makeBody(configuration: Configuration) -> some View {
         PlainToastStyle().makeBody(configuration: configuration)
             .padding()
@@ -240,6 +423,34 @@ private struct StylingExample: View {
                 .toasts(toasts)
                 .toastStyle(CardToastStyle())
         }
+    }
+}
+
+/// A style that lays out the progress parts itself, sized from the metrics.
+private struct ProgressStyleExample: ToastStyle {
+    static var drawsProgress: Bool { true }
+
+    func makeBody(configuration: Configuration) -> some View {
+        let metrics = configuration.metrics
+        VStack(alignment: .leading, spacing: metrics.progressSpacing) {
+            configuration.title
+                .font(metrics.titleFont)
+                .lineLimit(configuration.progress == nil ? metrics.titleLineLimit : metrics.progressTitleLineLimit)
+            if let progress = configuration.progress {
+                if let detail = progress.detail {
+                    detail.font(metrics.messageFont).monospacedDigit()
+                }
+                HStack(spacing: 8) {
+                    progress.bar
+                    progress.cancelButton
+                    progress.retryButton
+                }
+            } else if let message = configuration.message {
+                message.font(metrics.messageFont)
+            }
+        }
+        .padding(metrics.contentPadding)
+        .background(.background, in: .rect(cornerRadius: metrics.cornerRadius))
     }
 }
 
@@ -319,7 +530,12 @@ private struct SizingExample: View {
                 .toastMetrics(.large)
             Color.clear
                 .toasts(toasts)
-                .toastMetrics(ToastMetrics(width: .fraction(0.8), cornerRadius: 12, messageLineLimit: 3))
+                .toastMetrics(ToastMetrics(
+                    width: .fraction(0.8),
+                    cornerRadius: 12,
+                    messageLineLimit: 3,
+                    progressBarHeight: 6
+                ))
             Color.clear
                 .toasts(toasts)
                 .toastTheme(.brand)
@@ -413,6 +629,15 @@ final class DocumentationExamplesTests: XCTestCase {
         XCTAssertEqual(scheduled.toasts.count, 1)
         XCTAssertFalse(toasts.toasts.isEmpty)
 
+        let progressing = ToastCenter()
+        let synced = progressHandleExample(progressing)
+        XCTAssertEqual(synced.phase, .succeeded)
+        XCTAssertFalse(progressing.isTracking(id: synced.id))
+        let hidden = hiddenExamples(progressing)
+        XCTAssertFalse(hidden.isVisible)
+        XCTAssertTrue(progressing.isTracking(id: hidden.id))
+        progressTestingExample()
+
         // Compiling the views is the point; building one needs no host.
         let views: [any View] = [
             QuickStartExample(),
@@ -425,8 +650,9 @@ final class DocumentationExamplesTests: XCTestCase {
             CustomTabBarExample(),
             ScopeExample(),
             StaticCardExample(),
-            RemovalExample()
+            RemovalExample(),
+            ProgressExample()
         ]
-        XCTAssertEqual(views.count, 11)
+        XCTAssertEqual(views.count, 12)
     }
 }
