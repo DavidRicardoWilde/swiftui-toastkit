@@ -1,12 +1,35 @@
 import SwiftUI
 import ToastKit
 
-enum DemoTab: Hashable {
+enum DemoTab: Hashable, CaseIterable {
     case playground
     case styles
+    case sizes
+    case dismissal
+    case progress
+
+    var title: String {
+        switch self {
+        case .playground: "Playground"
+        case .styles:     "Styles"
+        case .sizes:      "Sizes"
+        case .dismissal:  "Dismissal"
+        case .progress:   "Progress"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .playground: "rectangle.stack"
+        case .styles:     "paintpalette"
+        case .sizes:      "textformat.size"
+        case .dismissal:  "xmark.bin"
+        case .progress:   "arrow.up.circle"
+        }
+    }
 }
 
-/// The demo's root: two screens behind a custom tab bar drawn in a `ZStack`.
+/// The demo's root: five screens behind a custom tab bar drawn in a `ZStack`.
 ///
 /// The tab bar is not a system `TabView`, so the safe area knows nothing about it. It is
 /// marked with `toastObstruction()`, and the stack lifts itself clear of it.
@@ -26,6 +49,16 @@ struct ContentView: View {
                         .demoToasts(toasts, settings: settings)
                 case .styles:
                     StylesView(toasts: toasts, settings: settings)
+                        .demoToasts(toasts, settings: settings)
+                case .sizes:
+                    // The panes own their centers, so this page's stack stays empty.
+                    SizesView(settings: settings)
+                        .demoToasts(toasts, settings: settings)
+                case .dismissal:
+                    DismissalView(toasts: toasts, settings: settings)
+                        .demoToasts(toasts, settings: settings)
+                case .progress:
+                    ProgressDemoView(toasts: toasts, settings: settings)
                         .demoToasts(toasts, settings: settings)
                 }
             }
@@ -66,11 +99,10 @@ struct CustomTabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            TabButton(title: "Playground", systemImage: "rectangle.stack", isSelected: selection == .playground) {
-                selection = .playground
-            }
-            TabButton(title: "Styles", systemImage: "paintpalette", isSelected: selection == .styles) {
-                selection = .styles
+            ForEach(DemoTab.allCases, id: \.self) { tab in
+                TabButton(title: tab.title, systemImage: tab.systemImage, isSelected: selection == tab) {
+                    selection = tab
+                }
             }
         }
         .padding(.horizontal, 8)
@@ -91,13 +123,21 @@ struct TabButton: View {
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(.rect)
+            // Icon over caption, so five tabs fit an iPhone's width.
+            VStack(spacing: 3) {
+                Image(systemName: systemImage)
+                    .font(.title3)
+                Text(title)
+                    .font(.caption2.weight(.medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

@@ -7,25 +7,7 @@ struct WatchContentView: View {
     @State private var toasts = ToastCenter()
     @State private var placement = ToastPlacement.bottom
     @State private var lastAction: String?
-    @State private var size = Size.regular
-
-    /// The `ToastMetrics` presets. The watch target compiles only its own files, so this
-    /// does not share the iOS demo's `SizeChoice`.
-    private enum Size: String, CaseIterable, Identifiable {
-        case compact = "Compact"
-        case regular = "Regular"
-        case large = "Large"
-
-        var id: String { rawValue }
-
-        var metrics: ToastMetrics {
-            switch self {
-            case .compact: .compact
-            case .regular: .regular
-            case .large:   .large
-            }
-        }
-    }
+    @State private var size = WatchSize.regular
 
     var body: some View {
         NavigationStack {
@@ -45,7 +27,6 @@ struct WatchContentView: View {
                         toasts.present(.notification, title: "New message")
                     }
                     Button("Dismiss all", role: .destructive) { toasts.dismissAll() }
-                    Button("Trail all") { toasts.dismissAll(removal: .trail()) }
                     Button("Bring back postponed (\(toasts.postponed.count))") { toasts.restorePostponed() }
                         .disabled(toasts.postponed.isEmpty)
                 }
@@ -85,13 +66,11 @@ struct WatchContentView: View {
                     }
                 }
 
-                Section("Size") {
-                    Picker("Size", selection: $size) {
-                        ForEach(Size.allCases) { choice in
-                            Text(choice.rawValue).tag(choice)
-                        }
-                    }
-                }
+                WatchSizesSection(size: $size)
+
+                WatchDismissSection(toasts: toasts)
+
+                WatchProgressSection(toasts: toasts)
             }
             .navigationTitle("ToastKit")
             .toasts(toasts, placement: placement)
