@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -14,7 +15,7 @@ struct WatchContentView: View {
             List {
                 Section("Present") {
                     ForEach(ToastMessage.Status.allCases, id: \.self) { status in
-                        Button(status.rawValue.capitalized) {
+                        Button(Self.displayName(for: status)) {
                             toasts.present(status, title: Self.title(for: status))
                         }
                     }
@@ -22,9 +23,9 @@ struct WatchContentView: View {
 
                 Section("Stack") {
                     Button("Burst of three") {
-                        toasts.present(.normal, title: "Synced")
-                        toasts.present(.warning, title: "Battery low")
-                        toasts.present(.notification, title: "New message")
+                        toasts.present(.normal, title: String(localized: "Synced"))
+                        toasts.present(.warning, title: String(localized: "Battery low"))
+                        toasts.present(.notification, title: String(localized: "New message"))
                     }
                     Button("Dismiss all", role: .destructive) { toasts.dismissAll() }
                     Button("Bring back postponed (\(toasts.postponed.count))") { toasts.restorePostponed() }
@@ -35,21 +36,21 @@ struct WatchContentView: View {
                     Button("Swipe left or right") {
                         toasts.present(ToastMessage(
                             status: .notification,
-                            title: "New message",
-                            message: "Swipe either way.",
+                            title: String(localized: "New message"),
+                            message: String(localized: "Swipe either way."),
                             duration: 8,
                             swipeActions: ToastSwipeActions(
-                                leading: .delete(title: "Delete"),
-                                trailing: .later(title: "Later")
+                                leading: .delete(title: String(localized: "Delete")),
+                                trailing: .later(title: String(localized: "Later"))
                             )
                         ))
                     }
                     Button("Tap to undo") {
                         toasts.present(
                             .normal,
-                            title: "Moved to Trash",
-                            tapAction: ToastAction(id: "undo", title: "Undo") { _ in
-                                lastAction = "Undo"
+                            title: String(localized: "Moved to Trash"),
+                            tapAction: ToastAction(id: "undo", title: String(localized: "Undo")) { _ in
+                                lastAction = String(localized: "Undo")
                             }
                         )
                     }
@@ -81,12 +82,21 @@ struct WatchContentView: View {
         }
     }
 
+    private static func displayName(for status: ToastMessage.Status) -> String {
+        switch status {
+        case .normal:       String(localized: "Normal")
+        case .warning:      String(localized: "Warning")
+        case .error:        String(localized: "Error")
+        case .notification: String(localized: "Notification")
+        }
+    }
+
     private static func title(for status: ToastMessage.Status) -> String {
         switch status {
-        case .normal:       "Saved"
-        case .warning:      "Battery low"
-        case .error:        "Sync failed"
-        case .notification: "New message"
+        case .normal:       String(localized: "Saved")
+        case .warning:      String(localized: "Battery low")
+        case .error:        String(localized: "Sync failed")
+        case .notification: String(localized: "New message")
         }
     }
 }

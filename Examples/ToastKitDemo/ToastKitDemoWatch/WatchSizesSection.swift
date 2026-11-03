@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -9,6 +10,14 @@ enum WatchSize: String, CaseIterable, Identifiable {
     case large = "Large"
 
     var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .compact: String(localized: "Compact")
+        case .regular: String(localized: "Regular")
+        case .large:   String(localized: "Large")
+        }
+    }
 
     var metrics: ToastMetrics {
         switch self {
@@ -27,7 +36,7 @@ struct WatchSizesSection: View {
         Section {
             Picker("Size", selection: $size) {
                 ForEach(WatchSize.allCases) { choice in
-                    Text(choice.rawValue).tag(choice)
+                    Text(choice.localizedName).tag(choice)
                 }
             }
         } header: {

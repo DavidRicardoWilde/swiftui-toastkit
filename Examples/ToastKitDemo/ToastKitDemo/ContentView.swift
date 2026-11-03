@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -8,7 +9,7 @@ enum DemoTab: Hashable, CaseIterable {
     case dismissal
     case progress
 
-    var title: String {
+    var title: LocalizedStringKey {
         switch self {
         case .playground: "Playground"
         case .styles:     "Styles"
@@ -116,7 +117,7 @@ struct CustomTabBar: View {
 }
 
 struct TabButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let systemImage: String
     let isSelected: Bool
     let action: () -> Void

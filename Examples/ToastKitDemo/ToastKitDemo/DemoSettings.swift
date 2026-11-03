@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 import SwiftUI
 import ToastKit
@@ -9,6 +10,14 @@ enum StyleChoice: String, CaseIterable, Identifiable {
     case custom = "Custom"
 
     var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .glass:  String(localized: "Glass")
+        case .plain:  String(localized: "Plain")
+        case .custom: String(localized: "Custom")
+        }
+    }
 }
 
 /// Which ``ToastTheme`` the demo applies.
@@ -17,6 +26,13 @@ enum ThemeChoice: String, CaseIterable, Identifiable {
     case brand = "Brand"
 
     var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .standard: String(localized: "Standard")
+        case .brand:    String(localized: "Brand")
+        }
+    }
 }
 
 /// Which ``ToastMetrics`` preset the demo applies.
@@ -26,6 +42,14 @@ enum SizeChoice: String, CaseIterable, Identifiable {
     case large = "Large"
 
     var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .compact: String(localized: "Compact")
+        case .regular: String(localized: "Regular")
+        case .large:   String(localized: "Large")
+        }
+    }
 
     var metrics: ToastMetrics {
         switch self {
@@ -43,6 +67,14 @@ enum RemovalChoice: String, CaseIterable, Identifiable {
     case trail = "Trail"
 
     var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .fade:  String(localized: "Fade")
+        case .slide: String(localized: "Slide")
+        case .trail: String(localized: "Trail")
+        }
+    }
 
     func removal(_ direction: ToastRemovalDirection) -> ToastRemoval {
         switch self {
@@ -64,6 +96,18 @@ enum DirectionChoice: String, CaseIterable, Identifiable {
     case upRight = "Up and right"
 
     var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .towardAnchor:   String(localized: "Toward edge")
+        case .awayFromAnchor: String(localized: "Away from edge")
+        case .top:            String(localized: "Up")
+        case .bottom:         String(localized: "Down")
+        case .leading:        String(localized: "Leading")
+        case .trailing:       String(localized: "Trailing")
+        case .upRight:        String(localized: "Up and right")
+        }
+    }
 
     var direction: ToastRemovalDirection {
         switch self {

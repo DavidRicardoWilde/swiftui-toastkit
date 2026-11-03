@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -16,6 +17,15 @@ struct WatchDismissSection: View {
 
         var id: String { rawValue }
 
+        var localizedName: String {
+            switch self {
+            case .towardAnchor:   String(localized: "Toward edge")
+            case .awayFromAnchor: String(localized: "Away from edge")
+            case .leading:        String(localized: "Leading")
+            case .trailing:       String(localized: "Trailing")
+            }
+        }
+
         var value: ToastRemovalDirection {
             switch self {
             case .towardAnchor:   .towardAnchor
@@ -33,7 +43,7 @@ struct WatchDismissSection: View {
                 for number in 1...3 {
                     toasts.present(
                         .normal,
-                        title: "Uploading \(number) of 3",
+                        title: String(localized: "Uploading \(number) of 3"),
                         duration: .indefinite,
                         group: "upload"
                     )
@@ -47,7 +57,7 @@ struct WatchDismissSection: View {
             }
             Picker("Direction", selection: $direction) {
                 ForEach(Direction.allCases) { choice in
-                    Text(choice.rawValue).tag(choice)
+                    Text(choice.localizedName).tag(choice)
                 }
             }
         } header: {

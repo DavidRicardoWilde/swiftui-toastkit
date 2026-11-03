@@ -25,6 +25,8 @@
 		7D10A0012C00000000000015 /* WatchSizesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000015 /* WatchSizesSection.swift */; };
 		7D10A0012C00000000000016 /* WatchDismissSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000016 /* WatchDismissSection.swift */; };
 		7D10A0012C00000000000017 /* WatchProgressSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000017 /* WatchProgressSection.swift */; };
+		7D10A0012C00000000000018 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000018 /* Localizable.xcstrings */; };
+		7D10A0012C00000000000019 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000018 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +48,7 @@
 		7D10A0022C00000000000015 /* WatchSizesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSizesSection.swift; sourceTree = "<group>"; };
 		7D10A0022C00000000000016 /* WatchDismissSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDismissSection.swift; sourceTree = "<group>"; };
 		7D10A0022C00000000000017 /* WatchProgressSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProgressSection.swift; sourceTree = "<group>"; };
+		7D10A0022C00000000000018 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +93,7 @@
 				7D10A0022C0000000000000A /* DismissalView.swift */,
 				7D10A0022C0000000000000B /* ProgressDemoView.swift */,
 				7D10A0022C00000000000007 /* Assets.xcassets */,
+				7D10A0022C00000000000018 /* Localizable.xcstrings */,
 			);
 			path = ToastKitDemo;
 			sourceTree = "<group>";
@@ -184,6 +188,11 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				"zh-Hant",
+				ja,
+				ko,
+				es,
 			);
 			mainGroup = 7D10A0042C00000000000001;
 			packageReferences = (
@@ -205,6 +214,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7D10A0012C00000000000007 /* Assets.xcassets in Resources */,
+				7D10A0012C00000000000018 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,6 +223,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7D10A0012C00000000000013 /* Assets.xcassets in Resources */,
+				7D10A0012C00000000000019 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -168,6 +168,14 @@ On iPhone, iPad, Mac and Apple Vision Pro, the demo has five tabs:
   folder through a Foundation `Progress`, and on Apple Vision Pro an indeterminate
   "Preparing…" turns determinate.
 
+Both targets share one String Catalog, `ToastKitDemo/Localizable.xcstrings`, with English
+as the source language and translations into Simplified Chinese, Traditional Chinese,
+Japanese, Korean and Spanish, the same languages as the documentation site. The demo
+follows the system language. To try another one, edit the scheme and pick it under
+**Run › Options › App Language**. Text that the demo passes to ToastKit, such as toast
+titles and messages, goes through `String(localized:)`, because those APIs take a plain
+`String`. ToastKit's own strings, such as Cancel and Open, come from the package.
+
 ## Presenting toasts
 
 A toast is a `ToastMessage`: what it says, how long it stays, and what tapping or swiping

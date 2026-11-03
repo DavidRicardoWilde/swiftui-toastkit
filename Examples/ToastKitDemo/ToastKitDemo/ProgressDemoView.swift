@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -97,11 +98,11 @@ struct ProgressDemoView: View {
         Task { @MainActor in
             do {
                 try await toasts.withProgress(
-                    title: "Uploading photo",
+                    title: String(localized: "Uploading photo"),
                     message: "IMG_2041.heic",
                     icon: .system("photo"),
                     group: "progress",
-                    success: { (_: Void) in ToastProgressResult(title: "Photo uploaded", message: "IMG_2041.heic") },
+                    success: { (_: Void) in ToastProgressResult(title: String(localized: "Photo uploaded"), message: "IMG_2041.heic") },
                     options: runOptions,
                     operation: { (report: ToastProgressReporter) async throws -> Void in
                         var sent: Int64 = 0
@@ -121,7 +122,7 @@ struct ProgressDemoView: View {
     private func uploadVideo() {
         let total: Int64 = 120_000_000
         let handle = toasts.track(
-            title: "Uploading video",
+            title: String(localized: "Uploading video"),
             message: "Holiday.mov",
             icon: .system("video"),
             progress: .bytes(0, of: total),
@@ -135,7 +136,7 @@ struct ProgressDemoView: View {
                 sent = min(total, sent + 2_000_000)
                 handle.update(.bytes(sent, of: total))
             }
-            handle.succeed(ToastProgressResult(title: "Video uploaded", message: "Holiday.mov"))
+            handle.succeed(ToastProgressResult(title: String(localized: "Video uploaded"), message: "Holiday.mov"))
         }
         // Cancel, and abandoning the handle, now cancel this task, which finishes the card.
         handle.cancels(task)
@@ -147,12 +148,12 @@ struct ProgressDemoView: View {
             do {
                 try await toasts.withProgress(
                     id: id,
-                    title: attempt == 1 ? "Syncing library" : "Syncing library, attempt \(attempt)",
+                    title: attempt == 1 ? String(localized: "Syncing library") : String(localized: "Syncing library, attempt \(attempt)"),
                     icon: .system("arrow.triangle.2.circlepath"),
                     group: "progress",
-                    success: { (_: Void) in ToastProgressResult(title: "Library synced") },
+                    success: { (_: Void) in ToastProgressResult(title: String(localized: "Library synced")) },
                     failure: { _ in
-                        ToastProgressResult(title: "Sync failed", message: "The server went away. Try again.")
+                        ToastProgressResult(title: String(localized: "Sync failed"), message: String(localized: "The server went away. Try again."))
                     },
                     onRetry: { sync(id: id, attempt: attempt + 1) },
                     options: runOptions,
@@ -176,7 +177,7 @@ struct ProgressDemoView: View {
             Task { @MainActor in
                 do {
                     try await toasts.withProgress(
-                        title: "Copying file \(number) of 6",
+                        title: String(localized: "Copying file \(number) of 6"),
                         icon: .system("doc.on.doc"),
                         group: "burst",
                         options: runOptions,
@@ -197,8 +198,8 @@ struct ProgressDemoView: View {
 
     private func hideThenFail() {
         let handle = toasts.track(
-            title: "Exporting report",
-            message: "Swipe this away. It fails in a few seconds.",
+            title: String(localized: "Exporting report"),
+            message: String(localized: "Swipe this away. It fails in a few seconds."),
             icon: .system("square.and.arrow.up"),
             progress: .fraction(0.4),
             group: "progress",
@@ -206,7 +207,7 @@ struct ProgressDemoView: View {
         )
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(6))
-            handle.fail(ToastProgressResult(title: "Export failed", message: "The disk is full."))
+            handle.fail(ToastProgressResult(title: String(localized: "Export failed"), message: String(localized: "The disk is full.")))
         }
     }
 
@@ -231,8 +232,8 @@ struct ProgressDemoView: View {
         progress.isCancellable = true
         toasts.track(
             progress,
-            title: "Copying “Project Files”",
-            message: "To Backup",
+            title: String(localized: "Copying “Project Files”"),
+            message: String(localized: "To Backup"),
             icon: .system("folder"),
             group: "progress",
             options: options
@@ -252,8 +253,8 @@ struct ProgressDemoView: View {
 
     private func prepareScene() {
         let handle = toasts.track(
-            title: "Preparing scene",
-            message: "Preparing…",
+            title: String(localized: "Preparing scene"),
+            message: String(localized: "Preparing…"),
             icon: .system("visionpro"),
             group: "progress",
             options: options
@@ -265,7 +266,7 @@ struct ProgressDemoView: View {
                 try await Task.sleep(for: .milliseconds(150))
                 handle.update(fraction: Double(step) / 20)
             }
-            handle.succeed(ToastProgressResult(title: "Scene ready"))
+            handle.succeed(ToastProgressResult(title: String(localized: "Scene ready")))
         }
         handle.cancels(task)
     }

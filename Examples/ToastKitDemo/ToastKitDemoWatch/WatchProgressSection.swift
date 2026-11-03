@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -20,8 +21,8 @@ struct WatchProgressSection: View {
     @MainActor
     private func syncWorkout(failing: Bool = false) {
         let handle = toasts.track(
-            title: "Syncing workout",
-            message: "Connecting…",
+            title: String(localized: "Syncing workout"),
+            message: String(localized: "Connecting…"),
             icon: .system("figure.run")
         )
         let task = Task { @MainActor in
@@ -31,11 +32,11 @@ struct WatchProgressSection: View {
                 try await Task.sleep(for: .milliseconds(200))
                 handle.update(fraction: Double(step) / 20)
                 if failing, step == 14 {
-                    handle.fail(ToastProgressResult(title: "Sync failed", message: "Try again from your phone."))
+                    handle.fail(ToastProgressResult(title: String(localized: "Sync failed"), message: String(localized: "Try again from your phone.")))
                     return
                 }
             }
-            handle.succeed(ToastProgressResult(title: "Workout synced"))
+            handle.succeed(ToastProgressResult(title: String(localized: "Workout synced")))
         }
         handle.cancels(task)
     }

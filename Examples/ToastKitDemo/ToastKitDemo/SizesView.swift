@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -54,7 +55,7 @@ struct SizesView: View {
         }
     }
 
-    private var note: String {
+    private var note: LocalizedStringKey {
         #if os(iOS)
         "Each preset sizes its own pane. An explicit width passed to toasts(_:width:) wins over the preset's width. Raise Dynamic Type to see the type cap each preset applies."
         #elseif os(macOS)
@@ -91,11 +92,11 @@ struct SizesView: View {
     }
 
     private func showInAll() {
-        for (name, center) in [("Compact", compact), ("Regular", regular), ("Large", large)] {
+        for (name, center) in [(String(localized: "Compact"), compact), (String(localized: "Regular"), regular), (String(localized: "Large"), large)] {
             center.present(
                 .normal,
-                title: "\(name) toast",
-                message: "Width, padding and type follow the preset.",
+                title: String(localized: "\(name) toast"),
+                message: String(localized: "Width, padding and type follow the preset."),
                 icon: .system("textformat.size"),
                 duration: .seconds(6)
             )
@@ -111,7 +112,7 @@ struct SizesView: View {
 
 /// One preset's stage: a tinted box that hosts a single center's stack.
 private struct SizePane: View {
-    let title: String
+    let title: LocalizedStringKey
     let metrics: ToastMetrics
     let toasts: ToastCenter
     let width: ToastWidth?

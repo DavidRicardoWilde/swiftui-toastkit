@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -12,7 +13,7 @@ struct StylesView: View {
             Section {
                 Picker("Style", selection: $settings.style) {
                     ForEach(StyleChoice.allCases) { choice in
-                        Text(choice.rawValue).tag(choice)
+                        Text(choice.localizedName).tag(choice)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -25,7 +26,7 @@ struct StylesView: View {
             Section {
                 Picker("Theme", selection: $settings.theme) {
                     ForEach(ThemeChoice.allCases) { choice in
-                        Text(choice.rawValue).tag(choice)
+                        Text(choice.localizedName).tag(choice)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -38,7 +39,7 @@ struct StylesView: View {
             Section {
                 Picker("Size", selection: $settings.size) {
                     ForEach(SizeChoice.allCases) { choice in
-                        Text(choice.rawValue).tag(choice)
+                        Text(choice.localizedName).tag(choice)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -54,7 +55,7 @@ struct StylesView: View {
                         toasts.present(
                             status,
                             title: status.displayName,
-                            message: "\(settings.style.rawValue) style, \(settings.theme.rawValue) theme"
+                            message: String(localized: "\(settings.style.localizedName) style, \(settings.theme.localizedName) theme")
                         )
                     } label: {
                         Label(status.displayName, systemImage: status.symbolName)
@@ -62,7 +63,7 @@ struct StylesView: View {
                 }
                 Button("One of each") {
                     for status in ToastMessage.Status.allCases {
-                        toasts.present(status, title: status.displayName, message: "\(settings.style.rawValue) style")
+                        toasts.present(status, title: status.displayName, message: String(localized: "\(settings.style.localizedName) style"))
                     }
                 }
             }

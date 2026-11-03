@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -20,6 +21,14 @@ struct DismissalView: View {
 
         var id: String { rawValue }
 
+        var localizedName: String {
+            switch self {
+            case .onScreen:   String(localized: "On screen")
+            case .postponed:  String(localized: "Postponed")
+            case .everywhere: String(localized: "Everywhere")
+            }
+        }
+
         var scope: ToastDismissalScope {
             switch self {
             case .onScreen:   .onScreen
@@ -37,8 +46,8 @@ struct DismissalView: View {
                 Button("Present a toast") {
                     burstCount += 1
                     let toast = ToastMessage(
-                        title: "Toast #\(burstCount)",
-                        message: "Dismiss it by id below.",
+                        title: String(localized: "Toast #\(burstCount)"),
+                        message: String(localized: "Dismiss it by id below."),
                         duration: .indefinite
                     )
                     lastID = toast.id
@@ -48,15 +57,15 @@ struct DismissalView: View {
                     for number in 1...3 {
                         toasts.present(
                             .normal,
-                            title: "Uploading photo \(number) of 3",
-                            message: "Dismiss them together below.",
+                            title: String(localized: "Uploading photo \(number) of 3"),
+                            message: String(localized: "Dismiss them together below."),
                             duration: .indefinite,
                             group: "upload"
                         )
                     }
                 }
                 Button("Persistent error") {
-                    toasts.present(.error, title: "Sync failed", message: "Stays until dismissed.", duration: .indefinite)
+                    toasts.present(.error, title: String(localized: "Sync failed"), message: String(localized: "Stays until dismissed."), duration: .indefinite)
                 }
                 Button("Postpone front toast") {
                     if let front = toasts.topmost { toasts.postpone(id: front.id) }
@@ -97,7 +106,7 @@ struct DismissalView: View {
             Section {
                 Picker("Scope", selection: $scope) {
                     ForEach(ScopeChoice.allCases) { choice in
-                        Text(choice.rawValue).tag(choice)
+                        Text(choice.localizedName).tag(choice)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -120,13 +129,13 @@ struct DismissalView: View {
             Section {
                 Picker("Removal", selection: $settings.removal) {
                     ForEach(RemovalChoice.allCases) { choice in
-                        Text(choice.rawValue).tag(choice)
+                        Text(choice.localizedName).tag(choice)
                     }
                 }
                 .pickerStyle(.segmented)
                 Picker("Direction", selection: $settings.direction) {
                     ForEach(DirectionChoice.allCases) { choice in
-                        Text(choice.rawValue).tag(choice)
+                        Text(choice.localizedName).tag(choice)
                     }
                 }
             } header: {
