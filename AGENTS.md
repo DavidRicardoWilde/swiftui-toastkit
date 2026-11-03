@@ -11,7 +11,7 @@ The package supports iOS 17+, macOS 14+, watchOS 10+, and visionOS 1+ with Swift
 - `swift build` — compile the library and catch public-API build errors.
 - `swift test` — run the XCTest suite, including README example compilation.
 - `swiftlint` — check `Sources/` and `Tests/` using `.swiftlint.yml`; install SwiftLint locally if the command is unavailable.
-- Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj` and build or run the `ToastKitDemo` or `ToastKitDemoWatch` scheme. CI builds the demo for iOS, macOS, visionOS and watchOS.
+- Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj` and build or run the `ToastKitDemo` or `ToastKitDemoWatch` scheme.
 
 Run `swift test` before opening a pull request. Use an Xcode scheme derived from `Package.swift` when manually exercising gestures or accessibility on a supported simulator or device.
 

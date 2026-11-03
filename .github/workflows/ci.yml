@@ -1,5 +1,9 @@
 name: CI
 
+# Runs on Linux only: this repository does not use GitHub's macOS runners. Build the
+# package, run `swift test`, and build Examples/ToastKitDemo locally in Xcode before
+# opening a pull request (see AGENTS.md).
+
 on:
   push:
     branches: [main]
@@ -13,76 +17,14 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
-
 jobs:
-  test:
-    name: Test on macOS
-    runs-on: macos-15
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Show toolchain
-        run: |
-          xcodebuild -version
-          swift --version
-
-      - name: Run tests
-        run: swift test
-
-  build-ios:
-    name: Build for iOS
-    runs-on: macos-15
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build
-        run: xcodebuild -scheme ToastKit -destination 'generic/platform=iOS Simulator' build
-
-  examples:
-    name: Build the demo on ${{ matrix.platform }}
-    runs-on: macos-15
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: iOS
-            scheme: ToastKitDemo
-            destination: generic/platform=iOS Simulator
-          - platform: macOS
-            scheme: ToastKitDemo
-            destination: generic/platform=macOS
-          - platform: visionOS
-            scheme: ToastKitDemo
-            destination: generic/platform=visionOS Simulator
-          - platform: watchOS
-            scheme: ToastKitDemoWatch
-            destination: generic/platform=watchOS Simulator
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build
-        working-directory: Examples/ToastKitDemo
-        run: >
-          xcodebuild build
-          -project ToastKitDemo.xcodeproj
-          -scheme "${{ matrix.scheme }}"
-          -destination "${{ matrix.destination }}"
-          CODE_SIGNING_ALLOWED=NO
-
   lint:
     name: SwiftLint
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     timeout-minutes: 10
+    container: ghcr.io/realm/swiftlint:latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install SwiftLint
-        run: brew install swiftlint
 
       - name: Lint
         run: swiftlint lint --quiet --strict --config .swiftlint.yml
