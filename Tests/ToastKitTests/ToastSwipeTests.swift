@@ -111,4 +111,61 @@ final class ToastSwipeTests: XCTestCase {
     func testAFlickTowardASideWithoutAnActionPutsTheCardBack() {
         XCTAssertNil(ToastSwipe.release(armed: nil, travel: 30, projected: 400, along: .horizontal, actions: leadingOnly))
     }
+
+    // MARK: - The drag pose
+
+    func testThePoseSagsTowardTheStacksEdgeAndCapsAt160() {
+        XCTAssertEqual(ToastDragPose(dragX: 90, curve: 1, reduceMotion: false).sag, 4.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: -90, curve: -1, reduceMotion: false).sag, -4.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: 1_400, curve: 1, reduceMotion: false).sag, 160)
+    }
+
+    func testThePoseFadesWithTravelDownToAFloorOf35Percent() {
+        XCTAssertEqual(ToastDragPose(dragX: 0, curve: 1, reduceMotion: false).opacity, 1)
+        XCTAssertEqual(ToastDragPose(dragX: 120, curve: 1, reduceMotion: false).opacity, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: -120, curve: 1, reduceMotion: false).opacity, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: 1_000, curve: 1, reduceMotion: false).opacity, 0.35, accuracy: 0.0001)
+    }
+
+    func testThePoseTiltsByOneDegreePer36Points() {
+        XCTAssertEqual(ToastDragPose(dragX: 72, curve: 1, reduceMotion: false).rotationDegrees, 2, accuracy: 0.0001)
+        XCTAssertEqual(ToastDragPose(dragX: 72, curve: 1, reduceMotion: false).x, 72)
+    }
+
+    func testATopStackPoseMirrorsTheTiltAndPivotsOffTheTop() {
+        let bottom = ToastDragPose(dragX: 72, curve: 1, reduceMotion: false)
+        let top = ToastDragPose(dragX: 72, curve: -1, reduceMotion: false)
+        XCTAssertEqual(top.rotationDegrees, -bottom.rotationDegrees, accuracy: 0.0001)
+        XCTAssertEqual(bottom.rotationAnchor, .bottom)
+        XCTAssertEqual(top.rotationAnchor, .top)
+    }
+
+    func testAnUpOrDownPoseGoesStraightAndFades() {
+        let pose = ToastDragPose(dragX: 0, dragY: -120, curve: 1, reduceMotion: false)
+        XCTAssertEqual(pose.y, -120)
+        XCTAssertEqual(pose.sag, 0)
+        XCTAssertEqual(pose.rotationDegrees, 0)
+        XCTAssertEqual(pose.opacity, 0.5, accuracy: 0.0001)
+    }
+
+    func testReduceMotionRemovesTheTiltAndTheSag() {
+        let pose = ToastDragPose(dragX: 200, curve: 1, reduceMotion: true)
+        XCTAssertEqual(pose.sag, 0)
+        XCTAssertEqual(pose.rotationDegrees, 0)
+        XCTAssertEqual(pose.x, 200)
+    }
+
+    @MainActor
+    func testTheRegistryHandsBackWhatWasWrittenAndRestOtherwise() {
+        let registry = ToastDragPoseRegistry()
+        let id = UUID()
+        XCTAssertEqual(registry.pose(for: id), .rest)
+
+        let pose = ToastDragPose(dragX: 50, curve: 1, reduceMotion: false)
+        registry.set(pose, for: id)
+        XCTAssertEqual(registry.pose(for: id), pose)
+
+        registry.clear(id)
+        XCTAssertEqual(registry.pose(for: id), .rest)
+    }
 }

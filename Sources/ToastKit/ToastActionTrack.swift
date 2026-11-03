@@ -233,6 +233,7 @@ struct ToastTrackLabel: View {
     let isDimmed: Bool
 
     @Environment(\.toastTheme) private var theme
+    @Environment(\.toastMetrics) private var metrics
 
     var body: some View {
         VStack(spacing: 1) {
@@ -243,10 +244,10 @@ struct ToastTrackLabel: View {
                 }
                 Text(isChosen ? (action.confirmation ?? action.title) : action.title)
             }
-            .font(.caption.weight(.bold))
+            .font(metrics.actionTitleFont)
             if let subtitle = action.subtitle, !isChosen {
                 Text(subtitle)
-                    .font(.caption2.weight(.medium))
+                    .font(metrics.actionSubtitleFont)
                     .opacity(0.8)
             }
         }
@@ -278,7 +279,7 @@ struct ToastActionTrack: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
-        let stroke = StrokeStyle(lineWidth: ToastTrackGeometry.bandThickness, lineJoin: .round)
+        let stroke = StrokeStyle(lineWidth: geometry.scaledBandThickness, lineJoin: .round)
         let palette = ToastTrackPalette(
             theme: theme,
             actions: actions,
@@ -303,7 +304,7 @@ struct ToastActionTrack: View {
             label(for: .leading, palette: palette)
             label(for: .trailing, palette: palette)
         }
-        .frame(width: geometry.bandWidth, height: ToastTrackGeometry.height)
+        .frame(width: geometry.bandWidth, height: geometry.scaledHeight)
         .allowsHitTesting(false)
         // VoiceOver reaches the actions as named actions on the card instead.
         .accessibilityHidden(true)
@@ -370,7 +371,7 @@ struct ToastVerticalActionTrack: View {
     private var length: CGFloat { 2 * ToastTrackGeometry.verticalReach }
 
     var body: some View {
-        let stroke = StrokeStyle(lineWidth: ToastTrackGeometry.bandThickness)
+        let stroke = StrokeStyle(lineWidth: geometry.scaledBandThickness)
         let palette = ToastTrackPalette(
             theme: theme,
             actions: actions,

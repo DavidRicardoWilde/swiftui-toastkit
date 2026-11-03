@@ -103,6 +103,38 @@ final class ToastTrackGeometryTests: XCTestCase {
         XCTAssertLessThanOrEqual(labelCenter + 15, -31)
     }
 
+    // MARK: - Scale
+
+    func testRegularScaleLeavesTheBandAsItWas() {
+        let track = geometry()
+        XCTAssertEqual(track.scale, 1)
+        XCTAssertEqual(track.scaledBandThickness, 50)
+        XCTAssertEqual(track.scaledHeight, 90)
+        XCTAssertEqual(track.scaledCrestInset, 32)
+        XCTAssertEqual(track.scaledRise, 7)
+    }
+
+    func testScaleGrowsTheBandHeightCrestAndRise() {
+        let track = ToastTrackGeometry(cardWidth: 351, availableWidth: 390, curve: 1, scale: 1.5)
+        XCTAssertEqual(track.scaledBandThickness, 108)
+        XCTAssertEqual(track.scaledHeight, 171)
+        XCTAssertEqual(track.crestY, 66)
+        XCTAssertEqual(track.cardOffset(at: 0).height, -66)
+    }
+
+    func testScaledCrestStaysUnderTheLiftedCardOnEitherEdge() {
+        let bottom = ToastTrackGeometry(cardWidth: 351, availableWidth: 390, curve: 1, scale: 2)
+        let top = ToastTrackGeometry(cardWidth: 351, availableWidth: 390, curve: -1, scale: 2)
+        XCTAssertEqual(bottom.trackOffset, -62)
+        XCTAssertEqual(top.trackOffset, 62)
+    }
+
+    func testScaleDoesNotMoveTheArmingDistance() {
+        let track = ToastTrackGeometry(cardWidth: 351, availableWidth: 390, curve: 1, scale: 1.5)
+        XCTAssertNil(track.armedSide(at: 63))
+        XCTAssertEqual(track.armedSide(at: 64), .trailing)
+    }
+
     // MARK: - Labels and carrying
 
     func testLabelsSitBetweenTheLiftedCardAndTheSide() {

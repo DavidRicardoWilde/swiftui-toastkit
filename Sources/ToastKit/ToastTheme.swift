@@ -18,8 +18,30 @@ import SwiftUI
 ///     ))
 /// ```
 ///
-/// Surfaces, content and metrics are read by ``GlassToastStyle`` only; a custom
-/// ``ToastStyle`` is free to ignore them. `edgeInset`, the motions, `actionTint`,
+/// To adopt a palette the app already has — asset catalog colour sets, or a design
+/// system's `Color` extensions — map its tokens once, in a theme of the app's own, and
+/// apply it at the root. Every toast below inherits it through the environment:
+///
+/// ```swift
+/// extension ToastTheme {
+///     static let brand = ToastTheme(
+///         textPrimary: .brandTextPrimary,
+///         tint: ToastTheme.statusTint(
+///             warning: .brandWarning,
+///             error: .brandDanger,
+///             notification: .brandAccent
+///         )
+///     )
+/// }
+///
+/// ContentView()
+///     .toasts(toasts)
+///     .toastTheme(.brand)
+/// ```
+///
+/// Surfaces and content are read by ``GlassToastStyle`` only; a custom ``ToastStyle`` is
+/// free to ignore them. Sizes come from ``ToastMetrics``; a font, corner radius or padding
+/// set explicitly here wins over the metrics'. `edgeInset`, the motions, `actionTint`,
 /// `actionFadeStart` and `feedback` apply whatever the style.
 ///
 /// Note what is deliberately *not* here: Reduce Motion, Reduce Transparency and
@@ -80,18 +102,39 @@ public struct ToastTheme {
 
     public var textPrimary: Color
     public var textSecondary: Color
-    public var titleFont: Font
-    public var messageFont: Font
+    /// Set explicitly, this wins over the font of the ``ToastMetrics`` in effect; left
+    /// alone it is `.callout` medium and the metrics decide.
+    public var titleFont: Font {
+        get { explicitTitleFont ?? ToastMetrics.regular.titleFont }
+        set { explicitTitleFont = newValue }
+    }
+    /// Set explicitly, this wins over the font of the ``ToastMetrics`` in effect; left
+    /// alone it is `.footnote` and the metrics decide.
+    public var messageFont: Font {
+        get { explicitMessageFont ?? ToastMetrics.regular.messageFont }
+        set { explicitMessageFont = newValue }
+    }
 
     /// The hue for a status. One colour per status — the kit derives the wash, the edge,
     /// the glyph chip and the glow from it at fixed opacities, so a host retunes a
-    /// status by changing one value rather than four.
+    /// status by changing one value rather than four. Map a palette's colours onto it with
+    /// ``statusTint(normal:warning:error:notification:)``.
     public var tint: (ToastMessage.Status) -> Color
 
     // MARK: Metrics
 
-    public var cornerRadius: CGFloat
-    public var contentPadding: EdgeInsets
+    /// Set explicitly, this wins over the corner radius of the ``ToastMetrics`` in effect;
+    /// left alone it is 22 and the metrics decide.
+    public var cornerRadius: CGFloat {
+        get { explicitCornerRadius ?? ToastMetrics.regular.cornerRadius }
+        set { explicitCornerRadius = newValue }
+    }
+    /// Set explicitly, this wins over the padding of the ``ToastMetrics`` in effect; left
+    /// alone it is 14/16 and the metrics decide.
+    public var contentPadding: EdgeInsets {
+        get { explicitContentPadding ?? ToastMetrics.regular.contentPadding }
+        set { explicitContentPadding = newValue }
+    }
     /// Gap between the stack and the edge it hangs from.
     public var edgeInset: CGFloat
 
@@ -126,6 +169,15 @@ public struct ToastTheme {
     public var feedback: (ToastMessage.Status) -> SensoryFeedback?
     #endif
 
+    // MARK: Explicit sizing
+    // Whether a value was set, as opposed to defaulted, decides whether it beats the
+    // metrics' — see `ToastMetrics.resolved(in:)`.
+
+    var explicitTitleFont: Font?
+    var explicitMessageFont: Font?
+    var explicitCornerRadius: CGFloat?
+    var explicitContentPadding: EdgeInsets?
+
     // MARK: Init
 
     public init(
@@ -135,11 +187,11 @@ public struct ToastTheme {
         borderSubtle: Color = .primary.opacity(0.25),
         textPrimary: Color = .primary,
         textSecondary: Color = .secondary,
-        titleFont: Font = .callout.weight(.medium),
-        messageFont: Font = .footnote,
+        titleFont: Font? = nil,
+        messageFont: Font? = nil,
         tint: @escaping (ToastMessage.Status) -> Color = ToastTheme.standardTint,
-        cornerRadius: CGFloat = 22,
-        contentPadding: EdgeInsets = EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16),
+        cornerRadius: CGFloat? = nil,
+        contentPadding: EdgeInsets? = nil,
         edgeInset: CGFloat = 8,
         shadow: Shadow = Shadow(color: .black.opacity(0.12), radius: 28, y: 12),
         stackMotion: Motion = Motion(duration: 0.38, bounce: 0.28),
@@ -155,11 +207,11 @@ public struct ToastTheme {
         self.borderSubtle = borderSubtle
         self.textPrimary = textPrimary
         self.textSecondary = textSecondary
-        self.titleFont = titleFont
-        self.messageFont = messageFont
+        self.explicitTitleFont = titleFont
+        self.explicitMessageFont = messageFont
         self.tint = tint
-        self.cornerRadius = cornerRadius
-        self.contentPadding = contentPadding
+        self.explicitCornerRadius = cornerRadius
+        self.explicitContentPadding = contentPadding
         self.edgeInset = edgeInset
         self.shadow = shadow
         self.stackMotion = stackMotion
@@ -179,12 +231,38 @@ public struct ToastTheme {
     /// already tuned the pair for its own appearances and contrast requirements.
     /// `normal` resolves to the secondary label colour, which is what makes its wash
     /// vanish — see `ToastMessage.Status.surfaceWash(in:)`.
-    public static let standardTint: (ToastMessage.Status) -> Color = { status in
-        switch status {
-        case .normal:       .secondary
-        case .warning:      .orange
-        case .error:        .red
-        case .notification: .accentColor
+    public static let standardTint: (ToastMessage.Status) -> Color = statusTint()
+
+    /// Builds a ``tint`` from one colour per status — the shape of a design system's
+    /// semantic palette, so adopting one is a matter of naming its tokens. Each colour
+    /// left out keeps its ``standardTint`` value.
+    ///
+    /// ```swift
+    /// ToastTheme(tint: ToastTheme.statusTint(
+    ///     warning: .brandWarning,
+    ///     error: .brandDanger,
+    ///     notification: .brandAccent
+    /// ))
+    /// ```
+    ///
+    /// Dynamic colours, such as asset catalog colour sets, keep their light, dark and
+    /// high-contrast variants: the kit derives every shade from the tint as it draws.
+    ///
+    /// `normal` colours only the glyph. Its surface stays clear and its border neutral
+    /// whatever the tint, so a toast with nothing to report never looks like one that does.
+    public static func statusTint(
+        normal: Color = .secondary,
+        warning: Color = .orange,
+        error: Color = .red,
+        notification: Color = .accentColor
+    ) -> (ToastMessage.Status) -> Color {
+        { status in
+            switch status {
+            case .normal:       normal
+            case .warning:      warning
+            case .error:        error
+            case .notification: notification
+            }
         }
     }
 
