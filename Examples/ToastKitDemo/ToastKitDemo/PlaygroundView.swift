@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import ToastKit
 
-/// Presents toasts that exercise each behaviour: the stack, tapping, swiping either way,
+/// Presents toasts that exercise each behaviour: the stack, tapping, swiping in any direction,
 /// pressing and holding, placement and the custom tab bar. Dismissal and progress have
 /// their own tabs.
 struct PlaygroundView: View {
@@ -91,6 +91,47 @@ struct PlaygroundView: View {
                         swipeActions: ToastSwipeActions(trailing: .later(title: String(localized: "Snooze")))
                     )
                 }
+                Button("Swipe up or down") {
+                    toasts.present(ToastMessage(
+                        status: .notification,
+                        title: String(localized: "Meeting in 5 minutes"),
+                        message: String(localized: "Swipe up to snooze, down to dismiss."),
+                        icon: .system("calendar"),
+                        duration: 8,
+                        swipeActions: .vertical(
+                            up: .later(title: String(localized: "Snooze")),
+                            down: .delete(title: String(localized: "Dismiss"))
+                        )
+                    ))
+                }
+                Button("Swipe all four ways") {
+                    toasts.present(ToastMessage(
+                        status: .normal,
+                        title: String(localized: "Photo saved"),
+                        message: String(localized: "Swipe any way, or press and hold."),
+                        icon: .system("photo"),
+                        duration: 8,
+                        swipeActions: ToastSwipeActions(
+                            leading: .delete(title: String(localized: "Delete")),
+                            trailing: .later(title: String(localized: "Later")),
+                            up: ToastAction(
+                                id: "favorite",
+                                title: String(localized: "Favorite"),
+                                icon: .system("heart"),
+                                confirmation: String(localized: "Favorited"),
+                                role: .subdued,
+                                effect: .dismiss
+                            ),
+                            down: ToastAction(
+                                id: "share",
+                                title: String(localized: "Share"),
+                                icon: .system("square.and.arrow.up"),
+                                role: .subdued,
+                                effect: .dismiss
+                            )
+                        )
+                    ))
+                }
                 Button("No swiping") {
                     toasts.present(
                         .normal,
@@ -100,9 +141,13 @@ struct PlaygroundView: View {
                     )
                 }
             } header: {
-                Text("Swipe left / right, press and hold")
+                Text("Swipe, press and hold")
             } footer: {
-                Text("Press and hold a card to lift it onto a track with both actions, then carry it to one end.")
+                Text("Press and hold a card to lift it onto a track with its actions, then carry it to one end. With immediate swipe hints the track appears as soon as a swipe starts.")
+            }
+
+            Section("Swipe hints") {
+                Toggle("Show the track as a swipe starts", isOn: $settings.immediateSwipeHints)
             }
 
             Section("Placement") {

@@ -7,19 +7,26 @@ import SwiftUI
 struct ToastDragPose: Equatable {
     /// Horizontal offset, from the finger's travel.
     let x: CGFloat
-    /// Vertical sag: the swipe bends gently toward the stack's edge (y ≈ x² ÷ 1800, at
-    /// most 160 pt), so a throw reads as a swing. Flat under Reduce Motion.
+    /// Vertical offset from an up or down swipe, which goes straight.
+    let y: CGFloat
+    /// Vertical sag: a sideways swipe bends gently toward the stack's edge (y ≈ x² ÷ 1800,
+    /// at most 160 pt), so a throw reads as a swing. Flat under Reduce Motion.
     let sag: CGFloat
-    /// Tilt, pivoting off the card's bottom edge. None under Reduce Motion.
+    /// Tilt following a sideways drag, mirrored for a top stack. None under Reduce Motion.
     let rotationDegrees: Double
-    /// Fades with travel in either direction, to no less than 35%.
+    /// The card edge the tilt pivots off: the bottom of a bottom stack, the top of a top
+    /// one, so a top stack swings as the mirror image of a bottom one.
+    let rotationAnchor: UnitPoint
+    /// Fades with travel in any direction, to no less than 35%.
     let opacity: Double
 
-    init(dragX: CGFloat, curve: CGFloat, reduceMotion: Bool) {
+    init(dragX: CGFloat, dragY: CGFloat = 0, curve: CGFloat, reduceMotion: Bool) {
         x = dragX
+        y = dragY
         sag = reduceMotion ? 0 : curve * min(dragX * dragX / 1_800, 160)
-        rotationDegrees = reduceMotion ? 0 : Double(dragX) / 36
-        opacity = 1 - min(Double(abs(dragX)) / 240, 0.65)
+        rotationDegrees = reduceMotion ? 0 : Double(curve * dragX) / 36
+        rotationAnchor = curve > 0 ? .bottom : .top
+        opacity = 1 - min(Double(abs(dragX) + abs(dragY)) / 240, 0.65)
     }
 
     /// A card that is not being dragged.

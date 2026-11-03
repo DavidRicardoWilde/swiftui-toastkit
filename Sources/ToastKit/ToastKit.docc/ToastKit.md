@@ -22,10 +22,13 @@ struct ContentView: View {
 }
 ```
 
-Each toast can be tapped, swiped toward either side, or pressed and held to show both
-swipe actions on a curved track before choosing. By default a leading swipe deletes the
-toast and a trailing swipe brings it back the next time the page is opened. Every action
-is a ``ToastAction`` with its own title, subtitle, icon and handler.
+Each toast can be tapped, swiped, or pressed and held to show its swipe actions on a
+track before choosing. Swipes go left and right, up and down, or all four ways. By
+default a leading swipe deletes the toast and a trailing swipe brings it back the next
+time the page is opened. Every action
+is a ``ToastAction`` with its own title, subtitle, icon and handler. To show the track
+from the first moment of a swipe, without a hold, set ``ToastSwipeHints/immediate`` with
+`toastSwipeHints(_:)`.
 
 Cards come in three sizes, ``ToastMetrics/compact``, ``ToastMetrics/regular`` and
 ``ToastMetrics/large``, applied with `toastMetrics(_:)`. A `width:` passed to the stack
@@ -105,6 +108,7 @@ The package README is the full guide, with examples for every feature.
 - ``ToastAction``
 - ``ToastSwipeActions``
 - ``ToastSwipeActions/progress``
+- ``ToastSwipeHints``
 
 ### Drawing the stack
 

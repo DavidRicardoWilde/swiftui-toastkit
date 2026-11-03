@@ -9,6 +9,7 @@ struct WatchContentView: View {
     @State private var placement = ToastPlacement.bottom
     @State private var lastAction: String?
     @State private var size = WatchSize.regular
+    @State private var immediateSwipeHints = false
 
     var body: some View {
         NavigationStack {
@@ -45,6 +46,19 @@ struct WatchContentView: View {
                             )
                         ))
                     }
+                    Button("Swipe up or down") {
+                        toasts.present(ToastMessage(
+                            status: .notification,
+                            title: String(localized: "Meeting in 5 minutes"),
+                            message: String(localized: "Swipe up or down."),
+                            duration: 8,
+                            swipeActions: .vertical(
+                                up: .later(title: String(localized: "Snooze")),
+                                down: .delete(title: String(localized: "Dismiss"))
+                            )
+                        ))
+                    }
+                    Toggle("Instant hints", isOn: $immediateSwipeHints)
                     Button("Tap to undo") {
                         toasts.present(
                             .normal,
@@ -76,6 +90,7 @@ struct WatchContentView: View {
             .navigationTitle("ToastKit")
             .toasts(toasts, placement: placement)
             .toastMetrics(size.metrics)
+            .toastSwipeHints(immediateSwipeHints ? .immediate : .afterHold)
             .onToastAction { _, action in
                 lastAction = action.title
             }

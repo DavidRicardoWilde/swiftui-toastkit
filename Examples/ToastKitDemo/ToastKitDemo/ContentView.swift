@@ -86,6 +86,7 @@ private extension View {
             .demoToastStyle(settings.style)
             .toastTheme(settings.theme == .brand ? .brand : .standard)
             .toastMetrics(settings.size.metrics)
+            .toastSwipeHints(settings.immediateSwipeHints ? .immediate : .afterHold)
             .toastRemoval(settings.removal.removal(settings.direction.direction))
             .onToastAction { toast, action in
                 settings.recentActions.append("\(action.title) — \(toast.title)")

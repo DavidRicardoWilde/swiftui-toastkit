@@ -188,8 +188,8 @@ struct ToastDepartureEffect: ViewModifier, Animatable {
         let frame = ToastDepartureFrame.sample(kind, progress: progress, blurRamp: blurRamp)
         let travel = CGFloat(frame.travelFraction) * distance + CGFloat(frame.extraPoints)
         return content
-            .offset(x: start.x, y: start.sag)
-            .rotationEffect(.degrees(start.rotationDegrees), anchor: .bottom)
+            .offset(x: start.x, y: start.sag + start.y)
+            .rotationEffect(.degrees(start.rotationDegrees), anchor: start.rotationAnchor)
             .opacity(start.opacity)
             .scaleEffect(depth.scale * CGFloat(frame.scaleFactor), anchor: anchor)
             .offset(y: peek)

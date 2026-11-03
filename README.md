@@ -8,11 +8,13 @@ a `ToastStyle`: the frosted-glass default, the bare `.plain` style, or your own.
 
 - **A stack, not a queue.** The newest toast sits in front. Older ones peek out behind it
   and come forward as the front one leaves.
-- **Tap, swipe either way, or press and hold.** Each gesture runs an action you define. By
-  default, swiping toward the leading side deletes a toast. Swiping toward the trailing
-  side sets it aside until the page is next opened.
+- **Tap, swipe, or press and hold.** Each gesture runs an action you define, and swipes
+  can go left and right, up and down, or all four ways. By default, swiping toward the
+  leading side deletes a toast. Swiping toward the trailing side sets it aside until the
+  page is next opened.
 - **Actions you can read before choosing.** Pressing and holding lifts the card onto a
-  curved track with both swipe actions laid out at its ends: icon, title and subtitle.
+  track with its swipe actions laid out at the ends: icon, title and subtitle.
+  Set `.toastSwipeHints(.immediate)` and the swipe itself shows them, no hold needed.
 - **Timing that waits for the user.** Only the front toast counts down. The countdown
   pauses while a finger is on the stack or the app is in the background.
 - **Progress that stays up.** A progress toast shows a bar while work runs, can offer
@@ -86,6 +88,13 @@ your app target.
 Releases follow [semantic versioning](https://semver.org). Before 1.0, a minor release may
 change the API, so `.upToNextMinor(from:)` is the safe requirement; patch releases only fix.
 
+Pre-releases, such as `0.2.0-beta.1`, are tagged ahead of a minor release. Swift Package
+Manager never picks one for a range that starts at a plain version, so ask for it exactly:
+
+```swift
+.package(url: "https://github.com/DavidRicardoWilde/swiftui-toastkit.git", exact: "0.2.0-beta.1")
+```
+
 ## Quick start
 
 Keep a `ToastCenter` in state, attach it to a view with `.toasts(_:)`, and present.
@@ -134,7 +143,8 @@ choose your own team under **Signing & Capabilities** and change the bundle
 identifiers to ones you own.
 
 The watch app is a compact version of the playground: each status, a short
-stack, swipe actions, a tap action and top or bottom placement. It is one list, with
+stack, swipe actions left and right or up and down, a switch for immediate swipe hints, a
+tap action and top or bottom placement. It is one list, with
 three more sections:
 
 - **Sizes** switches between the compact, regular and large sizes. Every size is the
@@ -148,7 +158,8 @@ three more sections:
 On iPhone, iPad, Mac and Apple Vision Pro, the demo has five tabs:
 
 - **Playground** shows each status, a burst of stacked toasts, a persistent
-  toast, tap actions, swipe actions on both sides, press and hold, postponed
+  toast, tap actions, swipe actions left and right, up and down or all four ways, press
+  and hold, a switch for immediate swipe hints, postponed
   toasts, and top or bottom placement. A switch makes the custom tab bar
   taller, so you can watch toasts move to stay clear of it.
 - **Styles** switches between the glass style, `.plain` and a custom
@@ -623,7 +634,9 @@ Every gesture on the front card runs a `ToastAction`.
 | Tap | `tapAction`, or the stack's `onTap` | Nothing; taps pass through to the content behind. |
 | Swipe toward the leading side | `swipeActions.leading` | `.delete`: the toast is removed. |
 | Swipe toward the trailing side | `swipeActions.trailing` | `.later`: the toast comes back the next time the page is opened. |
-| Press and hold, then carry | Either swipe action, chosen on a track | Shows both, with their icons, titles and subtitles. |
+| Swipe up | `swipeActions.up` | Nothing. |
+| Swipe down | `swipeActions.down` | Nothing. |
+| Press and hold, then carry | Any swipe action, chosen on a track | Shows them all, with their icons, titles and subtitles. With `.toastSwipeHints(.immediate)`, a swipe does this too. |
 
 In a left-to-right layout, leading is left and trailing is right.
 
@@ -676,8 +689,9 @@ A toast with neither does not intercept taps at all.
 
 ### Swiping
 
-Every toast swipes to `.delete` on the leading side and `.later` on the trailing side
-unless told otherwise. Replace either side, reword the built-ins, or turn a side off:
+Every toast swipes to `.delete` on the leading side and `.later` on the trailing side, and
+does nothing up or down, unless told otherwise. Replace either side, reword the built-ins,
+turn a side off, or use up and down instead or as well:
 
 ```swift
 // Your own action on one side; the other keeps its default.
@@ -694,9 +708,18 @@ ToastSwipeActions(
 // One way only: swiping right barely moves the card.
 ToastSwipeActions(leading: .delete, trailing: nil)
 
+// Up and down only: swiping sideways barely moves the card.
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+// All four ways.
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)
+
 // No swiping and no press-and-hold: the toast leaves by tap, by timeout, or from code.
 ToastSwipeActions.disabled
 ```
+
+`ToastSwipeActions.horizontal(leading:trailing:)` spells out the default left-and-right
+pair. Any direction can be `nil`, so one axis can still offer a single way.
 
 Pass the result as `swipeActions:` when you present:
 
@@ -707,8 +730,10 @@ toasts.present(ToastMessage(title: "Message from Ana", swipeActions: ToastSwipeA
 )))
 ```
 
-A swipe runs once the card travels 88 pt, or on a quick flick, and the card flies off that
-way first. A shorter swipe springs back. Toward a side with no action, the card gives
+A swipe moves along one axis. With actions on both, the first 8 pt of travel picks the
+way the finger went further. A swipe runs once the card travels 88 pt, or on a quick
+flick, and the card flies off that way first: off the side of the screen, or off its top
+or bottom. A shorter swipe springs back. Toward a direction with no action, the card gives
 only a little and always springs back.
 
 ### Pressing and holding
@@ -720,8 +745,47 @@ along the band. Past 64 pt the end it is heading for lights up and ticks; let go
 run that action, or anywhere short of it to put the card back. The chosen end shows the
 action's `confirmation` for a moment before the action runs.
 
-This is the same pair of actions a quick swipe runs. Pressing and holding lets the user
-read them first. A toast with no swipe actions ignores the long press.
+The finger that pressed stays put while the card lifts away from it, so nothing you need
+to read sits under your thumb. On a bottom stack the card rises 44 pt, and each label rides
+in the upper half of a 72 pt band, above the finger. A stack hanging from the top edge is
+the mirror image: the band bends up toward the top, the card drops 44 pt, and the labels
+ride in the band's lower half.
+
+With up or down actions, a second band runs straight up and down through the lifted card,
+coloured at its ends the same way. Its labels sit beside its ends, on the leading side:
+the finger is below the card, so a label at the bottom end would be under it on the way
+down. Carry the card up or down 64 pt to arm that end. With actions both ways, the card
+rides whichever band the finger heads along, and switches only once the other way clearly
+leads.
+
+These are the same actions a quick swipe runs. Pressing and holding lets the user read
+them first. A toast with no swipe actions ignores the long press.
+
+### Showing the actions as a swipe starts
+
+By default a quick swipe acts without saying what it will do; the track waits for a hold.
+Set `toastSwipeHints(.immediate)` and the swipe itself lifts the card onto the track:
+
+```swift
+MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)
+```
+
+After 8 pt of travel the card is on the track with its actions showing, and it follows
+the finger along it. Past 64 pt the end it is heading for lights up and ticks. Let go
+there, or flick toward an end, to run that action; let go anywhere short of it and the card
+settles back. Pressing and holding still works as before. A hold is confirmed with a thump
+as the card lifts; a swipe, already under way, keeps only the tick.
+
+| | `.afterHold` (default) | `.immediate` |
+| --- | --- | --- |
+| Swipe | Runs past 88 pt or on a flick; the card flies off. | Lifts the card onto the track at 8 pt; runs the end it is armed toward at 64 pt, or flicked toward. |
+| Press and hold | Lifts the card onto the track. | The same. |
+
+Like `toastTheme(_:)`, it applies to every stack below where it is set. A `ToastCard`
+shown on its own, outside a stack, has no room for a track and keeps the quick swipe.
+Available from 0.2.0.
 
 ### Observing every action
 
@@ -965,8 +1029,10 @@ MyScreen().toasts(toasts, placement: .top)   // hangs from the top of the safe a
 ```
 
 The stack hangs from its edge. The newest card sits nearest the edge and older ones
-recede inward. The swipe path and the press-and-hold track both bend gently toward that
-edge.
+recede inward: upward from the bottom, downward from the top. The swipe path and the
+press-and-hold track both bend gently toward that edge. A top stack is the exact mirror
+of a bottom one: the band's ends bend up past the top, the lifted card drops instead of
+rising, and a sideways swipe tilts from the card's top edge.
 
 ### What sits at the bottom
 
@@ -1133,7 +1199,7 @@ fonts, radius and padding laid over the preset's.
 
 - Each card is one VoiceOver element: title, then message. A tappable card is a button,
   and its hint says so.
-- Both swipe actions are offered by name in the actions rotor, along with **Dismiss**. No
+- Every swipe action is offered by name in the actions rotor, along with **Dismiss**. No
   gesture is ever the only way to reach an action.
 - Buried cards are hidden from VoiceOver; only the front card is reachable.
 - **Reduce Motion:** cards cross-fade instead of sliding, the swipe path flattens, and the
@@ -1235,7 +1301,7 @@ compile this README's examples against the public API
 | Layer | Types | Imports |
 | --- | --- | --- |
 | Model | `ToastCenter`, `ToastMessage`, `ToastDuration`, `ToastAction`, `ToastSwipeActions`, `ToastIcon`, `ToastWidth`, `ToastScheduling`, `ToastGroup`, `ToastDismissalScope`, `ToastRemoval`, `ToastRemovalDirection`, `ToastProgress`, `ToastProgressPhase`, `ToastProgressHandle`, `ToastProgressReporter`, `ToastProgressOptions`, `ToastProgressResult`, `ToastProgressCompletion`, and the departure planning and trail timing behind them | Foundation, CoreGraphics |
-| Behaviour | `ToastStack`, `ToastCard`, the press-and-hold track, obstructions | SwiftUI |
+| Behaviour | `ToastStack`, `ToastCard`, the press-and-hold track, `ToastSwipeHints`, obstructions | SwiftUI |
 | Appearance | `ToastStyle`, `GlassToastStyle`, `PlainToastStyle`, `ToastTheme`, `ToastMetrics`, `ToastProgressConfiguration`, `ToastProgressBar` | SwiftUI |
 
 - The model holds no colours or views, so its rules are unit-tested without a host.

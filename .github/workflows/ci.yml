@@ -42,6 +42,38 @@ jobs:
       - name: Build
         run: xcodebuild -scheme ToastKit -destination 'generic/platform=iOS Simulator' build
 
+  examples:
+    name: Build the demo on ${{ matrix.platform }}
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: iOS
+            scheme: ToastKitDemo
+            destination: generic/platform=iOS Simulator
+          - platform: macOS
+            scheme: ToastKitDemo
+            destination: generic/platform=macOS
+          - platform: visionOS
+            scheme: ToastKitDemo
+            destination: generic/platform=visionOS Simulator
+          - platform: watchOS
+            scheme: ToastKitDemoWatch
+            destination: generic/platform=watchOS Simulator
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        working-directory: Examples/ToastKitDemo
+        run: >
+          xcodebuild build
+          -project ToastKitDemo.xcodeproj
+          -scheme "${{ matrix.scheme }}"
+          -destination "${{ matrix.destination }}"
+          CODE_SIGNING_ALLOWED=NO
+
   lint:
     name: SwiftLint
     runs-on: macos-15
