@@ -9,12 +9,12 @@ interface Props {
 
 const { lang, title, description } = Astro.props;
 const sectionLabels: Record<Props['lang'], string[]> = {
-  en: ['About ToastKit', 'Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Sizes', 'Dismissing toasts', 'Progress toasts', 'Accessibility', 'App localization', 'Feedback & discussion'],
-  'zh-cn': ['项目介绍', '快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '尺寸', '移除 Toast', '进度 Toast', '辅助功能', '应用本地化', '反馈与讨论'],
-  'zh-hant': ['專案介紹', '快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '尺寸', '移除 Toast', '進度 Toast', '輔助使用', '應用程式本地化', '回饋與討論'],
-  ja: ['ToastKit について', 'はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'サイズ', 'Toast を閉じる', '進捗 Toast', 'アクセシビリティ', 'アプリのローカライズ', 'フィードバックと議論'],
-  ko: ['ToastKit 소개', '시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '크기', '토스트 닫기', '진행률 토스트', '접근성', '앱 현지화', '피드백과 토론'],
-  es: ['Acerca de ToastKit', 'Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Tamaños', 'Descartar toasts', 'Toasts de progreso', 'Accesibilidad', 'Localización de la app', 'Comentarios y debate'],
+  en: ['About ToastKit', 'Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Sizes', 'Dismissing toasts', 'Progress toasts', 'Accessibility', 'App localization', 'Project & community'],
+  'zh-cn': ['项目介绍', '快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '尺寸', '移除 Toast', '进度 Toast', '辅助功能', '应用本地化', '项目与社区'],
+  'zh-hant': ['專案介紹', '快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '尺寸', '移除 Toast', '進度 Toast', '輔助使用', '應用程式本地化', '專案與社群'],
+  ja: ['ToastKit について', 'はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'サイズ', 'Toast を閉じる', '進捗 Toast', 'アクセシビリティ', 'アプリのローカライズ', 'プロジェクトとコミュニティ'],
+  ko: ['ToastKit 소개', '시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '크기', '토스트 닫기', '진행률 토스트', '접근성', '앱 현지화', '프로젝트와 커뮤니티'],
+  es: ['Acerca de ToastKit', 'Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Tamaños', 'Descartar toasts', 'Toasts de progreso', 'Accesibilidad', 'Localización de la app', 'Proyecto y comunidad'],
 };
 const guideLabel: Record<Props['lang'], string> = {
   en: 'GUIDES', 'zh-cn': '使用指南', 'zh-hant': '使用指南', ja: 'ガイド', ko: '가이드', es: 'GUÍAS',

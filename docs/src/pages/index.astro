@@ -1,4 +1,5 @@
 ---
+import SimulatorCapture from '../components/SimulatorCapture.astro';
 import DocPage from '../components/DocPage.astro';
 ---
 
@@ -33,6 +34,7 @@ import DocPage from '../components/DocPage.astro';
   <section class="doc-section" id="start">
     <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">UP AND RUNNING</p><h2>Get started</h2></div></div>
     <p>Add ToastKit with Swift Package Manager, then attach a <code>ToastCenter</code> to the view that should present notifications.</p>
+    <figure class="simulator-capture"><div class="simulator-capture-grid"><a href="/images/demos/quick-start-stack-full.png"><img src="/images/demos/quick-start-stack.png" alt="ToastKitDemo running in the iPhone simulator, with a toast card and older cards peeking behind." loading="lazy" /><span>Simulator screenshot</span></a><div><img src="/images/demos/quick-start-stack.gif" alt="Real iOS Simulator recording of ToastKit notifications arriving and stacking." loading="lazy" /><span>Simulator recording · GIF</span></div></div><figcaption>iPhone 18 Pro · iOS 27.2 Simulator · Captured from ToastKitDemo. <a href="/images/demos/quick-start-stack-full.png">Full simulator screenshot ↗</a></figcaption></figure>
     <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
     <pre><code><span class="kw">import</span> SwiftUI
 <span class="kw">import</span> ToastKit
@@ -55,6 +57,7 @@ import DocPage from '../components/DocPage.astro';
   <section class="doc-section" id="messages">
     <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">THE MESSAGE</p><h2>Toast messages</h2></div></div>
     <p>A <code>ToastMessage</code> holds its content, semantic status, duration, and optional tap and swipe actions. Use the convenience method for a simple message, or build a message when you need more control.</p>
+    <SimulatorCapture name="02-messages" lang="en" />
     <pre><code>toasts.present(.warning,
     title: <span class="str">"Low storage"</span>,
     message: <span class="str">"Free up space to keep syncing."</span>
@@ -80,6 +83,7 @@ toasts.present(message)</code></pre>
   <section class="doc-section" id="timing">
     <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">GIVE IT A MOMENT</p><h2>Display duration</h2></div></div>
     <p><code>.automatic</code> uses the center’s default duration of four seconds. Pass seconds directly or use <code>.indefinite</code> for a message that needs an explicit response.</p>
+    <SimulatorCapture name="03-timing" lang="en" />
     <pre><code><span class="comment">// Two seconds</span>
 ToastMessage(title: <span class="str">"Copied"</span>, duration: 2)
 
@@ -93,6 +97,7 @@ ToastMessage(title: <span class="str">"Sync failed"</span>, duration: .indefinit
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">A CLEAR NEXT STEP</p><h2>Gestures &amp; actions</h2></div></div>
     <p>People can tap, swipe either direction, or press and hold to see both swipe choices before deciding. VoiceOver exposes the same actions by name.</p>
+    <SimulatorCapture name="04-actions" lang="en" />
     <div class="table-wrap"><table><thead><tr><th>Gesture</th><th>Default</th><th>Customize with</th></tr></thead><tbody>
       <tr><td>Tap</td><td>No action; taps pass through</td><td><code>tapAction</code> or <code>onTap</code></td></tr>
       <tr><td>Leading swipe</td><td>Delete the toast</td><td><code>swipeActions.leading</code></td></tr>
@@ -134,6 +139,7 @@ ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</c
   <section class="doc-section" id="styling">
     <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">MAKE IT YOURS</p><h2>Styles &amp; themes</h2></div></div>
     <p>The default <code>.glass</code> style draws a frosted card tinted by status. Tune design tokens with <code>ToastTheme</code>, choose the unstyled <code>.plain</code> style, or conform to <code>ToastStyle</code> for a custom card.</p>
+    <SimulatorCapture name="05-styles" lang="en" />
     <pre><code>MyScreen()
     .toasts(toasts)
     .toastTheme(ToastTheme(
@@ -166,6 +172,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">RIGHT WHERE IT BELONGS</p><h2>Placement &amp; width</h2></div></div>
     <p>By default, cards hang from the bottom and use 60% of the available safe-area width. <a href="#sizes">Sizes</a> covers the presets and which width wins. At the top everything mirrors: older cards peek out below, the press-and-hold track bends up past the top edge, and a lifted card drops down instead of rising.</p>
+    <SimulatorCapture name="06-placement" lang="en" />
     <pre><code><span class="comment">// Top edge</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -179,6 +186,7 @@ MyScreen().toasts(toasts, width: .points(320))</code></pre>
   <section class="doc-section" id="sizes">
     <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">SIZE TO FIT</p><h2>Sizes</h2></div></div>
     <p><code>ToastMetrics</code> decides how big a card is: its width, padding, type, icon chip, corner radius and line limits. It is separate from the theme and the style, so they combine freely. Choose a preset, or build your own.</p>
+    <SimulatorCapture name="07-sizes" lang="en" />
     <pre><code>MyScreen()
     .toasts(toasts)
     .toastMetrics(.compact)   <span class="comment">// .compact, .regular (the default) or .large</span>
@@ -205,6 +213,7 @@ MyScreen()
   <section class="doc-section" id="dismissing">
     <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">LET IT GO</p><h2>Dismissing toasts</h2></div></div>
     <p>Remove one toast by id or take whichever is in front. To remove several at once, give related toasts a <code>ToastGroup</code> or match them with a closure. A batch is a single change, and each call returns how many toasts it removed.</p>
+    <SimulatorCapture name="08-dismissing" lang="en" />
     <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// one toast by id</span>
 toasts.dismissTopmost()
 
@@ -238,6 +247,7 @@ options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hi
   <section class="doc-section" id="progress">
     <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">WORK IN PROGRESS</p><h2>Progress toasts</h2></div></div>
     <p>For work that takes a while, such as an upload or a sync, <code>track(title:)</code> presents a card that stays up, shows how far the work has got and can offer Cancel. It is never timed while the work runs. Keep the handle it returns, report through it, and finish with one outcome. The card turns into its result where it stands.</p>
+    <SimulatorCapture name="09-progress" lang="en" />
     <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// indeterminate until you say otherwise</span>
 handle.update(.items(3, of: 10))                             <span class="comment">// "3 of 10"</span>
 handle.update(fraction: 0.8)
@@ -274,12 +284,14 @@ options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hi
   <section class="doc-section" id="accessibility">
     <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">BUILT FOR EVERYONE</p><h2>Accessibility</h2></div></div>
     <p>ToastKit keeps actions available without requiring a gesture and follows the accessibility settings in SwiftUI’s environment.</p>
+    <SimulatorCapture name="10-accessibility" lang="en" />
     <ul class="check-list"><li>VoiceOver announces each card and offers both swipe actions in the actions rotor.</li><li>Reduce Motion replaces sliding movement with a cross-fade.</li><li>Reduce Transparency makes glass surfaces opaque.</li><li>Increase Contrast strengthens the glass border.</li><li>Dynamic Type scales text and the status icon.</li><li>Progress toasts read their value aloud (such as “42%, 12 MB of 30 MB”), announce each quarter of the way, and offer Cancel and Retry as actions. <a href="#progress">More on progress toasts</a>.</li></ul>
   </section>
 
   <section class="doc-section" id="localization">
     <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">SPEAK THEIR LANGUAGE</p><h2>App localization</h2></div></div>
     <p>ToastKit ships its built-in action labels in English, Japanese, Simplified Chinese, and Traditional Chinese. Your app’s strings are separate: localize the title, message, and any custom action labels you provide.</p>
+    <SimulatorCapture name="11-localization" lang="en" />
     <pre><code><span class="comment">// Keep app copy in your String Catalog or Localizable.strings.</span>
 toasts.present(.warning,
     title: String(localized: <span class="str">"storage.low.title"</span>),
@@ -289,14 +301,19 @@ toasts.present(.warning,
   </section>
 
   <section class="doc-section" id="feedback">
-    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">FEEDBACK &amp; COMMUNITY</p><h2>Feedback &amp; discussion</h2></div></div>
-    <p>GitHub is the place to report problems, suggest improvements, ask questions, and follow up with comments.</p>
+    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">OPEN SOURCE &amp; COMMUNITY</p><h2>Project &amp; community</h2></div></div>
+    <p>ToastKit is open source under the MIT License. Contributions are welcome: report a bug, share an idea, improve the docs or examples, or send a focused pull request.</p>
     <div class="info-grid">
       <article><span class="pill red">ISSUES</span><h3>Bugs and feature requests</h3><p>Use a structured form for reproducible bugs or a specific feature request.</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose">Open a GitHub issue ↗</a></p></article>
       <article><span class="pill violet">DISCUSSIONS</span><h3>Questions and ideas</h3><p>Use Discussions for usage questions, general feedback, and ideas that need conversation before becoming an issue.</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions">Open GitHub Discussions ↗</a></p></article>
     </div>
+    <div class="info-grid">
+      <article><span class="pill neutral">CONTRIBUTE</span><h3>Help shape ToastKit</h3><p>Read the contribution guide for project conventions and pull request notes.</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md">Read CONTRIBUTING.md ↗</a></p></article>
+      <article><span class="pill neutral">TAGS &amp; RELEASES</span><h3>Browse version history</h3><p>Tags identify the source for each version. GitHub Releases may include packaged notes and assets.</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/tags">Browse tags ↗</a> · <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/releases">Releases ↗</a></p></article>
+      <article><span class="pill amber">CHANGELOG</span><h3>What changed</h3><p>See the changes grouped by the repository’s published tags.</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md">Read the changelog ↗</a></p></article>
+    </div>
     <p>When reporting a bug, include a minimal Swift example, steps to reproduce, what happened, and what you expected instead. The example may intentionally contain incorrect or non-compiling code. Add screenshots or a screen recording for visual problems, and include iOS/iPadOS, device or simulator, Xcode, Swift, and ToastKit versions.</p>
-    <p>Use comments on an existing issue or discussion for follow-up, clarification, and progress updates.</p>
+    <p>Use comments on an existing issue or discussion for follow-up, clarification, and progress updates. For pull requests, focused changes with a brief explanation and validation notes are easiest to review.</p>
   </section>
 
   <div class="next-card"><div><span class="eyebrow">KEEP EXPLORING</span><h2>Ready to add a little polish?</h2><p>Explore the source and see every API in context.</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">Browse on GitHub <span>↗</span></a></div>

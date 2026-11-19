@@ -1,4 +1,5 @@
 ---
+import SimulatorCapture from '../../components/SimulatorCapture.astro';
 import DocPage from '../../components/DocPage.astro';
 ---
 
@@ -28,6 +29,7 @@ import DocPage from '../../components/DocPage.astro';
   <section class="doc-section" id="start">
     <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">すぐに使える</p><h2>はじめに</h2></div></div>
     <p>Swift Package Manager で ToastKit を追加し、通知を表示するビューに <code>ToastCenter</code> を付けます。</p>
+    <figure class="simulator-capture"><div class="simulator-capture-grid"><a href="/images/demos/quick-start-stack-full.png"><img src="/images/demos/quick-start-stack.png" alt="iPhone シミュレータで実行中の ToastKitDemo。新しいトーストの後ろに前のカードが見えます。" loading="lazy" /><span>シミュレータのスクリーンショット</span></a><div><img src="/images/demos/quick-start-stack.gif" alt="iOS シミュレータで ToastKit の通知が順番に表示され、積み重なる録画。" loading="lazy" /><span>シミュレータ録画 · GIF</span></div></div><figcaption>iPhone 18 Pro · iOS 27.2 シミュレータ · ToastKitDemo のシミュレータ録画。 <a href="/images/demos/quick-start-stack-full.png">シミュレータの全画面スクリーンショット ↗</a></figcaption></figure>
     <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
     <pre><code><span class="kw">import</span> SwiftUI
 <span class="kw">import</span> ToastKit
@@ -50,6 +52,7 @@ import DocPage from '../../components/DocPage.astro';
   <section class="doc-section" id="messages">
     <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">メッセージ</p><h2>トーストメッセージ</h2></div></div>
     <p><code>ToastMessage</code> には、表示内容、意味を持つステータス、表示時間、任意のタップ操作とスワイプ操作を設定します。簡単な通知には便利メソッドを、細かな制御が必要な場合はメッセージを直接作成します。</p>
+    <SimulatorCapture name="02-messages" lang="ja" />
     <pre><code>toasts.present(.warning,
     title: <span class="str">"ストレージの空き容量が不足しています"</span>,
     message: <span class="str">"同期を続けるには空き容量を増やしてください。"</span>
@@ -70,6 +73,7 @@ toasts.present(message)</code></pre>
   <section class="doc-section" id="timing">
     <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">少しだけ表示</p><h2>表示時間</h2></div></div>
     <p><code>.automatic</code> は <code>ToastCenter</code> の既定値である4秒を使います。秒数を直接指定するか、ユーザーの操作が必要な通知には <code>.indefinite</code> を使います。</p>
+    <SimulatorCapture name="03-timing" lang="ja" />
     <pre><code><span class="comment">// 2秒間表示</span>
 ToastMessage(title: <span class="str">"コピーしました"</span>, duration: 2)
 
@@ -83,6 +87,7 @@ ToastMessage(title: <span class="str">"同期に失敗しました"</span>, dura
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">次の操作を明確に</p><h2>ジェスチャと操作</h2></div></div>
     <p>タップ、左右へのスワイプ、長押しが使えます。長押しすると両方のスワイプ操作を確認してから選べます。VoiceOver でも同じ操作を名前から選択できます。</p>
+    <SimulatorCapture name="04-actions" lang="ja" />
     <div class="table-wrap"><table><thead><tr><th>ジェスチャ</th><th>既定の動作</th><th>カスタマイズ</th></tr></thead><tbody><tr><td>タップ</td><td>操作なし。背後のコンテンツへ通過</td><td><code>tapAction</code> または <code>onTap</code></td></tr><tr><td>leading 側へスワイプ</td><td>トーストを削除</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 側へスワイプ</td><td>次にページを開いたときに再表示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>上へスワイプ</td><td>操作なし</td><td><code>swipeActions.up</code></td></tr><tr><td>下へスワイプ</td><td>操作なし</td><td><code>swipeActions.down</code></td></tr><tr><td>長押し</td><td>すべての操作をプレビュー</td><td>スワイプ操作と同じ設定</td></tr></tbody></table></div>
     <pre><code><span class="kw">let</span> archive = ToastAction(
     id: <span class="str">"archive"</span>,
@@ -117,6 +122,7 @@ ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</c
   <section class="doc-section" id="styling">
     <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">自由にカスタマイズ</p><h2>スタイルとテーマ</h2></div></div>
     <p>既定の <code>.glass</code> スタイルは、ステータスに合わせて色が変わるすりガラスのカードです。<code>ToastTheme</code> でデザイントークンを調整したり、装飾のない <code>.plain</code> を選んだり、<code>ToastStyle</code> に準拠した独自カードを作成したりできます。</p>
+    <SimulatorCapture name="05-styles" lang="ja" />
     <pre><code>MyScreen()
     .toasts(toasts)
     .toastTheme(ToastTheme(
@@ -149,6 +155,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">適切な場所に表示</p><h2>配置と幅</h2></div></div>
     <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。プリセットごとの幅と優先順位は<a href="#sizes">サイズ</a>で説明します。上部に配置すると、すべてが上下反転します。古いカードは下にのぞき、長押しのトラックは上端に向かって反り、持ち上げたカードは上ではなく下へ移動します。</p>
+    <SimulatorCapture name="06-placement" lang="ja" />
     <pre><code><span class="comment">// 上端に配置</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -162,6 +169,7 @@ MyScreen().toasts(toasts, width: .points(320))</code></pre>
   <section class="doc-section" id="sizes">
     <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">ちょうどよい大きさ</p><h2>サイズ</h2></div></div>
     <p><code>ToastMetrics</code> はカードの大きさ（幅、余白、文字、アイコンの枠、角の丸み、行数の上限）を決めます。テーマやスタイルとは独立しているので、自由に組み合わせられます。プリセットを選ぶか、独自の値を作成します。</p>
+    <SimulatorCapture name="07-sizes" lang="ja" />
     <pre><code>MyScreen()
     .toasts(toasts)
     .toastMetrics(.compact)   <span class="comment">// .compact、.regular（既定）、.large から選択</span>
@@ -188,6 +196,7 @@ MyScreen()
   <section class="doc-section" id="dismissing">
     <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">きれいに閉じる</p><h2>Toast を閉じる</h2></div></div>
     <p>id を指定して1つ閉じることも、最前面の1つを閉じることもできます。まとめて閉じるには、関連する Toast に <code>ToastGroup</code> を付けるか、クロージャで条件を指定します。まとめて閉じる操作は1回の変更として扱われ、閉じた件数が戻り値で返ります。</p>
+    <SimulatorCapture name="08-dismissing" lang="ja" />
     <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// id を指定して1つ</span>
 toasts.dismissTopmost()
 
@@ -221,6 +230,7 @@ options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hi
   <section class="doc-section" id="progress">
     <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">処理の途中経過</p><h2>進捗 Toast</h2></div></div>
     <p>アップロードや同期のように時間のかかる処理には、<code>track(title:)</code> でカードを表示します。カードは残り続け、どこまで進んだかを示し、キャンセルも提供できます。処理中は自動で消えません。返されるハンドルを保持し、それを通じて状況を報告して、最後に結果を1つ伝えます。カードはその場で結果の表示に変わります。</p>
+    <SimulatorCapture name="09-progress" lang="ja" />
     <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 指定するまでは不確定</span>
 handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
 handle.update(fraction: 0.8)
@@ -257,12 +267,14 @@ options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hi
   <section class="doc-section" id="accessibility">
     <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">すべての人のために</p><h2>アクセシビリティ</h2></div></div>
     <p>特定のジェスチャを使わなくても操作でき、SwiftUI 環境のアクセシビリティ設定に従います。</p>
+    <SimulatorCapture name="10-accessibility" lang="ja" />
     <ul class="check-list"><li>VoiceOver が各カードを読み上げ、アクションローターから両方の操作を選べます。</li><li>視差効果を減らす設定では、スライドがフェード表示に変わります。</li><li>透明度を下げる設定では、ガラス面が不透明になります。</li><li>コントラストを上げる設定では、ガラスの縁がはっきりした境界線になります。</li><li>Dynamic Type に合わせて文字とアイコンが拡大します。</li><li>進捗 Toast は進捗の値（「42%、12 MB / 30 MB」など）を読み上げ、4分の1ずつ進むたびに知らせ、キャンセルと再試行を操作として提供します。<a href="#progress">進捗 Toast の詳細</a></li></ul>
   </section>
 
   <section class="doc-section" id="localization">
     <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">ユーザーの言語で</p><h2>アプリのローカライズ</h2></div></div>
     <p>ToastKit の組み込み操作ラベルは英語、日本語、簡体字中国語、繁体字中国語に対応しています。タイトル、本文、独自の操作ラベルはアプリ側でローカライズしてください。</p>
+    <SimulatorCapture name="11-localization" lang="ja" />
     <pre><code><span class="comment">// アプリの文言は String Catalog または Localizable.strings に登録します。</span>
 toasts.present(.warning,
     title: String(localized: <span class="str">"storage.low.title"</span>),
@@ -272,14 +284,19 @@ toasts.present(.warning,
   </section>
 
   <section class="doc-section" id="feedback">
-    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">フィードバックとコミュニティ</p><h2>フィードバックと議論</h2></div></div>
-    <p>GitHub で不具合の報告、改善提案、使い方の質問を受け付け、コメントでやり取りできます。</p>
+    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">オープンソースとコミュニティ</p><h2>プロジェクトとコミュニティ</h2></div></div>
+    <p>ToastKit は MIT ライセンスのオープンソースです。不具合報告、アイデアの共有、ドキュメントやサンプルの改善、範囲を絞った Pull Request を歓迎します。</p>
     <div class="info-grid">
       <article><span class="pill red">ISSUES</span><h3>不具合と機能リクエスト</h3><p>再現できる不具合や具体的な機能提案には専用フォームを使ってください。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose">GitHub Issue を作成 ↗</a></p></article>
       <article><span class="pill violet">DISCUSSIONS</span><h3>質問やアイデア</h3><p>使い方の質問、一般的なフィードバック、Issue にする前に話し合いたいアイデアには Discussions を使ってください。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions">GitHub Discussions を開く ↗</a></p></article>
     </div>
+    <div class="info-grid">
+      <article><span class="pill neutral">CONTRIBUTE</span><h3>ToastKit の改善に参加</h3><p>コントリビューションガイドでプロジェクトの規約と Pull Request の要点を確認できます。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md">CONTRIBUTING.md を読む ↗</a></p></article>
+      <article><span class="pill neutral">TAGS &amp; RELEASES</span><h3>バージョン履歴</h3><p>Git tag から各バージョンのソースを確認できます。GitHub Releases にはリリースノートやファイルが掲載される場合があります。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/tags">タグを見る ↗</a> · <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/releases">リリースを見る ↗</a></p></article>
+      <article><span class="pill amber">CHANGELOG</span><h3>変更内容</h3><p>リポジトリのタグごとに変更点をまとめています。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md">変更履歴を読む ↗</a></p></article>
+    </div>
     <p>不具合の報告には、最小の Swift 例、再現手順、実際の動作、期待する動作を含めてください。例のコードは、意図的に誤っていたりコンパイルできなかったりしても構いません。表示上の問題にはスクリーンショットや録画を添え、iOS/iPadOS、端末またはシミュレータ、Xcode、Swift、ToastKit のバージョンを記載してください。</p>
-    <p>追加情報や確認、進捗の共有には既存の Issue または Discussion のコメントを使ってください。</p>
+    <p>追加情報や確認、進捗の共有には既存の Issue または Discussion のコメントを使ってください。Pull Request は変更を絞り、概要と検証結果を添えるとレビューしやすくなります。</p>
   </section>
 
   <div class="next-card"><div><span class="eyebrow">さらに詳しく</span><h2>もう少し仕上げてみましょう</h2><p>ソースコードで API の使い方を確認できます。</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">GitHub で見る <span>↗</span></a></div>

@@ -1,4 +1,5 @@
 ---
+import SimulatorCapture from '../../components/SimulatorCapture.astro';
 import DocPage from '../../components/DocPage.astro';
 ---
 
@@ -28,6 +29,7 @@ import DocPage from '../../components/DocPage.astro';
   <section class="doc-section" id="start">
     <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">快速接入</p><h2>快速開始</h2></div></div>
     <p>透過 Swift Package Manager 加入 ToastKit，接著將 <code>ToastCenter</code> 附加到需要顯示通知的檢視畫面。</p>
+    <figure class="simulator-capture"><div class="simulator-capture-grid"><a href="/images/demos/quick-start-stack-full.png"><img src="/images/demos/quick-start-stack.png" alt="ToastKitDemo 正在 iPhone 模擬器執行，新提示顯示在前方，較早的提示露出一角。" loading="lazy" /><span>模擬器截圖</span></a><div><img src="/images/demos/quick-start-stack.gif" alt="ToastKit 通知在 iOS 模擬器中依序出現並堆疊的錄影。" loading="lazy" /><span>模擬器錄影 · GIF</span></div></div><figcaption>iPhone 18 Pro · iOS 27.2 模擬器 · 由 ToastKitDemo 模擬器實際錄製。 <a href="/images/demos/quick-start-stack-full.png">查看完整模擬器截圖 ↗</a></figcaption></figure>
     <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
     <pre><code><span class="kw">import</span> SwiftUI
 <span class="kw">import</span> ToastKit
@@ -50,6 +52,7 @@ import DocPage from '../../components/DocPage.astro';
   <section class="doc-section" id="messages">
     <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">提示內容</p><h2>Toast 訊息</h2></div></div>
     <p><code>ToastMessage</code> 儲存提示文案、語意狀態、顯示時間，以及可選的點擊與滑動操作。簡單情境可使用便利方法；需要更多控制時，直接建立訊息物件。</p>
+    <SimulatorCapture name="02-messages" lang="zh-hant" />
     <pre><code>toasts.present(.warning,
     title: <span class="str">"儲存空間不足"</span>,
     message: <span class="str">"請釋出空間以繼續同步。"</span>
@@ -75,6 +78,7 @@ toasts.present(message)</code></pre>
   <section class="doc-section" id="timing">
     <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">留一點時間</p><h2>顯示時間</h2></div></div>
     <p><code>.automatic</code> 使用中心的預設時間，預設為四秒。也可以直接指定秒數；需要使用者明確處理的訊息則可設為 <code>.indefinite</code>。</p>
+    <SimulatorCapture name="03-timing" lang="zh-hant" />
     <pre><code><span class="comment">// 顯示兩秒</span>
 ToastMessage(title: <span class="str">"已複製"</span>, duration: 2)
 
@@ -88,6 +92,7 @@ ToastMessage(title: <span class="str">"同步失敗"</span>, duration: .indefini
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">明確的下一步</p><h2>手勢與操作</h2></div></div>
     <p>使用者可以點擊、向任一方向滑動，或按住提示後先查看兩側操作再做決定。VoiceOver 也會依名稱提供相同操作。</p>
+    <SimulatorCapture name="04-actions" lang="zh-hant" />
     <div class="table-wrap"><table><thead><tr><th>手勢</th><th>預設行為</th><th>自訂方式</th></tr></thead><tbody><tr><td>點擊</td><td>沒有操作，點擊會穿透至後方內容</td><td><code>tapAction</code> 或 <code>onTap</code></td></tr><tr><td>向 leading 側滑動</td><td>刪除提示</td><td><code>swipeActions.leading</code></td></tr><tr><td>向 trailing 側滑動</td><td>下次開啟時再次顯示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>向上滑動</td><td>無操作</td><td><code>swipeActions.up</code></td></tr><tr><td>向下滑動</td><td>無操作</td><td><code>swipeActions.down</code></td></tr><tr><td>按住</td><td>預覽所有滑動操作</td><td>重用相同的滑動操作</td></tr></tbody></table></div>
     <pre><code><span class="kw">let</span> archive = ToastAction(
     id: <span class="str">"archive"</span>,
@@ -122,6 +127,7 @@ ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</c
   <section class="doc-section" id="styling">
     <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">依需求自訂</p><h2>樣式與主題</h2></div></div>
     <p>預設的 <code>.glass</code> 樣式使用磨砂卡片，並依狀態調整顏色。可以透過 <code>ToastTheme</code> 修改設計令牌、選擇無裝飾的 <code>.plain</code>，或實作 <code>ToastStyle</code> 建立自己的卡片。</p>
+    <SimulatorCapture name="05-styles" lang="zh-hant" />
     <pre><code>MyScreen()
     .toasts(toasts)
     .toastTheme(ToastTheme(
@@ -154,6 +160,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">恰當的位置</p><h2>位置與寬度</h2></div></div>
     <p>預設情況下，卡片從底部向上堆疊，寬度為可用安全區域寬度的 60%。各檔尺寸的寬度與優先順序請見<a href="#sizes">尺寸</a>。放在頂部時一切都會鏡像：較早的卡片在下方露出，按住時的軌道向上彎向頂部邊緣，抬起的卡片向下移動而不是向上。</p>
+    <SimulatorCapture name="06-placement" lang="zh-hant" />
     <pre><code><span class="comment">// 頂部位置</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -167,6 +174,7 @@ MyScreen().toasts(toasts, width: .points(320))</code></pre>
   <section class="doc-section" id="sizes">
     <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">尺寸合身</p><h2>尺寸</h2></div></div>
     <p><code>ToastMetrics</code> 決定卡片的大小：寬度、內邊距、字體、圖示底板、圓角與行數上限。它獨立於主題與樣式，三者可以自由組合。你可以選擇預設，也可以自行建立。</p>
+    <SimulatorCapture name="07-sizes" lang="zh-hant" />
     <pre><code>MyScreen()
     .toasts(toasts)
     .toastMetrics(.compact)   <span class="comment">// .compact、.regular（預設）或 .large</span>
@@ -193,6 +201,7 @@ MyScreen()
   <section class="doc-section" id="dismissing">
     <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">乾淨俐落地收起</p><h2>移除 Toast</h2></div></div>
     <p>可以依 id 移除單一 Toast，也可以移除最前面的一個。若要一次移除多個，可以替相關的 Toast 指定 <code>ToastGroup</code>，或用閉包篩選。批次移除算作一次變更，每次呼叫都會回傳移除的數量。</p>
+    <SimulatorCapture name="08-dismissing" lang="zh-hant" />
     <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// 依 id 移除單一</span>
 toasts.dismissTopmost()
 
@@ -226,6 +235,7 @@ options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hi
   <section class="doc-section" id="progress">
     <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">進行中的任務</p><h2>進度 Toast</h2></div></div>
     <p>上傳、同步這類耗時的任務，可以用 <code>track(title:)</code> 顯示一張常駐卡片：它呈現任務進行到哪裡，還能提供取消。任務執行期間，它不會因逾時而消失。保留回傳的控制代碼，透過它回報進度，最後給出唯一的結果。卡片會在原位變成這個結果。</p>
+    <SimulatorCapture name="09-progress" lang="zh-hant" />
     <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 在你指定之前為不確定進度</span>
 handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
 handle.update(fraction: 0.8)
@@ -262,12 +272,14 @@ options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hi
   <section class="doc-section" id="accessibility">
     <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">為每個人打造</p><h2>輔助使用</h2></div></div>
     <p>ToastKit 不要求特定手勢也能使用操作，並遵循 SwiftUI 環境中的輔助使用設定。</p>
+    <SimulatorCapture name="10-accessibility" lang="zh-hant" />
     <ul class="check-list"><li>VoiceOver 會朗讀每則提示，並在操作轉子中提供兩側滑動操作。</li><li>減少動態效果時，滑入動畫會改為淡入淡出。</li><li>減少透明度時，磨砂表面會改為不透明。</li><li>增加對比時，玻璃邊緣會顯示為實線框線。</li><li>動態字體會同步縮放文字與狀態圖示。</li><li>進度 Toast 會朗讀進度值（例如「42%，12 MB / 30 MB」），每前進四分之一就播報一次，並把取消與重試作為操作提供。<a href="#progress">進度 Toast 詳情</a></li></ul>
   </section>
 
   <section class="doc-section" id="localization">
     <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">使用者的語言</p><h2>應用程式本地化</h2></div></div>
     <p>ToastKit 內建操作標籤支援英文、日文、簡體中文與繁體中文。應用程式自己的文案由你管理：請為標題、內文及自訂操作標籤加入本地化。</p>
+    <SimulatorCapture name="11-localization" lang="zh-hant" />
     <pre><code><span class="comment">// 將應用程式文案放在 String Catalog 或 Localizable.strings。</span>
 toasts.present(.warning,
     title: String(localized: <span class="str">"storage.low.title"</span>),
@@ -277,14 +289,19 @@ toasts.present(.warning,
   </section>
 
   <section class="doc-section" id="feedback">
-    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">回饋與社群</p><h2>回饋與討論</h2></div></div>
-    <p>GitHub 可用來回報問題、提出改進建議、交流使用問題，並透過留言持續跟進。</p>
+    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">開源參與與社群</p><h2>專案與社群</h2></div></div>
+    <p>ToastKit 採用 MIT 開源授權，歡迎參與：回報錯誤、分享想法、改善文件或範例，也歡迎提交聚焦明確的 Pull Request。</p>
     <div class="info-grid">
       <article><span class="pill red">ISSUES</span><h3>錯誤與功能請求</h3><p>使用結構化表單提交可重現的錯誤或具體的功能建議。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose">前往 GitHub 提交 Issue ↗</a></p></article>
       <article><span class="pill violet">DISCUSSIONS</span><h3>問題與想法交流</h3><p>使用 Discussions 交流用法、一般回饋，以及需要先討論再形成 Issue 的想法。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions">前往 GitHub Discussions ↗</a></p></article>
     </div>
+    <div class="info-grid">
+      <article><span class="pill neutral">參與貢獻</span><h3>一起改進 ToastKit</h3><p>貢獻指南說明專案慣例和 Pull Request 注意事項。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md">閱讀 CONTRIBUTING.md ↗</a></p></article>
+      <article><span class="pill neutral">TAG 與 RELEASES</span><h3>查看版本歷史</h3><p>Git tag 標記各版本對應的原始碼；GitHub Releases 可能附有版本說明和檔案。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/tags">瀏覽 tags ↗</a> · <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/releases">查看 Releases ↗</a></p></article>
+      <article><span class="pill amber">CHANGELOG</span><h3>版本變更</h3><p>依照儲存庫已發布的 tag 彙整各版本的變更。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md">查看變更記錄 ↗</a></p></article>
+    </div>
     <p>回報錯誤時，請提供最小 Swift 範例、重現步驟、實際結果和預期效果。範例程式碼可以故意寫成錯誤或無法編譯的形式。視覺問題請附上截圖或錄影，並註明 iOS/iPadOS、裝置或模擬器、Xcode、Swift 和 ToastKit 版本。</p>
-    <p>後續補充、釐清和進度更新，請直接留言於既有的 Issue 或 Discussion。</p>
+    <p>後續補充、釐清和進度更新，請直接留言於既有的 Issue 或 Discussion。Pull Request 請盡量聚焦，並附上簡短說明和驗證結果，方便審閱。</p>
   </section>
 
   <div class="next-card"><div><span class="eyebrow">繼續探索</span><h2>讓介面再精緻一點</h2><p>查看原始碼，了解完整 API 的實際用法。</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">在 GitHub 查看 <span>↗</span></a></div>

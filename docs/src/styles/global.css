@@ -127,3 +127,13 @@ td, th { border-color: var(--line); }
   :root[data-theme="system"] .check-list li:before { background: #29362c; color: #a2d3ad; }
   :root[data-theme="system"] .hero-art .glow { background: radial-gradient(ellipse, #514475 0%, #332d43 38%, transparent 72%); }
 }
+
+.simulator-capture { margin: 20px 0 24px; }
+.simulator-capture-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.simulator-capture-grid > a, .simulator-capture-grid > div { min-width: 0; }
+.simulator-capture-grid img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-raised); }
+.simulator-capture-grid span { display: block; margin: 7px 2px 0; color: var(--text-subtle); font: 9px 'DM Mono', monospace; }
+.simulator-capture figcaption { margin-top: 10px; color: var(--text-subtle); font-size: 10px; line-height: 1.6; }
+.simulator-capture figcaption a { color: var(--selected-text); }
+@media (max-width: 680px) { .simulator-capture-grid { grid-template-columns: 1fr; } }
+.simulator-capture-grid.simulator-capture-single { grid-template-columns: minmax(0, 1fr); }
