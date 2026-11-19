@@ -46,7 +46,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7D10A00C2C00000000000011"
             BuildableName = "ToastKitDemoWatch.app"
-            BlueprintName = "ToastKitDemoWatch"
             ReferencedContainer = "container:ToastKitDemo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -63,7 +62,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7D10A00C2C00000000000011"
             BuildableName = "ToastKitDemoWatch.app"
-            BlueprintName = "ToastKitDemoWatch"
             ReferencedContainer = "container:ToastKitDemo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

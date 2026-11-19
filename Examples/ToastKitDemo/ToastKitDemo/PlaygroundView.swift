@@ -3,7 +3,7 @@ import SwiftUI
 import ToastKit
 
 /// Presents toasts that exercise each behaviour: the stack, tapping, swiping in any direction,
-/// pressing and holding, placement and the custom tab bar. Dismissal and progress have
+/// pressing and holding and placement. Dismissal and progress have
 /// their own tabs.
 struct PlaygroundView: View {
     let toasts: ToastCenter
@@ -156,7 +156,6 @@ struct PlaygroundView: View {
                     Text("Bottom").tag(ToastPlacement.bottom)
                 }
                 .pickerStyle(.segmented)
-                Toggle("Tall custom tab bar", isOn: $settings.tallTabBar)
             }
 
             Section("Recent actions") {

@@ -2,6 +2,9 @@
 
 Stacked, swipeable toast notifications for SwiftUI.
 
+ToastKit currently supports iOS 17 and later, including iPadOS. Other platforms are not
+supported while testing is limited to iOS.
+
 ## Overview
 
 ToastKit separates what a toast *does* from how it *looks*. A ``ToastCenter`` holds the

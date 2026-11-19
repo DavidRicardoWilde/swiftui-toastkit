@@ -30,48 +30,50 @@ enum DemoTab: Hashable, CaseIterable {
     }
 }
 
-/// The demo's root: five screens behind a custom tab bar drawn in a `ZStack`.
-///
-/// The tab bar is not a system `TabView`, so the safe area knows nothing about it. It is
-/// marked with `toastObstruction()`, and the stack lifts itself clear of it.
+/// The demo's root: five screens in the platform's native tab bar.
 struct ContentView: View {
     @State private var toasts = ToastCenter()
     @State private var settings = DemoSettings()
     @State private var selectedTab = DemoTab.playground
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        TabView(selection: $selectedTab) {
             NavigationStack {
-                // Each page hosts its own stack, so top toasts sit below the navigation
-                // bar instead of over the title.
-                switch selectedTab {
-                case .playground:
-                    PlaygroundView(toasts: toasts, settings: settings)
-                        .demoToasts(toasts, settings: settings)
-                case .styles:
-                    StylesView(toasts: toasts, settings: settings)
-                        .demoToasts(toasts, settings: settings)
-                case .sizes:
-                    // The panes own their centers, so this page's stack stays empty.
-                    SizesView(settings: settings)
-                        .demoToasts(toasts, settings: settings)
-                case .dismissal:
-                    DismissalView(toasts: toasts, settings: settings)
-                        .demoToasts(toasts, settings: settings)
-                case .progress:
-                    ProgressDemoView(toasts: toasts, settings: settings)
-                        .demoToasts(toasts, settings: settings)
-                }
+                PlaygroundView(toasts: toasts, settings: settings)
+                    .demoToasts(toasts, settings: settings)
             }
-            // Keep the last rows of each form scrollable above the floating tab bar.
-            .contentMargins(.bottom, settings.tallTabBar ? 120 : 80, for: .scrollContent)
+            .tabItem { Label(DemoTab.playground.title, systemImage: DemoTab.playground.systemImage) }
+            .tag(DemoTab.playground)
 
-            CustomTabBar(selection: $selectedTab, isTall: settings.tallTabBar)
-                .toastObstruction()
+            NavigationStack {
+                StylesView(toasts: toasts, settings: settings)
+                    .demoToasts(toasts, settings: settings)
+            }
+            .tabItem { Label(DemoTab.styles.title, systemImage: DemoTab.styles.systemImage) }
+            .tag(DemoTab.styles)
+
+            NavigationStack {
+                // The panes own their centers, so this page's stack stays empty.
+                SizesView(settings: settings)
+                    .demoToasts(toasts, settings: settings)
+            }
+            .tabItem { Label(DemoTab.sizes.title, systemImage: DemoTab.sizes.systemImage) }
+            .tag(DemoTab.sizes)
+
+            NavigationStack {
+                DismissalView(toasts: toasts, settings: settings)
+                    .demoToasts(toasts, settings: settings)
+            }
+            .tabItem { Label(DemoTab.dismissal.title, systemImage: DemoTab.dismissal.systemImage) }
+            .tag(DemoTab.dismissal)
+
+            NavigationStack {
+                ProgressDemoView(toasts: toasts, settings: settings)
+                    .demoToasts(toasts, settings: settings)
+            }
+            .tabItem { Label(DemoTab.progress.title, systemImage: DemoTab.progress.systemImage) }
+            .tag(DemoTab.progress)
         }
-        // The tab bar is beside the pages' stacks rather than inside them, so the
-        // nearest common container opens a scope that lets the stacks see it.
-        .toastObstructionScope()
     }
 }
 
@@ -91,55 +93,6 @@ private extension View {
             .onToastAction { toast, action in
                 settings.recentActions.append("\(action.title) — \(toast.title)")
             }
-    }
-}
-
-/// A floating tab bar of plain buttons, standing in for an app's own design.
-struct CustomTabBar: View {
-    @Binding var selection: DemoTab
-    var isTall: Bool
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(DemoTab.allCases, id: \.self) { tab in
-                TabButton(title: tab.title, systemImage: tab.systemImage, isSelected: selection == tab) {
-                    selection = tab
-                }
-            }
-        }
-        .padding(.horizontal, 8)
-        .frame(height: isTall ? 96 : 56)
-        .background(.regularMaterial, in: .rect(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
-        .animation(.snappy, value: isTall)
-    }
-}
-
-struct TabButton: View {
-    let title: LocalizedStringKey
-    let systemImage: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            // Icon over caption, so five tabs fit an iPhone's width.
-            VStack(spacing: 3) {
-                Image(systemName: systemImage)
-                    .font(.title3)
-                Text(title)
-                    .font(.caption2.weight(.medium))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

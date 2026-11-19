@@ -27,7 +27,7 @@ a `ToastStyle`: the frosted-glass default, the bare `.plain` style, or your own.
 - **Accessible.** VoiceOver offers every action by name. Reduce Motion, Reduce
   Transparency and Increase Contrast are honoured, and Dynamic Type scales the card.
 
-iOS 17+, macOS 14+, watchOS 10+, visionOS 1+. Swift 5.10+. No dependencies beyond SwiftUI.
+iOS 17+. Other platforms are not currently supported while testing is limited to iOS. Swift 5.10+. No dependencies beyond SwiftUI.
 
 ## Contents
 
@@ -121,71 +121,15 @@ away. Swipe left to delete it, or right to bring it back the next time the view 
 ## Running the example
 
 The repository includes a small demo app at `Examples/ToastKitDemo`. It is a
-regular Xcode project, so there is nothing to generate first. It needs Xcode 16
-or later, with the platforms you want to try installed under
-**Settings > Components**.
+regular Xcode project, so there is nothing to generate first. It needs Xcode 16 or later. ToastKit currently supports iOS 17 and later; use an iPhone or iPad simulator to run the supported demo.
 
 1. Open `Examples/ToastKitDemo/ToastKitDemo.xcodeproj`.
-2. Choose a scheme and a run destination:
-   - **ToastKitDemo** runs on an iPhone or iPad simulator, on **My Mac**, or on
-     an Apple Vision Pro simulator. It is one multiplatform target, so all
-     three appear in the same destination menu.
-   - **ToastKitDemoWatch** is a standalone Apple Watch app. Pick an Apple Watch
-     simulator.
-3. Press Run.
+2. Choose **ToastKitDemo** and an iPhone or iPad simulator, then press Run.
 
-Both targets depend on this checkout of ToastKit through a local package
-reference (`../..`), so any change you make to the library shows up in the
-demo on the next build. The bundle identifiers are the placeholders
-`com.example.ToastKitDemo` and `com.example.ToastKitDemo.watchkitapp`.
-Simulators and My Mac need no signing setup. To run on a physical device,
-choose your own team under **Signing & Capabilities** and change the bundle
-identifiers to ones you own.
-
-The watch app is a compact version of the playground: each status, a short
-stack, swipe actions left and right or up and down, a switch for immediate swipe hints, a
-tap action and top or bottom placement. It is one list, with
-three more sections:
-
-- **Sizes** switches between the compact, regular and large sizes. Every size is the
-  full width on the watch.
-- **Dismiss** removes the front toast, the "upload" group or everything, with a trail
-  and a choice of direction.
-- **Progress** runs a workout-sync style flow: an indeterminate "Connecting…", then a
-  determinate bar, with Cancel and a success haptic. The compact size shows the
-  percentage only.
-
-On iPhone, iPad, Mac and Apple Vision Pro, the demo has five tabs:
-
-- **Playground** shows each status, a burst of stacked toasts, a persistent
-  toast, tap actions, swipe actions left and right, up and down or all four ways, press
-  and hold, a switch for immediate swipe hints, postponed
-  toasts, and top or bottom placement. A switch makes the custom tab bar
-  taller, so you can watch toasts move to stay clear of it.
-- **Styles** switches between the glass style, `.plain` and a custom
-  `ToastStyle`, and between the standard theme and a custom `ToastTheme`
-  built with `statusTint`, and between the compact, regular and large sizes.
-- **Sizes** shows the three sizes side by side, each in its own pane, and lets you
-  pin an explicit width to see that it beats the size's. On iPhone a picker changes
-  Dynamic Type, on Mac the panes are 280 and 480 pt and follow the window, and on
-  Apple Vision Pro they use fractional widths.
-- **Dismissal** has one section for each way out: a single toast, a group ("Uploads
-  ×3"), the toasts that match a test, and everything, with a picker for the scope,
-  postponed toasts included. Fade, slide and trail combine with every direction.
-- **Progress** uploads a photo with byte counts, uploads a video whose Cancel cancels
-  the Task, fails and retries on the same card, runs a burst of six to show running
-  cards being hidden, and hides a card that then fails and comes back. Switches turn
-  on the swipe that cancels and the second tap before Cancel. On Mac it copies a
-  folder through a Foundation `Progress`, and on Apple Vision Pro an indeterminate
-  "Preparing…" turns determinate.
-
-Both targets share one String Catalog, `ToastKitDemo/Localizable.xcstrings`, with English
-as the source language and translations into Simplified Chinese, Traditional Chinese,
-Japanese, Korean and Spanish, the same languages as the documentation site. The demo
-follows the system language. To try another one, edit the scheme and pick it under
-**Run › Options › App Language**. Text that the demo passes to ToastKit, such as toast
-titles and messages, goes through `String(localized:)`, because those APIs take a plain
-`String`. ToastKit's own strings, such as Cancel and Open, come from the package.
+The project uses this checkout through a local package reference (`../..`), so library
+changes appear in the demo on the next build. The iOS demo includes playground, styles,
+sizing, dismissal and progress examples. To run on a physical device, choose your team
+under **Signing & Capabilities** and change the bundle identifier to one you own.
 
 ## Presenting toasts
 
@@ -437,8 +381,7 @@ ToastKit does not detect stalled work. If you know the work is waiting, say so t
 
 ### `withProgress`
 
-From async code, `withProgress` runs the work and looks after the card. The example is an
-iOS and macOS upload; the API is the same on every platform:
+From async code, `withProgress` runs the work and looks after the card. The example is an iOS upload:
 
 ```swift
 let url = try await toasts.withProgress(
@@ -511,8 +454,7 @@ front or restarts a countdown.
 | Haptic | The theme's `.normal` | The theme's `.error` |
 
 A finished card is an ordinary timed toast. It starts counting down once it is in front,
-or waits its turn if it is buried, so a result is never lost. There is no haptic on
-visionOS.
+or waits its turn if it is buried, so a result is never lost.
 
 Retry reuses the card. Give `fail` a closure, and start the work again with the same `id`:
 
@@ -1115,8 +1057,6 @@ Cards are measured against the width available inside the safe area:
 .toasts(toasts, width: .points(320))     // a fixed width, clamped to the maximum
 ```
 
-On watchOS the default is the full width, since 60% of a watch is too narrow to read.
-
 ### Sizes
 
 `ToastMetrics` sets how big cards are: width, padding, type, the glyph chip, corner
@@ -1136,36 +1076,31 @@ so they combine freely. Choose one of three presets, or build your own:
 ```
 
 Like the style and the theme, `toastMetrics(_:)` is read from the environment, so it goes
-outside `.toasts(_:)`. `.regular` matches what the kit drew before on iOS, macOS and
-visionOS, and is the full width on watchOS. The one other difference is that Dynamic Type
-is now capped at `accessibility1`, so text no longer grows through the largest accessibility
-sizes. Every parameter of the initializer defaults to its
-`.regular` value.
+outside `.toasts(_:)`. The presets are tuned for iOS. Dynamic Type is capped at
+`accessibility1`; every initializer parameter defaults to its `.regular` value.
 
-| Preset | iOS | macOS | watchOS | visionOS |
-| --- | --- | --- | --- | --- |
-| `.compact` | 50% wide, 10/12 padding, radius 16 | 280 pt, 8/10, 12 | full width, 8/10, 14 | 50%, 12/14, 20 |
-| `.regular` | 60%, 14/16, 22 | 60%, 14/16, 22 | full width, 14/16, 22 | 60%, 14/16, 22 |
-| `.large` | 80%, 18/20, 28 | 480 pt, 16/18, 22 | full width, 12/14, 24 | 70%, 20/24, 32 |
+| Preset | iOS |
+| --- | --- |
+| `.compact` | 50% wide, 10/12 padding, radius 16 |
+| `.regular` | 60%, 14/16, 22 |
+| `.large` | 80%, 18/20, 28 |
 
 The size of a [progress toast](#progress-toasts)'s parts follows the preset as well. For
 each, the table gives the bar's height, then the lines the title and the detail take
 while the work runs:
 
-| Preset | iOS | macOS | watchOS | visionOS |
-| --- | --- | --- | --- | --- |
-| `.compact` | 3 pt, 1, 1 | 3 pt, 1, 1 | 3 pt, 1, none: the percentage only | 4 pt, 1, 1 |
-| `.regular` | 4 pt, 1, 1 | 4 pt, 1, 1 | 4 pt, 1, 1 | 5 pt, 1, 1 |
-| `.large` | 6 pt, 2, 1 | 5 pt, 2, 1 | 5 pt, 2, 1 | 7 pt, 2, 1 |
+| Preset | iOS |
+| --- | --- |
+| `.compact` | 3 pt, 1, 1 |
+| `.regular` | 4 pt, 1, 1 |
+| `.large` | 6 pt, 2, 1 |
 
-Type and the glyph chip step along with them. On macOS the compact and large widths are
-fixed points, because a window can be any size. On watchOS every preset is the full width,
-so `.large` means bigger type rather than a wider card.
+Type and the glyph chip step along with them.
 
 How the settings combine:
 
 - **Width:** a `width:` you pass to `.toasts(_:width:)` always beats the preset's. Passing
-  `.default` asks for 60%, even on the watch.
+  `.default` asks for 60%.
 - **Theme:** a title font, message font, corner radius or content padding you set on a
   `ToastTheme` beats the preset's, so a brand theme keeps its look in every size.
 - **Stack:** each buried card peeks out by the average of the preset's top and bottom
@@ -1180,10 +1115,8 @@ How the settings combine:
 - **Progress:** `progressBarHeight` is the bar's thickness and `progressSpacing` the gap
   between the text and the bar, 8 pt. `progressTitleLineLimit` and
   `progressDetailLineLimit` are the lines the title and the detail line may take while the
-  work runs; a detail limit of `0` hides the line, which is how the compact size on
-  watchOS shows only the percentage. `progressButtonSide` is the drawn size of Cancel and
-  Retry: 28 pt on iOS, 22 on macOS, 32 on watchOS and visionOS. The touch target around
-  it is larger: at least 44 pt on iOS and watchOS, 60 on visionOS, 28 on macOS.
+  work runs. `progressButtonSide` is the drawn size of Cancel and Retry; the touch target
+  around it is at least 44 pt on iOS.
 - **Height:** a running card keeps one height. While the work runs, the title uses the
   progress line limit and the detail line uses monospaced digits, so a tick never
   changes the card and the cards beneath do not shift. When the work ends, the normal
@@ -1219,29 +1152,21 @@ fonts, radius and padding laid over the preset's.
   at the end, never more often than every five seconds, and only for the front card
   while the app is active. A milestone held back by the interval is folded into the next
   one, which gives the latest value. A card that is buried or hidden announces only
-  its outcome. Failures are announced as urgent on iOS and macOS; on watchOS and
-  visionOS they are announced without a priority. Change what is said with
+  its outcome. Failures are announced as urgent on iOS. Change what is said with
   `ToastProgressOptions.announcements`.
 - **Reduce Transparency:** the glass pane and the track turn opaque. The status colour
   stays, because it carries meaning.
 - **Increase Contrast:** the glass style's gradient edge becomes a solid border.
 - **Dynamic Type:** text and the glyph chip scale, up to `accessibility1`.
 
-These are read from the SwiftUI environment, so they work on every platform with no setup.
+These are read from the SwiftUI environment, so they work on iOS with no setup.
 
-## Platforms and localization
+## iOS support and localization
 
-| Platform | Minimum | Notes |
-| --- | --- | --- |
-| iOS, iPadOS | 17 | |
-| macOS | 14 | Swipe by clicking and dragging. Cancel and Retry have a tooltip. |
-| watchOS | 10 | Toasts are full width by default; the track fits down to about 184 pt. Progress toasts show only the percentage at the compact size, and Cancel is 32 pt drawn inside a 44 pt target. A watch app may be suspended, so run long transfers in your own background `URLSession` and let the toast report on them. |
-| visionOS | 1 | No haptics: `SensoryFeedback` arrived in visionOS 26, and a headset has nothing to vibrate. Buttons react to the gaze and have a 60 pt target. |
-| tvOS | — | Not supported: there is no drag gesture, and swiping is the primary interaction. A tvOS toast needs focus-driven dismissal, which is a redesign. |
-
-The kit's own strings, such as the built-in action titles and VoiceOver hints, ship in
-English, Simplified Chinese, Traditional Chinese and Japanese, from the package's own
-bundle. Your toasts' text is yours to localize.
+ToastKit supports iOS 17 and later, including iPadOS. Other platforms are not currently
+supported while testing is limited to iOS. The package's built-in action titles and
+VoiceOver hints ship in English, Simplified Chinese, Traditional Chinese and Japanese.
+Your toast text is yours to localize.
 
 ## Testing your code
 
@@ -1315,7 +1240,7 @@ compile this README's examples against the public API
 - Verified right-to-left mirroring of the swipe sides. Leading and trailing currently
   follow the drag's left and right.
 - A track style, so the press-and-hold band can be redrawn the way cards can.
-- tvOS, with focus-driven actions.
+- Support for additional platforms after they can be tested reliably.
 
 ## License
 

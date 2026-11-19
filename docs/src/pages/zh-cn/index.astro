@@ -8,7 +8,7 @@ import DocPage from '../../components/DocPage.astro';
     <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · 开源组件</p>
     <h1>恰到好处的<br /><em>轻提示。</em></h1>
     <p class="hero-copy">为 SwiftUI 应用加入轻巧、堆叠的 Toast 通知。手势、计时和样式都已准备好。</p>
-    <div class="hero-actions"><a class="primary-button" href="#start">开始使用 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> macOS 14+ <i>·</i> watchOS 10+ <i>·</i> visionOS 1+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-actions"><a class="primary-button" href="#start">开始使用 <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
     <div class="hero-art" aria-hidden="true">
       <div class="glow"></div>
       <div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>同步完成</b><small>所有内容均已更新</small></span></div>
@@ -16,6 +16,19 @@ import DocPage from '../../components/DocPage.astro';
       <div class="art-caption">恰到好处的反馈，让体验更贴心 <span>✳</span></div>
     </div>
   </div>
+
+  <section class="doc-section" id="overview">
+    <div class="section-heading"><span class="section-index">00</span><div><p class="eyebrow">项目概览</p><h2>ToastKit 项目介绍</h2></div></div>
+    <p>ToastKit 是一个开源 SwiftUI 库，为 iOS 应用提供可堆叠、可滑动的 Toast 通知。它负责展示、计时、手势和辅助功能；你可以通过样式与主题调整卡片外观，让它融入自己的应用。</p>
+    <div class="info-grid">
+      <article><span class="pill neutral">堆叠</span><h3>通知有序呈现</h3><p>新通知显示在前方；每张卡片轮到可见时才开始计时。</p></article>
+      <article><span class="pill amber">操作</span><h3>手势与明确选项</h3><p>支持点击、滑动和按住操作，并可在确认前查看具名操作。</p></article>
+      <article><span class="pill neutral">进度</span><h3>从进行中到结果</h3><p>展示进度、取消和重试操作，并在同一张卡片上呈现最终结果。</p></article>
+    </div>
+    <p><strong>示例项目：</strong>仓库中包含 <code>ToastKitDemo</code>，这是一个演示该库用法的 iOS 示例应用。目前没有列出外部采用该库的项目。</p>
+    <p>ToastKit 支持 iOS 17 及更高版本（包括 iPadOS），基于 SwiftUI 构建，除 SwiftUI 外没有其他依赖。</p>
+    <div class="callout"><span>↗</span><p><strong>GitHub 开源项目。</strong>前往 <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">ToastKit 仓库</a>查看源码、版本和示例项目。</p></div>
+  </section>
 
   <section class="doc-section" id="start">
     <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">快速接入</p><h2>快速开始</h2></div></div>
@@ -36,7 +49,7 @@ import DocPage from '../../components/DocPage.astro';
 &#125;</code></pre>
     <div class="callout"><span>✳</span><p><strong>就这么简单。</strong>提示会显示在安全区域底部，停留四秒。默认滑动操作可删除提示，也可暂存到下次打开页面时再显示。</p></div>
     <p>在 Xcode 中选择 <strong>File → Add Package Dependencies</strong>，输入 <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>。</p>
-    <p>想看到所有功能实际运行，可以打开仓库中的 <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/tree/main/Examples/ToastKitDemo"><code>Examples/ToastKitDemo</code></a> 演示：一个支持 iOS、iPadOS、macOS 和 visionOS 的多平台应用，外加一个独立的 watchOS 应用，是普通的 Xcode 项目，无需先生成。</p>
+    <p>想查看功能实际运行的效果，请打开仓库中的演示项目，并在 iPhone 或 iPad 模拟器上运行 ToastKitDemo。ToastKit 目前支持 iOS 17 及更高版本；由于测试范围目前仅限 iOS，暂不支持其他平台。</p>
   </section>
 
   <section class="doc-section" id="messages">
@@ -152,7 +165,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">恰当的位置</p><h2>位置与宽度</h2></div></div>
-    <p>默认情况下，卡片从底部向上堆叠，宽度为可用安全区域宽度的 60%；在 watchOS 上则占满整个宽度。各档尺寸的宽度与优先级见<a href="#sizes">尺寸</a>。放在顶部时一切都会镜像：较早的卡片在下方露出，按住时的轨道向上弯向顶部边缘，抬起的卡片向下移动而不是向上。</p>
+    <p>默认情况下，卡片从底部向上堆叠，宽度为可用安全区域宽度的 60%。各档尺寸的宽度与优先级见<a href="#sizes">尺寸</a>。放在顶部时一切都会镜像：较早的卡片在下方露出，按住时的轨道向上弯向顶部边缘，抬起的卡片向下移动而不是向上。</p>
     <pre><code><span class="comment">// 顶部位置</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -160,7 +173,7 @@ MyScreen().toasts(toasts, placement: .top)
 MyScreen().toasts(toasts, width: .fraction(0.9))
 MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <p>在 <code>TabView</code> 中，将 <code>.toasts(toasts)</code> 附加到标签页内容上。系统标签栏和底部配件已计入安全区域。若有自定义浮动栏，可标记为 <code>.toastObstruction()</code>，堆栈会避开它。</p>
-    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>已保存</b><small>底部 · 60% · watchOS：全宽</small></div><div class="demo-line"></div><div class="demo-label">安全区域</div></div>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>已保存</b><small>底部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">安全区域</div></div>
   </section>
 
   <section class="doc-section" id="sizes">
@@ -185,8 +198,8 @@ MyScreen()
     .toasts(toasts, width: .fraction(0.9))
     .toastMetrics(.large)</code></pre>
     <p>每个单元格依次标出宽度和圆角半径。</p>
-    <div class="table-wrap"><table><thead><tr><th>预设</th><th>iOS</th><th>macOS</th><th>watchOS</th><th>visionOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td><td>280 pt · 12</td><td>全宽 · 14</td><td>50% · 20</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td><td>60% · 22</td><td>全宽 · 22</td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td><td>480 pt · 22</td><td>全宽 · 24</td><td>70% · 32</td></tr></tbody></table></div>
-    <ul class="check-list"><li>传给 <code>.toasts</code> 的 <code>width:</code> 始终优先于尺寸自带的宽度。传入 <code>.default</code> 表示 60%，在 watchOS 上也是如此。</li><li>在 macOS 上，compact 与 large 的宽度是固定点数，因为窗口可以是任意大小。</li><li>在 watchOS 上，所有尺寸都占满宽度，所以 <code>.large</code> 意味着字更大，而不是卡片更宽。</li><li>在 <code>ToastTheme</code> 中设置的字体、圆角或内边距优先于尺寸自带的值，因此品牌主题在每一档尺寸下都能保持外观。</li><li>动态字体放大到 <code>accessibility1</code> 为止，可用 <code>maximumDynamicTypeSize</code> 调整。</li><li>进度 Toast 同样遵循尺寸：进度条粗细为 3 到 7 pt，详情只占一行；在 compact 的 watchOS 上详情会隐藏，只显示百分比。</li></ul>
+    <div class="table-wrap"><table><thead><tr><th>预设</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+<ul class="check-list"><li>传给 <code>.toasts</code> 的 <code>width:</code> 优先于预设宽度。</li><li>主题中明确设置的字体、圆角和内边距优先于预设值。</li><li>动态字体放大到 <code>accessibility1</code> 为止，可用 <code>maximumDynamicTypeSize</code> 调整。</li><li>进度预设会设置进度条高度，以及标题和详情的行数限制。</li></ul>
   </section>
 
   <section class="doc-section" id="dismissing">
@@ -273,6 +286,17 @@ toasts.present(.warning,
     message: String(localized: <span class="str">"storage.low.message"</span>)
 )</code></pre>
     <p>ToastKit 会根据宿主应用的语言环境显示内置标签。自定义 <code>ToastAction</code> 标题和确认文案是普通字符串，可使用应用现有的本地化工具处理。</p>
+  </section>
+
+  <section class="doc-section" id="feedback">
+    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">反馈与社区</p><h2>反馈与讨论</h2></div></div>
+    <p>GitHub 用于报告问题、提出改进建议、交流使用问题，并通过评论继续跟进。</p>
+    <div class="info-grid">
+      <article><span class="pill red">ISSUES</span><h3>错误和功能请求</h3><p>使用结构化表单提交可复现的错误或具体的功能建议。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose">前往 GitHub 提交 Issue ↗</a></p></article>
+      <article><span class="pill violet">DISCUSSIONS</span><h3>问题与想法交流</h3><p>使用 Discussions 交流用法、一般反馈，以及需要先讨论再形成 Issue 的想法。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions">前往 GitHub Discussions ↗</a></p></article>
+    </div>
+    <p>报告错误时，请提供最小 Swift 示例、复现步骤、实际结果和预期效果。示例代码可以故意写成错误或无法编译的形式。视觉问题请附截图或录屏，并注明 iOS/iPadOS、设备或模拟器、Xcode、Swift 和 ToastKit 版本。</p>
+    <p>后续补充、澄清和进度更新，请直接评论已有的 Issue 或 Discussion。</p>
   </section>
 
   <div class="next-card"><div><span class="eyebrow">继续探索</span><h2>让界面再精致一点</h2><p>查看源码，了解完整 API 的实际用法。</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">在 GitHub 查看 <span>↗</span></a></div>

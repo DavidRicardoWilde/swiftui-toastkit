@@ -8,9 +8,22 @@ import DocPage from '../../components/DocPage.astro';
     <p class="hero-kicker"><span class="pulse"></span> SWIFTUI · オープンソース</p>
     <h1>自然になじむ<br /><em>通知を。</em></h1>
     <p class="hero-copy">SwiftUI アプリに、積み重ね表示のトースト通知を追加しましょう。ジェスチャ、タイマー、スタイルがそろっています。</p>
-    <div class="hero-actions"><a class="primary-button" href="#start">使い始める <span>↓</span></a><span class="version">iOS 17+ <i>·</i> macOS 14+ <i>·</i> watchOS 10+ <i>·</i> visionOS 1+ <i>·</i> Swift 5.10</span></div>
+    <div class="hero-actions"><a class="primary-button" href="#start">使い始める <span>↓</span></a><span class="version">iOS 17+ <i>·</i> Swift 5.10</span></div>
     <div class="hero-art" aria-hidden="true"><div class="glow"></div><div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>同期が完了しました</b><small>すべて最新の状態です</small></span></div><div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>変更を保存しました</b><small>内容は安全に保存されています。</small></span><span class="spark">✦</span></div><div class="art-caption">さりげないフィードバックが体験を変える <span>✳</span></div></div>
   </div>
+
+  <section class="doc-section" id="overview">
+    <div class="section-heading"><span class="section-index">00</span><div><p class="eyebrow">プロジェクト概要</p><h2>ToastKit について</h2></div></div>
+    <p>ToastKit は、iOS アプリ向けのスタック表示とスワイプ操作に対応した Toast 通知を提供するオープンソースの SwiftUI ライブラリです。表示、タイミング、ジェスチャ、アクセシビリティを扱い、スタイルとテーマでアプリに合わせて見た目を調整できます。</p>
+    <div class="info-grid">
+      <article><span class="pill neutral">STACK</span><h3>通知を整理して表示</h3><p>新しい通知が前面に積み重なり、カードが表示されてから時間の計測を始めます。</p></article>
+      <article><span class="pill amber">ACTIONS</span><h3>選びやすいジェスチャ操作</h3><p>タップ、スワイプ、長押しに対応し、実行前に名前付き操作を確認できます。</p></article>
+      <article><span class="pill neutral">PROGRESS</span><h3>進行状況から結果まで</h3><p>進捗、キャンセル、再試行を表示し、同じカードを完了結果に切り替えます。</p></article>
+    </div>
+    <p><strong>サンプルプロジェクト：</strong>リポジトリにはライブラリの使い方を示す iOS アプリ <code>ToastKitDemo</code> が含まれています。現在、外部の採用プロジェクトは掲載していません。</p>
+    <p>ToastKit は iOS 17 以降（iPadOS を含む）に対応しています。SwiftUI 製で、SwiftUI 以外の依存関係はありません。</p>
+    <div class="callout"><span>↗</span><p><strong>GitHub のオープンソースプロジェクト。</strong><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">ToastKit リポジトリ</a>でソース、リリース、サンプルをご覧ください。</p></div>
+  </section>
 
   <section class="doc-section" id="start">
     <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">すぐに使える</p><h2>はじめに</h2></div></div>
@@ -31,7 +44,7 @@ import DocPage from '../../components/DocPage.astro';
 &#125;</code></pre>
     <div class="callout"><span>✳</span><p><strong>これだけで完了です。</strong>トーストはセーフエリアの下部に4秒間表示されます。標準のスワイプ操作で削除したり、次回まで保留したりできます。</p></div>
     <p>Xcode の <strong>File → Add Package Dependencies</strong> を選び、<code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code> を入力してください。</p>
-    <p>すべての機能が動くところを見るには、リポジトリの <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/tree/main/Examples/ToastKitDemo"><code>Examples/ToastKitDemo</code></a> デモを開いてください。iOS、iPadOS、macOS、visionOS 向けのマルチプラットフォームアプリと、単体で動く watchOS アプリがあり、生成の必要がない通常の Xcode プロジェクトです。</p>
+    <p>機能の動作を確認するには、リポジトリのデモを開き、iPhone または iPad シミュレータで ToastKitDemo を実行してください。ToastKit は現在 iOS 17 以降に対応しています。テストを iOS に限定しているため、ほかのプラットフォームには現在対応していません。</p>
   </section>
 
   <section class="doc-section" id="messages">
@@ -135,7 +148,7 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">適切な場所に表示</p><h2>配置と幅</h2></div></div>
-    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。watchOS では全幅です。プリセットごとの幅と優先順位は<a href="#sizes">サイズ</a>で説明します。上部に配置すると、すべてが上下反転します。古いカードは下にのぞき、長押しのトラックは上端に向かって反り、持ち上げたカードは上ではなく下へ移動します。</p>
+    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。プリセットごとの幅と優先順位は<a href="#sizes">サイズ</a>で説明します。上部に配置すると、すべてが上下反転します。古いカードは下にのぞき、長押しのトラックは上端に向かって反り、持ち上げたカードは上ではなく下へ移動します。</p>
     <pre><code><span class="comment">// 上端に配置</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -143,7 +156,7 @@ MyScreen().toasts(toasts, placement: .top)
 MyScreen().toasts(toasts, width: .fraction(0.9))
 MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <p><code>TabView</code> 内では、タブのコンテンツに <code>.toasts(toasts)</code> を付けます。システムのタブバーや下部アクセサリは安全領域に含まれます。独自のフローティングバーには <code>.toastObstruction()</code> を付けると、スタックが重ならないように移動します。</p>
-    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>保存しました</b><small>下部 · 60% · watchOS: 全幅</small></div><div class="demo-line"></div><div class="demo-label">セーフエリア</div></div>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>保存しました</b><small>下部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">セーフエリア</div></div>
   </section>
 
   <section class="doc-section" id="sizes">
@@ -168,8 +181,8 @@ MyScreen()
     .toasts(toasts, width: .fraction(0.9))
     .toastMetrics(.large)</code></pre>
     <p>各セルには幅と角の丸みを示しています。</p>
-    <div class="table-wrap"><table><thead><tr><th>プリセット</th><th>iOS</th><th>macOS</th><th>watchOS</th><th>visionOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td><td>280 pt · 12</td><td>全幅 · 14</td><td>50% · 20</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td><td>60% · 22</td><td>全幅 · 22</td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td><td>480 pt · 22</td><td>全幅 · 24</td><td>70% · 32</td></tr></tbody></table></div>
-    <ul class="check-list"><li><code>.toasts</code> に渡した <code>width:</code> は、常にサイズ側の幅より優先されます。<code>.default</code> を渡すと、watchOS でも60%になります。</li><li>macOS では、コンパクトと大の幅は固定のポイント値です。ウィンドウの大きさが一定ではないためです。</li><li>watchOS ではどのサイズも全幅なので、<code>.large</code> はカードが広がるのではなく、文字が大きくなります。</li><li><code>ToastTheme</code> で指定したフォント、角の丸み、余白はサイズ側の値より優先されるため、ブランドのテーマはどのサイズでも見た目を保てます。</li><li>Dynamic Type による拡大は <code>accessibility1</code> で止まります。変更するには <code>maximumDynamicTypeSize</code> を使います。</li><li>進捗 Toast もサイズに従います。バーの太さは3〜7 pt、詳細は1行で、コンパクトの watchOS では詳細を隠してパーセントだけを表示します。</li></ul>
+    <div class="table-wrap"><table><thead><tr><th>プリセット</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+<ul class="check-list"><li><code>.toasts</code> に渡す <code>width:</code> はプリセットの幅より優先されます。</li><li>テーマで明示したフォント、角丸、余白はプリセット値より優先されます。</li><li>Dynamic Type による拡大は <code>accessibility1</code> までです。<code>maximumDynamicTypeSize</code> で変更できます。</li><li>進捗プリセットではバーの高さとタイトル・詳細の行数を設定します。</li></ul>
   </section>
 
   <section class="doc-section" id="dismissing">
@@ -256,6 +269,17 @@ toasts.present(.warning,
     message: String(localized: <span class="str">"storage.low.message"</span>)
 )</code></pre>
     <p>ToastKit の組み込みラベルはホストアプリのロケールに従います。独自の <code>ToastAction</code> タイトルと確認文は通常の文字列なので、アプリと同じローカライズ手段を使えます。</p>
+  </section>
+
+  <section class="doc-section" id="feedback">
+    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">フィードバックとコミュニティ</p><h2>フィードバックと議論</h2></div></div>
+    <p>GitHub で不具合の報告、改善提案、使い方の質問を受け付け、コメントでやり取りできます。</p>
+    <div class="info-grid">
+      <article><span class="pill red">ISSUES</span><h3>不具合と機能リクエスト</h3><p>再現できる不具合や具体的な機能提案には専用フォームを使ってください。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose">GitHub Issue を作成 ↗</a></p></article>
+      <article><span class="pill violet">DISCUSSIONS</span><h3>質問やアイデア</h3><p>使い方の質問、一般的なフィードバック、Issue にする前に話し合いたいアイデアには Discussions を使ってください。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions">GitHub Discussions を開く ↗</a></p></article>
+    </div>
+    <p>不具合の報告には、最小の Swift 例、再現手順、実際の動作、期待する動作を含めてください。例のコードは、意図的に誤っていたりコンパイルできなかったりしても構いません。表示上の問題にはスクリーンショットや録画を添え、iOS/iPadOS、端末またはシミュレータ、Xcode、Swift、ToastKit のバージョンを記載してください。</p>
+    <p>追加情報や確認、進捗の共有には既存の Issue または Discussion のコメントを使ってください。</p>
   </section>
 
   <div class="next-card"><div><span class="eyebrow">さらに詳しく</span><h2>もう少し仕上げてみましょう</h2><p>ソースコードで API の使い方を確認できます。</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">GitHub で見る <span>↗</span></a></div>

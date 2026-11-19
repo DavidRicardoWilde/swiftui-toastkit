@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest a capability or improvement for ToastKit.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open-ended discussion or questions, use GitHub Discussions when available. Use this form for a specific feature request.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the use case and who it would help.
+      placeholder: I need to…
+    validations:
+      required: true
+  - type: textarea
+    id: desired-behavior
+    attributes:
+      label: Desired behavior
+      description: Explain clearly what you would like ToastKit to do.
+      placeholder: I would expect ToastKit to…
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example API or code
+      description: If useful, show how you imagine using the feature. Pseudocode or intentionally non-compiling Swift is welcome.
+      placeholder: |
+        ```swift
+        // Illustrative API idea; this does not need to compile.
+        toasts.present(/* ... */)
+        ```
+      render: swift
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What approaches have you tried or considered?
+      placeholder: I tried…
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Include iOS/iPadOS version, device or simulator, Xcode, Swift, and ToastKit version if this depends on a particular setup.
+    validations:
+      required: false

@@ -131,8 +131,6 @@ final class DemoSettings {
     var placement: ToastPlacement = .bottom
     var removal: RemovalChoice = .fade
     var direction: DirectionChoice = .towardAnchor
-    /// Grows the custom tab bar, to show the stack following an obstruction's height.
-    var tallTabBar = false
     /// Shows the track from a swipe's first movement rather than only after a hold.
     var immediateSwipeHints = false
     /// Every action run on a toast, newest last, as reported by `onToastAction`.

@@ -113,7 +113,7 @@ The card is one VoiceOver element whose value is the progress, such as "42%, 12 
 30 MB", marked as updating often. Cancel, Hide and Retry are named actions. VoiceOver is
 told when the work starts, at each quarter of the way (never more often than every five
 seconds, and only for the front card while the app is active) and when it ends; failures
-are urgent on iOS and macOS. ``ToastProgressOptions/announcements`` changes this. With
+are announced as urgent on iOS. ``ToastProgressOptions/announcements`` changes this. With
 Reduce Motion the bar stops sweeping and fills without animating.
 
 ## Topics

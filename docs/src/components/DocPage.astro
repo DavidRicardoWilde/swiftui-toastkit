@@ -9,12 +9,12 @@ interface Props {
 
 const { lang, title, description } = Astro.props;
 const sectionLabels: Record<Props['lang'], string[]> = {
-  en: ['Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Sizes', 'Dismissing toasts', 'Progress toasts', 'Accessibility', 'App localization'],
-  'zh-cn': ['快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '尺寸', '移除 Toast', '进度 Toast', '辅助功能', '应用本地化'],
-  'zh-hant': ['快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '尺寸', '移除 Toast', '進度 Toast', '輔助使用', '應用程式本地化'],
-  ja: ['はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'サイズ', 'Toast を閉じる', '進捗 Toast', 'アクセシビリティ', 'アプリのローカライズ'],
-  ko: ['시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '크기', '토스트 닫기', '진행률 토스트', '접근성', '앱 현지화'],
-  es: ['Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Tamaños', 'Descartar toasts', 'Toasts de progreso', 'Accesibilidad', 'Localización de la app'],
+  en: ['About ToastKit', 'Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Sizes', 'Dismissing toasts', 'Progress toasts', 'Accessibility', 'App localization', 'Feedback & discussion'],
+  'zh-cn': ['项目介绍', '快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '尺寸', '移除 Toast', '进度 Toast', '辅助功能', '应用本地化', '反馈与讨论'],
+  'zh-hant': ['專案介紹', '快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '尺寸', '移除 Toast', '進度 Toast', '輔助使用', '應用程式本地化', '回饋與討論'],
+  ja: ['ToastKit について', 'はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'サイズ', 'Toast を閉じる', '進捗 Toast', 'アクセシビリティ', 'アプリのローカライズ', 'フィードバックと議論'],
+  ko: ['ToastKit 소개', '시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '크기', '토스트 닫기', '진행률 토스트', '접근성', '앱 현지화', '피드백과 토론'],
+  es: ['Acerca de ToastKit', 'Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Tamaños', 'Descartar toasts', 'Toasts de progreso', 'Accesibilidad', 'Localización de la app', 'Comentarios y debate'],
 };
 const guideLabel: Record<Props['lang'], string> = {
   en: 'GUIDES', 'zh-cn': '使用指南', 'zh-hant': '使用指南', ja: 'ガイド', ko: '가이드', es: 'GUÍAS',
@@ -29,7 +29,7 @@ const languageNames: Array<{ code: Props['lang']; label: string; native: string;
 ];
 const htmlLang = lang === 'zh-hant' ? 'zh-Hant' : lang === 'zh-cn' ? 'zh-CN' : lang;
 const sections = sectionLabels[lang].map((label, index) => [
-  ['start', 'messages', 'timing', 'actions', 'styling', 'layout', 'sizes', 'dismissing', 'progress', 'accessibility', 'localization'][index], label,
+  ['overview', 'start', 'messages', 'timing', 'actions', 'styling', 'layout', 'sizes', 'dismissing', 'progress', 'accessibility', 'localization', 'feedback'][index], label,
 ]);
 const isCjk = ['zh-cn', 'zh-hant', 'ja', 'ko'].includes(lang);
 const home = languageNames.find((language) => language.code === lang)?.href ?? '/';
@@ -43,16 +43,36 @@ const activeLanguage = languageNames.find((language) => language.code === lang)?
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f7f7f5" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="1024x1024" href="/icon-1024.png" />
     <title>{title}</title>
+    <script is:inline>
+      (() => {
+        const savedTheme = localStorage.getItem('toastkit-theme');
+        const theme = ['light', 'dark', 'system'].includes(savedTheme ?? '') ? savedTheme : 'system';
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href={home} aria-label="ToastKit home">
-        <span class="brand-mark">t</span>
+        <img class="brand-mark" src="/favicon.svg" alt="" width="29" height="29" />
         <span>ToastKit<span class="brand-docs"> / {isCjk ? (lang === 'ja' ? 'ドキュメント' : lang === 'ko' ? '문서' : lang === 'zh-hant' ? '文件' : '文档') : lang === 'es' ? 'Documentación' : 'Docs'}</span></span>
       </a>
       <nav class="top-links" aria-label={isCjk ? (lang === 'ja' ? 'メインナビゲーション' : lang === 'ko' ? '주 탐색' : '主導覽') : lang === 'es' ? 'Navegación principal' : 'Main navigation'}>
         <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">GitHub <span aria-hidden="true">↗</span></a>
+        <details class="theme-menu">
+          <summary aria-label={lang === 'ja' ? 'テーマを選択' : lang === 'ko' ? '테마 선택' : lang === 'es' ? 'Elegir tema' : isCjk ? '选择主题' : 'Choose theme'} title={lang === 'ja' ? 'テーマ' : lang === 'ko' ? '테마' : lang === 'es' ? 'Tema' : isCjk ? '主题' : 'Theme'}>
+            <span aria-hidden="true">◐</span>
+          </summary>
+          <div class="theme-options" role="group" aria-label={lang === 'ja' ? 'テーマ' : lang === 'ko' ? '테마' : lang === 'es' ? 'Tema' : isCjk ? '主题' : 'Theme'}>
+            <button type="button" data-theme-choice="light">{lang === 'ja' ? 'ライト' : lang === 'ko' ? '라이트' : lang === 'es' ? 'Claro' : isCjk ? '浅色' : 'Light'}</button>
+            <button type="button" data-theme-choice="dark">{lang === 'ja' ? 'ダーク' : lang === 'ko' ? '다크' : lang === 'es' ? 'Oscuro' : isCjk ? '深色' : 'Dark'}</button>
+            <button type="button" data-theme-choice="system">{lang === 'ja' ? 'システムに合わせる' : lang === 'ko' ? '시스템 설정' : lang === 'es' ? 'Sistema' : isCjk ? '跟随系统' : 'System'}</button>
+          </div>
+        </details>
         <details class="locale-menu">
           <summary aria-label={lang === 'ja' ? '言語を選択' : lang === 'ko' ? '언어 선택' : lang === 'es' ? 'Seleccionar idioma' : '选择语言'}>{activeLanguage}<span aria-hidden="true">⌄</span></summary>
           <div class="locale-options">
@@ -72,14 +92,14 @@ const activeLanguage = languageNames.find((language) => language.code === lang)?
         <nav aria-label={isCjk ? (lang === 'ja' ? 'ドキュメントの各章' : lang === 'ko' ? '문서 섹션' : '文件章節') : lang === 'es' ? 'Secciones de documentación' : 'Documentation sections'}>
           {sections.map(([id, label], index) => (
             <a href={`#${id}`} class:list={['side-link', index === 0 && 'selected']}>
-              <span class="nav-number">{String(index + 1).padStart(2, '0')}</span>{label}
+              <span class="nav-number">{String(index).padStart(2, '0')}</span>{label}
             </a>
           ))}
         </nav>
         <div class="sidebar-note">
           <span class="note-dot"></span>
           <p>{lang === 'ja' ? 'SwiftUI 向け' : lang === 'ko' ? 'SwiftUI 기반' : lang === 'es' ? 'Hecho para SwiftUI' : isCjk ? 'SwiftUI 原生构建' : 'Built for SwiftUI'}</p>
-          <small>iOS 17+ · macOS 14+ · watchOS 10+ · visionOS 1+</small>
+          <small>iOS 17+ · iPadOS 17+</small>
         </div>
       </aside>
 
@@ -91,5 +111,81 @@ const activeLanguage = languageNames.find((language) => language.code === lang)?
         </footer>
       </main>
     </div>
+<script>
+  const themeMenu = document.querySelector<HTMLElement>('.theme-menu');
+  const themeButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-theme-choice]'));
+
+  const applyTheme = (theme: string) => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('toastkit-theme', theme);
+    themeButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.themeChoice === theme));
+    });
+  };
+
+  themeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyTheme(button.dataset.themeChoice ?? 'system');
+      themeMenu?.removeAttribute('open');
+    });
+  });
+
+  applyTheme(document.documentElement.dataset.theme ?? 'system');
+
+  const navigationLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('.side-link'));
+  const sections = navigationLinks
+    .map((link) => document.querySelector<HTMLElement>(link.hash))
+    .filter((section): section is HTMLElement => section !== null);
+
+  let scheduled = false;
+
+  const activate = (section: HTMLElement) => {
+    navigationLinks.forEach((link) => {
+      const isActive = link.hash === `#${section.id}`;
+      link.classList.toggle('selected', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'location');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  };
+
+  const updateActiveSection = () => {
+    scheduled = false;
+    const readingLine = window.innerHeight * 0.3;
+    let current = sections[0];
+
+    for (const section of sections) {
+      if (section.getBoundingClientRect().top <= readingLine) {
+        current = section;
+      } else {
+        break;
+      }
+    }
+
+    if (current) activate(current);
+  };
+
+  const scheduleUpdate = () => {
+    if (!scheduled) {
+      scheduled = true;
+      window.requestAnimationFrame(updateActiveSection);
+    }
+  };
+
+  navigationLinks.forEach((link) => {
+    link.addEventListener('click', () => {
+      const target = document.querySelector<HTMLElement>(link.hash);
+      if (target) activate(target);
+    });
+  });
+
+  window.addEventListener('scroll', scheduleUpdate, { passive: true });
+  window.addEventListener('resize', scheduleUpdate);
+  window.addEventListener('hashchange', scheduleUpdate);
+  window.addEventListener('load', scheduleUpdate);
+  scheduleUpdate();
+</script>
   </body>
 </html>
