@@ -1,0 +1,21 @@
+---
+const { name, lang = 'en' } = Astro.props;
+const copy = {
+  en: { image: 'ToastKitDemo running in the iOS Simulator.', shot: 'Simulator screenshot', caption: 'Captured from ToastKitDemo on iPhone 18 Pro · iOS 27.2.', full: 'Open full screenshot ↗' },
+  'zh-cn': { image: 'ToastKitDemo 在 iOS 模拟器中的实际界面。', shot: '模拟器截图', caption: '由 iPhone 18 Pro · iOS 27.2 上运行的 ToastKitDemo 截取。', full: '查看完整截图 ↗' },
+  'zh-hant': { image: 'ToastKitDemo 在 iOS 模擬器中的實際畫面。', shot: '模擬器截圖', caption: '由 iPhone 18 Pro · iOS 27.2 上執行的 ToastKitDemo 擷取。', full: '查看完整截圖 ↗' },
+  ja: { image: 'iOS シミュレータで実行中の ToastKitDemo の画面。', shot: 'シミュレータのスクリーンショット', caption: 'iPhone 18 Pro · iOS 27.2 で実行中の ToastKitDemo から撮影。', full: '全画面を表示 ↗' },
+  ko: { image: 'iOS 시뮬레이터에서 실행 중인 ToastKitDemo 화면입니다.', shot: '시뮬레이터 스크린샷', caption: 'iPhone 18 Pro · iOS 27.2의 ToastKitDemo에서 캡처했습니다.', full: '전체 화면 보기 ↗' },
+  es: { image: 'ToastKitDemo en ejecución en el simulador de iOS.', shot: 'Captura del simulador', caption: 'Capturado desde ToastKitDemo en iPhone 18 Pro · iOS 27.2.', full: 'Abrir captura completa ↗' },
+};
+const t = copy[lang] || copy.en;
+const src = `/images/demos/${name}.png`;
+const fullSrc = `/images/demos/${name}-full.png`;
+---
+
+<figure class="simulator-capture">
+  <div class="simulator-capture-grid simulator-capture-single">
+    <a href={fullSrc}><img src={src} alt={t.image} loading="lazy" /><span>{t.shot}</span></a>
+  </div>
+  <figcaption>{t.caption} <a href={fullSrc}>{t.full}</a></figcaption>
+</figure>

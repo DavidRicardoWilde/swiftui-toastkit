@@ -11,7 +11,7 @@ import Foundation
 /// rather than allowed to overflow.
 ///
 /// Foundation-only so `ToastWidthTests` can exercise the clamping without a view host.
-public enum ToastWidth: Equatable {
+public enum ToastWidth: Equatable, Sendable {
 
     /// A share of the available width, clamped to `0...1`.
     case fraction(Double)

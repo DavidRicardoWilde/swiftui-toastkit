@@ -1,4 +1,5 @@
 ---
+import SimulatorCapture from '../../components/SimulatorCapture.astro';
 import DocPage from '../../components/DocPage.astro';
 ---
 
@@ -12,9 +13,23 @@ import DocPage from '../../components/DocPage.astro';
     <div class="hero-art" aria-hidden="true"><div class="glow"></div><div class="toast-card back-card"><span class="mini-icon muted">↻</span><span><b>同步完成</b><small>所有內容均已更新</small></span></div><div class="toast-card front-card"><span class="mini-icon">✓</span><span><b>更改已儲存</b><small>你的內容已妥善保存。</small></span><span class="spark">✦</span></div><div class="art-caption">恰到好處的回饋，讓體驗更貼心 <span>✳</span></div></div>
   </div>
 
+  <section class="doc-section" id="overview">
+    <div class="section-heading"><span class="section-index">00</span><div><p class="eyebrow">專案概覽</p><h2>ToastKit 專案介紹</h2></div></div>
+    <p>ToastKit 是開源的 SwiftUI 套件，為 iOS App 提供可堆疊、可滑動的 Toast 通知。它負責呈現、計時、手勢和輔助使用；你可以透過樣式與主題調整卡片外觀，讓它融入自己的 App。</p>
+    <div class="info-grid">
+      <article><span class="pill neutral">堆疊</span><h3>通知有序呈現</h3><p>新通知顯示在前方；每張卡片輪到可見時才開始計時。</p></article>
+      <article><span class="pill amber">操作</span><h3>手勢與明確選項</h3><p>支援點按、滑動和按住操作，並可在確認前查看具名操作。</p></article>
+      <article><span class="pill neutral">進度</span><h3>從進行中到結果</h3><p>顯示進度、取消和重試操作，並在同一張卡片上呈現最終結果。</p></article>
+    </div>
+    <p><strong>示範專案：</strong>儲存庫中包含 <code>ToastKitDemo</code>，這是一個示範套件用法的 iOS App。目前沒有列出外部採用此套件的專案。</p>
+    <p>ToastKit 支援 iOS 17 以上版本（包含 iPadOS），以 SwiftUI 建置，除了 SwiftUI 之外沒有其他相依套件。</p>
+    <div class="callout"><span>↗</span><p><strong>GitHub 開源專案。</strong>前往 <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">ToastKit 儲存庫</a>查看原始碼、版本和示範專案。</p></div>
+  </section>
+
   <section class="doc-section" id="start">
     <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">快速接入</p><h2>快速開始</h2></div></div>
     <p>透過 Swift Package Manager 加入 ToastKit，接著將 <code>ToastCenter</code> 附加到需要顯示通知的檢視畫面。</p>
+    <figure class="simulator-capture"><div class="simulator-capture-grid"><a href="/images/demos/quick-start-stack-full.png"><img src="/images/demos/quick-start-stack.png" alt="ToastKitDemo 正在 iPhone 模擬器執行，新提示顯示在前方，較早的提示露出一角。" loading="lazy" /><span>模擬器截圖</span></a><div><img src="/images/demos/quick-start-stack.gif" alt="ToastKit 通知在 iOS 模擬器中依序出現並堆疊的錄影。" loading="lazy" /><span>模擬器錄影 · GIF</span></div></div><figcaption>iPhone 18 Pro · iOS 27.2 模擬器 · 由 ToastKitDemo 模擬器實際錄製。 <a href="/images/demos/quick-start-stack-full.png">查看完整模擬器截圖 ↗</a></figcaption></figure>
     <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
     <pre><code><span class="kw">import</span> SwiftUI
 <span class="kw">import</span> ToastKit
@@ -31,11 +46,13 @@ import DocPage from '../../components/DocPage.astro';
 &#125;</code></pre>
     <div class="callout"><span>✳</span><p><strong>就這麼簡單。</strong>提示會顯示在安全區域底部，停留四秒。預設的滑動操作可刪除提示，也可暫存至下次開啟頁面時再顯示。</p></div>
     <p>在 Xcode 中選擇 <strong>File → Add Package Dependencies</strong>，輸入 <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>。</p>
+    <p>想查看功能實際執行的效果，請開啟儲存庫中的示範專案，並在 iPhone 或 iPad 模擬器上執行 ToastKitDemo。ToastKit 目前支援 iOS 17 以上版本；由於測試範圍目前僅限 iOS，暫不支援其他平台。</p>
   </section>
 
   <section class="doc-section" id="messages">
     <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">提示內容</p><h2>Toast 訊息</h2></div></div>
     <p><code>ToastMessage</code> 儲存提示文案、語意狀態、顯示時間，以及可選的點擊與滑動操作。簡單情境可使用便利方法；需要更多控制時，直接建立訊息物件。</p>
+    <SimulatorCapture name="02-messages" lang="zh-hant" />
     <pre><code>toasts.present(.warning,
     title: <span class="str">"儲存空間不足"</span>,
     message: <span class="str">"請釋出空間以繼續同步。"</span>
@@ -55,12 +72,13 @@ toasts.present(message)</code></pre>
       <article><span class="pill red">ERROR</span><h3>操作失敗</h3><p>使用清楚、容易辨識的錯誤訊號。</p></article>
       <article><span class="pill violet">NOTIFICATION</span><h3>值得查看</h3><p>通知狀態採用應用程式的強調色。</p></article>
     </div>
-    <p>再次提交相同 id 的訊息會更新該提示並將它移到最前面，很適合呈現「正在同步…」接著變成「同步完成」這類進度狀態。</p>
+    <p>再次提交相同 id 的訊息會更新該提示並將它移到最前面，很適合呈現「正在同步…」接著變成「同步完成」這類進度狀態。若任務帶有進度條、可以取消或可能失敗，請使用<a href="#progress">進度 Toast</a>。</p>
   </section>
 
   <section class="doc-section" id="timing">
     <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">留一點時間</p><h2>顯示時間</h2></div></div>
     <p><code>.automatic</code> 使用中心的預設時間，預設為四秒。也可以直接指定秒數；需要使用者明確處理的訊息則可設為 <code>.indefinite</code>。</p>
+    <SimulatorCapture name="03-timing" lang="zh-hant" />
     <pre><code><span class="comment">// 顯示兩秒</span>
 ToastMessage(title: <span class="str">"已複製"</span>, duration: 2)
 
@@ -74,7 +92,8 @@ ToastMessage(title: <span class="str">"同步失敗"</span>, duration: .indefini
   <section class="doc-section" id="actions">
     <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">明確的下一步</p><h2>手勢與操作</h2></div></div>
     <p>使用者可以點擊、向任一方向滑動，或按住提示後先查看兩側操作再做決定。VoiceOver 也會依名稱提供相同操作。</p>
-    <div class="table-wrap"><table><thead><tr><th>手勢</th><th>預設行為</th><th>自訂方式</th></tr></thead><tbody><tr><td>點擊</td><td>沒有操作，點擊會穿透至後方內容</td><td><code>tapAction</code> 或 <code>onTap</code></td></tr><tr><td>向 leading 側滑動</td><td>刪除提示</td><td><code>swipeActions.leading</code></td></tr><tr><td>向 trailing 側滑動</td><td>下次開啟時再次顯示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>按住</td><td>預覽兩側滑動操作</td><td>重用相同的滑動操作</td></tr></tbody></table></div>
+    <SimulatorCapture name="04-actions" lang="zh-hant" />
+    <div class="table-wrap"><table><thead><tr><th>手勢</th><th>預設行為</th><th>自訂方式</th></tr></thead><tbody><tr><td>點擊</td><td>沒有操作，點擊會穿透至後方內容</td><td><code>tapAction</code> 或 <code>onTap</code></td></tr><tr><td>向 leading 側滑動</td><td>刪除提示</td><td><code>swipeActions.leading</code></td></tr><tr><td>向 trailing 側滑動</td><td>下次開啟時再次顯示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>向上滑動</td><td>無操作</td><td><code>swipeActions.up</code></td></tr><tr><td>向下滑動</td><td>無操作</td><td><code>swipeActions.down</code></td></tr><tr><td>按住</td><td>預覽所有滑動操作</td><td>重用相同的滑動操作</td></tr></tbody></table></div>
     <pre><code><span class="kw">let</span> archive = ToastAction(
     id: <span class="str">"archive"</span>,
     title: <span class="str">"封存"</span>,
@@ -91,12 +110,24 @@ toasts.present(ToastMessage(
     &#125;,
     swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
 ))</code></pre>
+    <p>也可以向上和向下滑動：只提供一組方向，或四個方向都提供。滑動會沿手指最先移動的方向進行；按住時，這些操作會顯示在一條上下筆直的軌道上。</p>
+    <pre><code><span class="comment">// 僅上下兩個方向</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// 四個方向</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
     <p>操作依序執行：先執行自身 handler，再通知堆疊的 <code>onToastAction</code> 觀察器，最後套用操作效果。內建 <code>.later</code> 會暫存提示，等頁面再次出現時恢復。</p>
+    <div class="callout"><span>✳</span><p><strong>0.2.0 新增：滑動一開始就顯示操作。</strong>預設情況下，快速滑動會立即執行操作，顯示兩側操作的軌道要等按住後才出現。設定 <code>.toastSwipeHints(.immediate)</code> 後，滑動本身就會把卡片抬到軌道上。</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>滑動 8 pt 後，卡片就會出現在軌道上，兩側操作同時可見，並跟隨手指移動。移動超過 64 pt 時，前方一端會亮起；在那裡放開，或朝某一端快速甩動，即可執行該操作。未到該位置就放開，卡片會落回原處。按住依然有效；在堆疊之外單獨顯示的 <code>ToastCard</code> 保留快速滑動。無論哪種方式，抬起的卡片都會升到手指上方，操作標籤位於更寬軌道的上半部，不會被拇指遮住。</p>
   </section>
 
   <section class="doc-section" id="styling">
     <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">依需求自訂</p><h2>樣式與主題</h2></div></div>
     <p>預設的 <code>.glass</code> 樣式使用磨砂卡片，並依狀態調整顏色。可以透過 <code>ToastTheme</code> 修改設計令牌、選擇無裝飾的 <code>.plain</code>，或實作 <code>ToastStyle</code> 建立自己的卡片。</p>
+    <SimulatorCapture name="05-styles" lang="zh-hant" />
     <pre><code>MyScreen()
     .toasts(toasts)
     .toastTheme(ToastTheme(
@@ -128,7 +159,8 @@ ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
 
   <section class="doc-section" id="layout">
     <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">恰當的位置</p><h2>位置與寬度</h2></div></div>
-    <p>預設情況下，卡片從底部向上堆疊，寬度為可用安全區域的 60%。</p>
+    <p>預設情況下，卡片從底部向上堆疊，寬度為可用安全區域寬度的 60%。各檔尺寸的寬度與優先順序請見<a href="#sizes">尺寸</a>。放在頂部時一切都會鏡像：較早的卡片在下方露出，按住時的軌道向上彎向頂部邊緣，抬起的卡片向下移動而不是向上。</p>
+    <SimulatorCapture name="06-placement" lang="zh-hant" />
     <pre><code><span class="comment">// 頂部位置</span>
 MyScreen().toasts(toasts, placement: .top)
 
@@ -139,21 +171,137 @@ MyScreen().toasts(toasts, width: .points(320))</code></pre>
     <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>已儲存</b><small>底部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">安全區域</div></div>
   </section>
 
+  <section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">尺寸合身</p><h2>尺寸</h2></div></div>
+    <p><code>ToastMetrics</code> 決定卡片的大小：寬度、內邊距、字體、圖示底板、圓角與行數上限。它獨立於主題與樣式，三者可以自由組合。你可以選擇預設，也可以自行建立。</p>
+    <SimulatorCapture name="07-sizes" lang="zh-hant" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact、.regular（預設）或 .large</span>
+
+<span class="comment">// 自訂尺寸</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// 明確指定的寬度優先於尺寸本身的寬度</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>每個儲存格依序標出寬度與圓角半徑。</p>
+    <div class="table-wrap"><table><thead><tr><th>預設</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+<ul class="check-list"><li>傳給 <code>.toasts</code> 的 <code>width:</code> 優先於預設寬度。</li><li>主題中明確設定的字體、圓角和內邊距優先於預設值。</li><li>動態字體放大到 <code>accessibility1</code> 為止，可用 <code>maximumDynamicTypeSize</code> 調整。</li><li>進度預設會設定進度條高度，以及標題和詳情的行數限制。</li></ul>
+  </section>
+
+  <section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">乾淨俐落地收起</p><h2>移除 Toast</h2></div></div>
+    <p>可以依 id 移除單一 Toast，也可以移除最前面的一個。若要一次移除多個，可以替相關的 Toast 指定 <code>ToastGroup</code>，或用閉包篩選。批次移除算作一次變更，每次呼叫都會回傳移除的數量。</p>
+    <SimulatorCapture name="08-dismissing" lang="zh-hant" />
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// 依 id 移除單一</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// 移除一個群組裡的全部</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// 移除閉包接受的全部</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// 移除整個堆疊</span></code></pre>
+    <p><code>scope</code> 決定呼叫會影響哪些 Toast：</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>影響範圍</th><th>預設用於</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>堆疊中的 Toast</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>等待稍後返回的 Toast</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>兩者</td><td><code>dismiss(id:)</code>、<code>dismiss(group:)</code>、<code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> 選擇卡片的離場方式。預設的 <code>nil</code> 會沿用堆疊本身的設定。</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>卡片的表現</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>在原處淡出。預設方式。</td></tr><tr><td><code>.slide(direction)</code></td><td>一邊淡出一邊滑走，所有卡片一起。</td></tr><tr><td><code>.trail(direction)</code></td><td>先微微蓄勢，再縮小、模糊著離開，最前面的卡片最先。</td></tr></tbody></table></div>
+    <p>slide 與 trail 可以指定方向：預設是 <code>.towardAnchor</code>，另有 <code>.awayFromAnchor</code>、<code>.top</code>、<code>.bottom</code>、<code>.leading</code>、<code>.trailing</code>（在由右至左的語言中會鏡像）、<code>.degrees(_:)</code>、<code>.vector(dx:dy:)</code> 與 <code>.inPlace</code>。整個堆疊的預設離場方式用 <code>.toastRemoval(_:)</code> 設定。</p>
+    <pre><code><span class="comment">// 所有移除的預設離場方式</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// 單次呼叫：向上，或遠離堆疊所靠的邊緣</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>開啟「減少動態效果」後，所有移除都改為淡出，所有卡片一起淡出。</p>
+    <div class="callout"><span>✳</span><p><strong>進度 Toast 只會被隱藏，不會被取消。</strong>移除一個正在執行的<a href="#progress">進度 Toast</a>，卡片會離開螢幕，但任務會繼續。若要停止任務，必須明確取消，例如呼叫 <code>cancelProgress(group:)</code>。如果你選擇啟用，滑動也可以同時取消。</p></div>
+    <pre><code><span class="comment">// 隱藏後任務繼續執行；取消才會停止</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 可選：滑動在隱藏的同時也取消</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>
+
+  <section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">進行中的任務</p><h2>進度 Toast</h2></div></div>
+    <p>上傳、同步這類耗時的任務，可以用 <code>track(title:)</code> 顯示一張常駐卡片：它呈現任務進行到哪裡，還能提供取消。任務執行期間，它不會因逾時而消失。保留回傳的控制代碼，透過它回報進度，最後給出唯一的結果。卡片會在原位變成這個結果。</p>
+    <SimulatorCapture name="09-progress" lang="zh-hant" />
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 在你指定之前為不確定進度</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code> 描述進度：<code>.indeterminate</code>、<code>.fraction(_:)</code>、<code>.bytes(_:of:)</code>（「12 MB / 30 MB」）與 <code>.items(_:of:)</code>（「3 / 10」）。在非同步程式碼中，<code>withProgress</code> 負責執行任務並管理卡片，它的 reporter 可以在任意執行緒呼叫。</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>任務如何結束，決定卡片的結果：回傳值即成功，被取消即取消，其他錯誤則失敗並繼續擲出。<code>track</code> 也接受 Foundation 的 <code>Progress</code>，例如 <code>URLSessionTask.progress</code>，它完成時會自動標記為成功。</p>
+    <div class="table-wrap"><table><thead><tr><th>階段</th><th>含義</th></tr></thead><tbody><tr><td><code>running</code></td><td>任務進行中，不會因逾時而消失。</td></tr><tr><td><code>cancelling</code></td><td>已請求取消，正在等待任務停止。</td></tr><tr><td><code>succeeded</code></td><td>已完成。卡片顯示結果並開始倒數。</td></tr><tr><td><code>failed</code></td><td>卡片變為錯誤並停留八秒；如果提供了閉包，還會帶有「重試」。</td></tr><tr><td><code>cancelled</code></td><td>任務已停止。卡片離開；如果選擇啟用，會短暫顯示「已取消」。</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// 取消會同時取消 Task</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// 或取消整個群組</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// 相同的 id：卡片在原位繼續</span>
+&#125;</code></pre>
+    <p>任務執行中且存在停止它的方式時，會顯示取消按鈕。點按後卡片顯示「正在取消…」，直到任務停下；十秒後卡片無論如何都會結束，所以取消不會卡住。失敗後若以相同的 id 重新開始任務，「重試」會沿用同一張卡片。</p>
+    <pre><code><span class="comment">// 移除只會隱藏卡片，任務繼續</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 可選：滑動在隱藏的同時也取消</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>滑動或移除正在執行的卡片只會把它隱藏；隱藏期間發生的失敗會作為新的 Toast 回到螢幕上。詳見<a href="#dismissing">移除 Toast</a>。</p>
+    <div class="callout"><span>✳</span><p><strong>請保留控制代碼，直到任務結束。</strong>控制代碼在沒有給出結果的情況下被釋放，會被視為遭到捨棄：它的任務會被取消，卡片也會被移除。</p></div>
+    <ul class="check-list"><li>VoiceOver 會把進度作為卡片的值朗讀，例如「42%，12 MB / 30 MB」。</li><li>它會在開始時、每前進四分之一時（間隔至少五秒，且僅限最前面的卡片）以及出結果時播報。在平台支援的情況下，失敗會以緊急優先順序播報。</li><li>取消、隱藏與重試都是操作轉子中的具名操作。</li><li>開啟「減少動態效果」後，進度條不再來回掃動，填充時也沒有動畫。</li></ul>
+  </section>
+
   <section class="doc-section" id="accessibility">
-    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">為每個人打造</p><h2>輔助使用</h2></div></div>
+    <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">為每個人打造</p><h2>輔助使用</h2></div></div>
     <p>ToastKit 不要求特定手勢也能使用操作，並遵循 SwiftUI 環境中的輔助使用設定。</p>
-    <ul class="check-list"><li>VoiceOver 會朗讀每則提示，並在操作轉子中提供兩側滑動操作。</li><li>減少動態效果時，滑入動畫會改為淡入淡出。</li><li>減少透明度時，磨砂表面會改為不透明。</li><li>增加對比時，玻璃邊緣會顯示為實線框線。</li><li>動態字體會同步縮放文字與狀態圖示。</li></ul>
+    <SimulatorCapture name="10-accessibility" lang="zh-hant" />
+    <ul class="check-list"><li>VoiceOver 會朗讀每則提示，並在操作轉子中提供兩側滑動操作。</li><li>減少動態效果時，滑入動畫會改為淡入淡出。</li><li>減少透明度時，磨砂表面會改為不透明。</li><li>增加對比時，玻璃邊緣會顯示為實線框線。</li><li>動態字體會同步縮放文字與狀態圖示。</li><li>進度 Toast 會朗讀進度值（例如「42%，12 MB / 30 MB」），每前進四分之一就播報一次，並把取消與重試作為操作提供。<a href="#progress">進度 Toast 詳情</a></li></ul>
   </section>
 
   <section class="doc-section" id="localization">
-    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">使用者的語言</p><h2>應用程式本地化</h2></div></div>
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">使用者的語言</p><h2>應用程式本地化</h2></div></div>
     <p>ToastKit 內建操作標籤支援英文、日文、簡體中文與繁體中文。應用程式自己的文案由你管理：請為標題、內文及自訂操作標籤加入本地化。</p>
+    <SimulatorCapture name="11-localization" lang="zh-hant" />
     <pre><code><span class="comment">// 將應用程式文案放在 String Catalog 或 Localizable.strings。</span>
 toasts.present(.warning,
     title: String(localized: <span class="str">"storage.low.title"</span>),
     message: String(localized: <span class="str">"storage.low.message"</span>)
 )</code></pre>
     <p>ToastKit 會依照宿主應用程式的語言環境顯示內建標籤。自訂 <code>ToastAction</code> 標題與確認文案是一般字串，可使用應用程式現有的本地化工具處理。</p>
+  </section>
+
+  <section class="doc-section" id="feedback">
+    <div class="section-heading"><span class="section-index">12</span><div><p class="eyebrow">開源參與與社群</p><h2>專案與社群</h2></div></div>
+    <p>ToastKit 採用 MIT 開源授權，歡迎參與：回報錯誤、分享想法、改善文件或範例，也歡迎提交聚焦明確的 Pull Request。</p>
+    <div class="info-grid">
+      <article><span class="pill red">ISSUES</span><h3>錯誤與功能請求</h3><p>使用結構化表單提交可重現的錯誤或具體的功能建議。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose">前往 GitHub 提交 Issue ↗</a></p></article>
+      <article><span class="pill violet">DISCUSSIONS</span><h3>問題與想法交流</h3><p>使用 Discussions 交流用法、一般回饋，以及需要先討論再形成 Issue 的想法。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions">前往 GitHub Discussions ↗</a></p></article>
+    </div>
+    <div class="info-grid">
+      <article><span class="pill neutral">參與貢獻</span><h3>一起改進 ToastKit</h3><p>貢獻指南說明專案慣例和 Pull Request 注意事項。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md">閱讀 CONTRIBUTING.md ↗</a></p></article>
+      <article><span class="pill neutral">TAG 與 RELEASES</span><h3>查看版本歷史</h3><p>Git tag 標記各版本對應的原始碼；GitHub Releases 可能附有版本說明和檔案。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/tags">瀏覽 tags ↗</a> · <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/releases">查看 Releases ↗</a></p></article>
+      <article><span class="pill amber">CHANGELOG</span><h3>版本變更</h3><p>依照儲存庫已發布的 tag 彙整各版本的變更。</p><p><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md">查看變更記錄 ↗</a></p></article>
+    </div>
+    <p>回報錯誤時，請提供最小 Swift 範例、重現步驟、實際結果和預期效果。範例程式碼可以故意寫成錯誤或無法編譯的形式。視覺問題請附上截圖或錄影，並註明 iOS/iPadOS、裝置或模擬器、Xcode、Swift 和 ToastKit 版本。</p>
+    <p>後續補充、釐清和進度更新，請直接留言於既有的 Issue 或 Discussion。Pull Request 請盡量聚焦，並附上簡短說明和驗證結果，方便審閱。</p>
   </section>
 
   <div class="next-card"><div><span class="eyebrow">繼續探索</span><h2>讓介面再精緻一點</h2><p>查看原始碼，了解完整 API 的實際用法。</p></div><a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">在 GitHub 查看 <span>↗</span></a></div>
