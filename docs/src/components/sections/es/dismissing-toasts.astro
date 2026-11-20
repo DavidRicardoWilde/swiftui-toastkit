@@ -1,0 +1,37 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">SOLTAR LASTRE</p><h2>Descartar toasts</h2></div></div>
+    <p>Descarta un toast por su id o el que esté al frente. Para descartar varios a la vez, asigna a los toasts relacionados un <code>ToastGroup</code> o selecciónalos con un cierre. Un lote es un único cambio, y cada llamada devuelve cuántos toasts ha quitado.</p>
+    <SimulatorCapture name="08-dismissing" lang="es" />
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// un toast por su id</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// todos los toasts de un grupo</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// todos los toasts que acepte el cierre</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// toda la pila</span></code></pre>
+    <p><code>scope</code> indica a qué toasts llega una llamada:</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>Alcanza</th><th>Predeterminado de</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>Los toasts de la pila</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>Los toasts que esperan volver</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>Ambos</td><td><code>dismiss(id:)</code>, <code>dismiss(group:)</code>, <code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> elige cómo salen las tarjetas. Con <code>nil</code>, el valor predeterminado, se usa el ajuste de la propia pila.</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>La tarjeta</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>Se disuelve donde está. Es el valor predeterminado.</td></tr><tr><td><code>.slide(direction)</code></td><td>Se desliza fuera mientras se desvanece, todas a la vez.</td></tr><tr><td><code>.trail(direction)</code></td><td>Se repliega un poco y sale encogiéndose y desenfocándose, la de delante primero.</td></tr></tbody></table></div>
+    <p>Slide y trail aceptan una dirección: <code>.towardAnchor</code> por defecto, <code>.awayFromAnchor</code>, <code>.top</code> y <code>.bottom</code>, <code>.leading</code> y <code>.trailing</code> (que se invierten en idiomas de derecha a izquierda), <code>.degrees(_:)</code>, <code>.vector(dx:dy:)</code> o <code>.inPlace</code>. La salida predeterminada de toda la pila se define con <code>.toastRemoval(_:)</code>.</p>
+    <pre><code><span class="comment">// La salida predeterminada para toda retirada</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// Por llamada: hacia arriba, o alejándose del borde</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>Con Reducir movimiento, toda salida es un fundido y todas las tarjetas se desvanecen a la vez.</p>
+    <div class="callout"><span>✳</span><p><strong>Los toasts de progreso se ocultan, no se cancelan.</strong> Descartar un <a href="#progress">toast de progreso</a> en curso lo quita de la pantalla, pero el trabajo continúa. Para detenerlo hay que cancelarlo, por ejemplo con <code>cancelProgress(group:)</code>. Si lo activas, deslizar también puede cancelar.</p></div>
+    <pre><code><span class="comment">// Ocultar deja el trabajo en marcha; cancelar lo detiene</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// Opcional: deslizar cancela además de ocultar</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>

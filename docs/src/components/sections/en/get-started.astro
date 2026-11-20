@@ -1,0 +1,26 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="start">
+    <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">UP AND RUNNING</p><h2>Get started</h2></div></div>
+    <p>Add ToastKit with Swift Package Manager, then attach a <code>ToastCenter</code> to the view that should present notifications.</p>
+    <SimulatorCapture name="quick-start-stack" lang="en" recording />
+    <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
+    <pre><code><span class="kw">import</span> SwiftUI
+<span class="kw">import</span> ToastKit
+
+<span class="kw">struct</span> ContentView: <span class="type">View</span> &#123;
+    <span class="kw">@State private var</span> toasts = ToastCenter()
+
+    <span class="kw">var body</span>: <span class="kw">some</span> View &#123;
+        Button(<span class="str">"Save"</span>) &#123;
+            toasts.present(.normal, title: <span class="str">"Changes saved"</span>)
+        &#125;
+        .toasts(toasts)
+    &#125;
+&#125;</code></pre>
+    <div class="callout"><span>✳</span><p><strong>That’s it.</strong> The toast appears at the bottom of the safe area for four seconds. The default swipe actions let people delete it or set it aside for later.</p></div>
+    <p>In Xcode, choose <strong>File → Add Package Dependencies</strong> and enter <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>.</p>
+    <p>To see the features running, open the repository demo and run ToastKitDemo on an iPhone or iPad simulator. ToastKit currently supports iOS 17 and later; other platforms are not supported while testing is limited to iOS.</p>
+  </section>

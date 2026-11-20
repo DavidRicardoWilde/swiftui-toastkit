@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">少しだけ表示</p><h2>表示時間</h2></div></div>
+    <p><code>.automatic</code> は <code>ToastCenter</code> の既定値である4秒を使います。秒数を直接指定するか、ユーザーの操作が必要な通知には <code>.indefinite</code> を使います。</p>
+    <SimulatorCapture name="03-timing" lang="ja" />
+    <pre><code><span class="comment">// 2秒間表示</span>
+ToastMessage(title: <span class="str">"コピーしました"</span>, duration: 2)
+
+<span class="comment">// 閉じられるまで表示</span>
+ToastMessage(title: <span class="str">"同期に失敗しました"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>カウントダウンするのは先頭のトーストだけです。</li><li>後ろに隠れたトーストは、先頭に移動するまで表示時間を使いません。</li><li>スタックに触れている間やアプリがバックグラウンドにある間はタイマーが止まります。</li></ul>
+  </section>

@@ -1,0 +1,36 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="styling">
+    <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">MAKE IT YOURS</p><h2>Styles &amp; themes</h2></div></div>
+    <p>The default <code>.glass</code> style draws a frosted card tinted by status. Tune design tokens with <code>ToastTheme</code>, choose the unstyled <code>.plain</code> style, or conform to <code>ToastStyle</code> for a custom card.</p>
+    <SimulatorCapture name="05-styles" lang="en" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastTheme(ToastTheme(
+        titleFont: .headline,
+        tint: &#123; status <span class="kw">in</span>
+            status == .notification ? .pink : ToastTheme.standardTint(status)
+        &#125;,
+        cornerRadius: 16
+    ))
+
+<span class="comment">// Start with no surface or fixed colors</span>
+MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
+    <div class="swatches"><span><i class="swatch swatch-violet"></i> Motion</span><span><i class="swatch swatch-blue"></i> Color</span><span><i class="swatch swatch-sage"></i> Surface</span><span><i class="swatch swatch-sand"></i> Type</span></div>
+    <p>A custom style receives the toast’s icon, title, message, status, and whether it is lifted onto the long-press track. Layout and gestures remain with the stack.</p>
+    <p><strong>Already have a palette?</strong> Map your asset catalog colors onto a theme once with <code>ToastTheme.statusTint</code> and apply it at the root. Any status you leave out keeps its default color, and light, dark, and high-contrast variants carry through.</p>
+    <pre><code><span class="kw">extension</span> ToastTheme &#123;
+    <span class="kw">static let</span> brand = ToastTheme(
+        <span class="comment">// Symbols Xcode generates from your asset catalog</span>
+        tint: ToastTheme.statusTint(
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        )
+    )
+&#125;
+
+ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
+  </section>

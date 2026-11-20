@@ -1,0 +1,37 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">깔끔하게 닫기</p><h2>토스트 닫기</h2></div></div>
+    <p>id로 토스트 하나를 닫거나, 맨 앞의 토스트를 닫을 수 있습니다. 여러 개를 한 번에 닫으려면 관련 토스트에 <code>ToastGroup</code>을 지정하거나 클로저로 조건을 지정하세요. 한꺼번에 닫는 작업은 하나의 변경으로 처리되며, 호출마다 닫은 개수를 반환합니다.</p>
+    <SimulatorCapture name="08-dismissing" lang="ko" />
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// id로 토스트 하나</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// 그룹의 모든 토스트</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// 클로저가 받아들인 모든 토스트</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// 스택 전체</span></code></pre>
+    <p><code>scope</code>는 호출이 어떤 토스트까지 닿을지를 정합니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>대상</th><th>기본값인 호출</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>스택에 있는 토스트</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>나중에 돌아오려고 대기 중인 토스트</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>둘 다</td><td><code>dismiss(id:)</code>, <code>dismiss(group:)</code>, <code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code>은 카드가 사라지는 방식을 고릅니다. 기본값인 <code>nil</code>이면 스택 자체의 설정을 따릅니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>카드의 움직임</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>제자리에서 흐려지며 사라집니다. 기본값입니다.</td></tr><tr><td><code>.slide(direction)</code></td><td>페이드되면서 밀려 나갑니다. 모든 카드가 함께 움직입니다.</td></tr><tr><td><code>.trail(direction)</code></td><td>살짝 움츠렸다가 작아지고 흐려지며 사라집니다. 맨 앞 카드가 먼저입니다.</td></tr></tbody></table></div>
+    <p>slide와 trail에는 방향을 줄 수 있습니다. 기본값은 <code>.towardAnchor</code>이고, <code>.awayFromAnchor</code>, <code>.top</code>, <code>.bottom</code>, <code>.leading</code>, <code>.trailing</code>(오른쪽에서 왼쪽으로 쓰는 언어에서는 반전됩니다), <code>.degrees(_:)</code>, <code>.vector(dx:dy:)</code>, <code>.inPlace</code>도 쓸 수 있습니다. 스택 전체의 기본 퇴장 방식은 <code>.toastRemoval(_:)</code>로 정합니다.</p>
+    <pre><code><span class="comment">// 모든 퇴장의 기본 방식</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// 호출마다: 위쪽으로, 또는 스택이 붙은 가장자리에서 멀어지게</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>동작 줄이기를 켜면 모든 퇴장이 페이드로 바뀌고 카드가 함께 사라집니다.</p>
+    <div class="callout"><span>✳</span><p><strong>진행률 토스트는 숨겨질 뿐, 취소되지 않습니다.</strong> 실행 중인 <a href="#progress">진행률 토스트</a>를 닫으면 카드는 화면에서 사라지지만 작업은 계속됩니다. 작업을 멈추려면 <code>cancelProgress(group:)</code> 등으로 취소해야 합니다. 스와이프로도 취소하게 하려면 옵션으로 켜 주세요.</p></div>
+    <pre><code><span class="comment">// 숨겨도 작업은 계속된다. 취소해야 멈춘다</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 옵션: 스와이프가 숨기면서 취소도 한다</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>

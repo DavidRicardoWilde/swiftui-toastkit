@@ -1,0 +1,10 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="accessibility">
+    <div class="section-heading"><span class="section-index">10</span><div><p class="eyebrow">為每個人打造</p><h2>輔助使用</h2></div></div>
+    <p>ToastKit 不要求特定手勢也能使用操作，並遵循 SwiftUI 環境中的輔助使用設定。</p>
+    <SimulatorCapture name="10-accessibility" lang="zh-hant" />
+    <ul class="check-list"><li>VoiceOver 會朗讀每則提示，並在操作轉子中提供兩側滑動操作。</li><li>減少動態效果時，滑入動畫會改為淡入淡出。</li><li>減少透明度時，磨砂表面會改為不透明。</li><li>增加對比時，玻璃邊緣會顯示為實線框線。</li><li>動態字體會同步縮放文字與狀態圖示。</li><li>進度 Toast 會朗讀進度值（例如「42%，12 MB / 30 MB」），每前進四分之一就播報一次，並把取消與重試作為操作提供。<a href="#progress">進度 Toast 詳情</a></li></ul>
+  </section>

@@ -1,0 +1,30 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">ちょうどよい大きさ</p><h2>サイズ</h2></div></div>
+    <p><code>ToastMetrics</code> はカードの大きさ（幅、余白、文字、アイコンの枠、角の丸み、行数の上限）を決めます。テーマやスタイルとは独立しているので、自由に組み合わせられます。プリセットを選ぶか、独自の値を作成します。</p>
+    <SimulatorCapture name="07-sizes" lang="ja" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact、.regular（既定）、.large から選択</span>
+
+<span class="comment">// 独自のサイズ</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// 明示した幅はサイズの幅より優先</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>各セルには幅と角の丸みを示しています。</p>
+    <div class="table-wrap"><table><thead><tr><th>プリセット</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+<ul class="check-list"><li><code>.toasts</code> に渡す <code>width:</code> はプリセットの幅より優先されます。</li><li>テーマで明示したフォント、角丸、余白はプリセット値より優先されます。</li><li>Dynamic Type による拡大は <code>accessibility1</code> までです。<code>maximumDynamicTypeSize</code> で変更できます。</li><li>進捗プリセットではバーの高さとタイトル・詳細の行数を設定します。</li></ul>
+  </section>

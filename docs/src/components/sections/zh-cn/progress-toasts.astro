@@ -1,0 +1,40 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">进行中的任务</p><h2>进度 Toast</h2></div></div>
+    <p>上传、同步这类耗时的任务，可以用 <code>track(title:)</code> 显示一张常驻卡片：它展示任务进行到哪里，还能提供取消。任务运行期间，它不会因超时而消失。保留返回的句柄，通过它汇报进度，最后给出唯一的结果。卡片会在原位变成这个结果。</p>
+    <SimulatorCapture name="09-progress" lang="zh-cn" />
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 在你指定之前为不确定进度</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code> 描述进度：<code>.indeterminate</code>、<code>.fraction(_:)</code>、<code>.bytes(_:of:)</code>（“12 MB / 30 MB”）和 <code>.items(_:of:)</code>（“3 / 10”）。在异步代码中，<code>withProgress</code> 负责运行任务并管理卡片，它的 reporter 可以在任意线程调用。</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>任务如何结束，决定卡片的结果：返回值即成功，被取消即取消，其他错误则失败并继续抛出。<code>track</code> 也接受 Foundation 的 <code>Progress</code>，例如 <code>URLSessionTask.progress</code>，它完成时会自动标记为成功。</p>
+    <div class="table-wrap"><table><thead><tr><th>阶段</th><th>含义</th></tr></thead><tbody><tr><td><code>running</code></td><td>任务进行中，不会因超时而消失。</td></tr><tr><td><code>cancelling</code></td><td>已请求取消，正在等待任务停止。</td></tr><tr><td><code>succeeded</code></td><td>已完成。卡片显示结果并开始倒计时。</td></tr><tr><td><code>failed</code></td><td>卡片变为错误并停留八秒；如果提供了闭包，还会带有“重试”。</td></tr><tr><td><code>cancelled</code></td><td>任务已停止。卡片离开；如果选择启用，会短暂显示“已取消”。</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// 取消会同时取消 Task</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// 或取消整个分组</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// 相同的 id：卡片在原位继续</span>
+&#125;</code></pre>
+    <p>任务运行中且存在停止它的方式时，会显示取消按钮。点按后卡片显示“正在取消…”，直到任务停下；十秒后卡片无论如何都会结束，所以取消不会卡住。失败后若用相同的 id 重新开始任务，“重试”会沿用同一张卡片。</p>
+    <pre><code><span class="comment">// 移除只会隐藏卡片，任务继续</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 可选：滑动在隐藏的同时也取消</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>滑动或移除正在运行的卡片只会把它隐藏；隐藏期间发生的失败会作为新的 Toast 回到屏幕上。详见<a href="#dismissing">移除 Toast</a>。</p>
+    <div class="callout"><span>✳</span><p><strong>请保留句柄，直到任务结束。</strong>句柄在没有给出结果的情况下被释放，会被视为被丢弃：它的任务会被取消，卡片也会被移除。</p></div>
+    <ul class="check-list"><li>VoiceOver 会把进度作为卡片的值朗读，例如“42%，12 MB / 30 MB”。</li><li>它会在开始时、每前进四分之一时（间隔至少五秒，且仅限最前面的卡片）以及出结果时播报。在平台支持的情况下，失败会以紧急优先级播报。</li><li>取消、隐藏和重试都是操作转子中的具名操作。</li><li>开启“减少动态效果”后，进度条不再来回扫动，填充时也没有动画。</li></ul>
+  </section>

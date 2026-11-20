@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">UN MOMENTO</p><h2>Duración</h2></div></div>
+    <p><code>.automatic</code> usa la duración predeterminada del centro: cuatro segundos. Indica los segundos directamente o usa <code>.indefinite</code> si la persona debe responder.</p>
+    <SimulatorCapture name="03-timing" lang="es" />
+    <pre><code><span class="comment">// Se muestra dos segundos</span>
+ToastMessage(title: <span class="str">"Copiado"</span>, duration: 2)
+
+<span class="comment">// Permanece hasta que se cierre</span>
+ToastMessage(title: <span class="str">"Error al sincronizar"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>Solo cuenta el aviso que está delante.</li><li>Los avisos cubiertos conservan todo su tiempo hasta pasar al frente.</li><li>El temporizador se pausa mientras alguien toca la pila o la app está en segundo plano.</li></ul>
+  </section>

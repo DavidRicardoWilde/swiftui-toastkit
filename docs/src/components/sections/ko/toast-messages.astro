@@ -1,0 +1,24 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">메시지 구성</p><h2>토스트 메시지</h2></div></div>
+    <p><code>ToastMessage</code>에는 표시할 내용, 의미를 나타내는 상태, 표시 시간, 선택적인 탭 및 스와이프 동작이 들어갑니다. 간단한 알림에는 편의 메서드를 사용하고, 더 세밀한 제어가 필요하면 메시지를 직접 만드세요.</p>
+    <SimulatorCapture name="02-messages" lang="ko" />
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"저장 공간 부족"</span>,
+    message: <span class="str">"동기화를 계속하려면 공간을 확보하세요."</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"새 사진"</span>,
+    message: <span class="str">"오늘 사진 12장이 추가됐어요"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>일반</h3><p>일상적인 확인에 어울리는 차분한 표현입니다.</p></article><article><span class="pill amber">WARNING</span><h3>주의 필요</h3><p>문제가 실패로 이어지기 전에 살펴보도록 알립니다.</p></article><article><span class="pill red">ERROR</span><h3>오류</h3><p>실패를 분명하게 전달하는 시각적 신호입니다.</p></article><article><span class="pill violet">NOTIFICATION</span><h3>알림</h3><p>앱의 강조 색상으로 소식을 전합니다.</p></article></div>
+    <p>이미 표시 중인 토스트와 같은 id로 다시 표시하면 중복을 만들지 않고 내용을 갱신해 맨 앞으로 가져옵니다. “동기화 중…”에서 “동기화 완료”로 바뀌는 상태를 보여줄 때 유용합니다. 진행 막대가 필요하거나, 취소할 수 있거나, 실패할 수 있는 작업에는 <a href="#progress">진행률 토스트</a>를 사용하세요.</p>
+  </section>

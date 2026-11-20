@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">恰当的位置</p><h2>位置与宽度</h2></div></div>
+    <p>默认情况下，卡片从底部向上堆叠，宽度为可用安全区域宽度的 60%。各档尺寸的宽度与优先级见<a href="#sizes">尺寸</a>。放在顶部时一切都会镜像：较早的卡片在下方露出，按住时的轨道向上弯向顶部边缘，抬起的卡片向下移动而不是向上。</p>
+    <SimulatorCapture name="06-placement" lang="zh-cn" />
+    <pre><code><span class="comment">// 顶部位置</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// 安全区域的 90%，或指定固定宽度</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p>在 <code>TabView</code> 中，将 <code>.toasts(toasts)</code> 附加到标签页内容上。系统标签栏和底部配件已计入安全区域。若有自定义浮动栏，可标记为 <code>.toastObstruction()</code>，堆栈会避开它。</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>已保存</b><small>底部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">安全区域</div></div>
+  </section>

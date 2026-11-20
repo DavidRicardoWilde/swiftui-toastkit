@@ -1,0 +1,15 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">사용자의 언어로</p><h2>앱 현지화</h2></div></div>
+    <p>ToastKit의 기본 동작 레이블은 영어, 일본어, 간체 중국어, 번체 중국어로 제공됩니다. 제목, 본문, 맞춤 동작 레이블은 앱에서 현지화하세요.</p>
+    <SimulatorCapture name="11-localization" lang="ko" />
+    <pre><code><span class="comment">// 앱 문구를 String Catalog 또는 Localizable.strings에 추가하세요.</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit은 호스트 앱의 로캘에 맞춰 기본 레이블을 표시합니다. 맞춤 <code>ToastAction</code> 제목과 확인 문구는 일반 문자열이므로 앱에서 사용하는 현지화 도구로 처리할 수 있어요.</p>
+  </section>

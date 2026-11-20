@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">EN EL LUGAR ADECUADO</p><h2>Posición y ancho</h2></div></div>
+    <p>De forma predeterminada, las tarjetas se apilan desde abajo y ocupan el 60% del ancho disponible del área segura. En <a href="#sizes">Tamaños</a> verás los ajustes preestablecidos y qué ancho prevalece. En la parte superior todo se refleja: las tarjetas anteriores asoman por debajo, la pista de mantener pulsado se curva hacia el borde superior y la tarjeta levantada baja en lugar de subir.</p>
+    <SimulatorCapture name="06-placement" lang="es" />
+    <pre><code><span class="comment">// Anclar arriba</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// El 90% del área segura o un ancho fijo</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p>Dentro de un <code>TabView</code>, aplica <code>.toasts(toasts)</code> al contenido de la pestaña. Las barras del sistema ya forman parte del área segura. Marca una barra flotante personalizada con <code>.toastObstruction()</code> para que la pila deje espacio.</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>Guardado</b><small>abajo · 60%</small></div><div class="demo-line"></div><div class="demo-label">ÁREA SEGURA</div></div>
+  </section>

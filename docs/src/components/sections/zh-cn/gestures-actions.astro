@@ -1,0 +1,45 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="actions">
+    <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">清晰的下一步</p><h2>手势与操作</h2></div></div>
+    <p>用户可以点击、向任一方向滑动，或按住提示后先查看两侧操作再做决定。VoiceOver 也会按名称提供相同操作。</p>
+    <SimulatorCapture name="04-actions" lang="zh-cn" />
+    <div class="table-wrap"><table><thead><tr><th>手势</th><th>默认行为</th><th>自定义方式</th></tr></thead><tbody>
+      <tr><td>点击</td><td>无操作，点击穿透到后方内容</td><td><code>tapAction</code> 或 <code>onTap</code></td></tr>
+      <tr><td>向 leading 侧滑动</td><td>删除提示</td><td><code>swipeActions.leading</code></td></tr>
+      <tr><td>向 trailing 侧滑动</td><td>下次打开时再次显示</td><td><code>swipeActions.trailing</code></td></tr>
+      <tr><td>向上滑动</td><td>无操作</td><td><code>swipeActions.up</code></td></tr>
+      <tr><td>向下滑动</td><td>无操作</td><td><code>swipeActions.down</code></td></tr>
+      <tr><td>按住</td><td>预览所有滑动操作</td><td>复用相同的滑动操作</td></tr>
+    </tbody></table></div>
+    <pre><code><span class="kw">let</span> archive = ToastAction(
+    id: <span class="str">"archive"</span>,
+    title: <span class="str">"归档"</span>,
+    icon: .system(<span class="str">"archivebox"</span>),
+    confirmation: <span class="str">"已归档"</span>
+) &#123; toast <span class="kw">in</span>
+    store.archive(toast.id)
+&#125;
+
+toasts.present(ToastMessage(
+    title: <span class="str">"来自 Ana 的消息"</span>,
+    tapAction: ToastAction(title: <span class="str">"打开"</span>) &#123; toast <span class="kw">in</span>
+        router.open(toast.id)
+    &#125;,
+    swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
+))</code></pre>
+    <p>也可以向上和向下滑动：只提供一组方向，或四个方向都提供。滑动会沿手指最先移动的方向进行；按住时，这些操作会显示在一条上下笔直的轨道上。</p>
+    <pre><code><span class="comment">// 仅上下两个方向</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// 四个方向</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
+    <p>操作按顺序执行：先运行自身 handler，再通知堆栈的 <code>onToastAction</code> 观察器，最后应用操作效果。内置 <code>.later</code> 会暂存提示，等页面再次出现时恢复。</p>
+    <div class="callout"><span>✳</span><p><strong>0.2.0 新增：滑动一开始就显示操作。</strong>默认情况下，快速滑动会立即执行操作，显示两侧操作的轨道要等按住后才出现。设置 <code>.toastSwipeHints(.immediate)</code> 后，滑动本身就会把卡片抬到轨道上。</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>滑动 8 pt 后，卡片就会出现在轨道上，两侧操作同时可见，并跟随手指移动。移动超过 64 pt 时，前方一端会亮起；在那里松手，或朝某一端快速甩动，即可执行该操作。未到该位置就松手，卡片会落回原处。按住仍然有效；在堆栈之外单独显示的 <code>ToastCard</code> 保持快速滑动。无论哪种方式，抬起的卡片都会升到手指上方，操作标签位于更宽轨道的上半部分，不会被拇指遮住。</p>
+  </section>

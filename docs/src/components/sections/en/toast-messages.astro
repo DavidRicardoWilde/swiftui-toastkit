@@ -1,0 +1,29 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">THE MESSAGE</p><h2>Toast messages</h2></div></div>
+    <p>A <code>ToastMessage</code> holds its content, semantic status, duration, and optional tap and swipe actions. Use the convenience method for a simple message, or build a message when you need more control.</p>
+    <SimulatorCapture name="02-messages" lang="en" />
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"Low storage"</span>,
+    message: <span class="str">"Free up space to keep syncing."</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"New photos"</span>,
+    message: <span class="str">"12 photos from today"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid">
+      <article><span class="pill neutral">NORMAL</span><h3>Neutral</h3><p>Everyday confirmations with a quiet, neutral treatment.</p></article>
+      <article><span class="pill amber">WARNING</span><h3>Needs attention</h3><p>Something to review, before it becomes a failure.</p></article>
+      <article><span class="pill red">ERROR</span><h3>Something failed</h3><p>Give errors a clear, recognizable visual signal.</p></article>
+      <article><span class="pill violet">NOTIFICATION</span><h3>Worth a glance</h3><p>Announcements use your app’s accent color.</p></article>
+    </div>
+    <p>Presenting a message with an id that is already visible updates and brings that toast forward. This works well for progress states such as “Syncing…” followed by “Synced”. For work that has a bar, can be cancelled or can fail, use a <a href="#progress">progress toast</a>.</p>
+  </section>

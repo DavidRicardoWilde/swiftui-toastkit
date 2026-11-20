@@ -1,0 +1,26 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="start">
+    <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">바로 시작하기</p><h2>시작하기</h2></div></div>
+    <p>Swift Package Manager로 ToastKit을 추가한 다음, 알림을 표시할 뷰에 <code>ToastCenter</code>를 연결하세요.</p>
+    <SimulatorCapture name="quick-start-stack" lang="ko" recording />
+    <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
+    <pre><code><span class="kw">import</span> SwiftUI
+<span class="kw">import</span> ToastKit
+
+<span class="kw">struct</span> ContentView: <span class="type">View</span> &#123;
+    <span class="kw">@State private var</span> toasts = ToastCenter()
+
+    <span class="kw">var body</span>: <span class="kw">some</span> View &#123;
+        Button(<span class="str">"저장"</span>) &#123;
+            toasts.present(.normal, title: <span class="str">"변경 사항 저장됨"</span>)
+        &#125;
+        .toasts(toasts)
+    &#125;
+&#125;</code></pre>
+    <div class="callout"><span>✳</span><p><strong>이제 끝입니다.</strong> 토스트가 안전 영역 하단에 4초 동안 표시됩니다. 기본 스와이프 동작으로 삭제하거나 다음 방문까지 보류할 수 있어요.</p></div>
+    <p>Xcode에서 <strong>File → Add Package Dependencies</strong>를 선택하고 <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>를 입력하세요.</p>
+    <p>기능이 동작하는 모습은 저장소의 데모를 열고 iPhone 또는 iPad 시뮬레이터에서 ToastKitDemo를 실행해 확인할 수 있습니다. ToastKit은 현재 iOS 17 이상을 지원합니다. 테스트 범위가 iOS로 제한되어 있어 다른 플랫폼은 아직 지원하지 않습니다.</p>
+  </section>

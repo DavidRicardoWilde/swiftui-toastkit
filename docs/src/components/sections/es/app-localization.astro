@@ -1,0 +1,15 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">EN SU IDIOMA</p><h2>Localización de la app</h2></div></div>
+    <p>Las etiquetas integradas de ToastKit están disponibles en inglés, japonés, chino simplificado y chino tradicional. Localiza en tu app los títulos, mensajes y etiquetas personalizadas.</p>
+    <SimulatorCapture name="11-localization" lang="es" />
+    <pre><code><span class="comment">// Guarda el texto de la app en un String Catalog o Localizable.strings.</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit muestra sus etiquetas integradas según la configuración regional de la app anfitriona. Los títulos y confirmaciones de <code>ToastAction</code> son cadenas normales y se localizan con las mismas herramientas de la app.</p>
+  </section>

@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">RIGHT WHERE IT BELONGS</p><h2>Placement &amp; width</h2></div></div>
+    <p>By default, cards hang from the bottom and use 60% of the available safe-area width. <a href="#sizes">Sizes</a> covers the presets and which width wins. At the top everything mirrors: older cards peek out below, the press-and-hold track bends up past the top edge, and a lifted card drops down instead of rising.</p>
+    <SimulatorCapture name="06-placement" lang="en" />
+    <pre><code><span class="comment">// Top edge</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// 90% of the safe area, or a fixed width</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p>Inside a <code>TabView</code>, attach <code>.toasts(toasts)</code> to the tab’s content. System tab bars and accessories are already part of its safe area. Mark a custom floating bar with <code>.toastObstruction()</code> so the stack can lift clear of it.</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>Saved</b><small>bottom · 60% · </small></div><div class="demo-line"></div><div class="demo-label">SAFE AREA</div></div>
+  </section>

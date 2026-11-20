@@ -1,0 +1,36 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="styling">
+    <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">自由にカスタマイズ</p><h2>スタイルとテーマ</h2></div></div>
+    <p>既定の <code>.glass</code> スタイルは、ステータスに合わせて色が変わるすりガラスのカードです。<code>ToastTheme</code> でデザイントークンを調整したり、装飾のない <code>.plain</code> を選んだり、<code>ToastStyle</code> に準拠した独自カードを作成したりできます。</p>
+    <SimulatorCapture name="05-styles" lang="ja" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastTheme(ToastTheme(
+        titleFont: .headline,
+        tint: &#123; status <span class="kw">in</span>
+            status == .notification ? .pink : ToastTheme.standardTint(status)
+        &#125;,
+        cornerRadius: 16
+    ))
+
+<span class="comment">// 背景や固定色のないスタイルから始める</span>
+MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
+    <div class="swatches"><span><i class="swatch swatch-violet"></i> モーション</span><span><i class="swatch swatch-blue"></i> 色</span><span><i class="swatch swatch-sage"></i> 面</span><span><i class="swatch swatch-sand"></i> 文字</span></div>
+    <p>カスタムスタイルからはアイコン、タイトル、本文、ステータス、長押しトラックに持ち上げられているかを参照できます。レイアウトとジェスチャはスタックが管理します。</p>
+    <p><strong>既存のカラーパレットがある場合</strong>は、アセットカタログの色を <code>ToastTheme.statusTint</code> で一度テーマに割り当て、ルートで適用します。指定しなかったステータスは既定の色のままで、ライト・ダーク・高コントラストの各バリアントもそのまま反映されます。</p>
+    <pre><code><span class="kw">extension</span> ToastTheme &#123;
+    <span class="kw">static let</span> brand = ToastTheme(
+        <span class="comment">// Xcode がアセットカタログから生成するシンボル</span>
+        tint: ToastTheme.statusTint(
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        )
+    )
+&#125;
+
+ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
+  </section>

@@ -1,0 +1,30 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">尺寸合身</p><h2>尺寸</h2></div></div>
+    <p><code>ToastMetrics</code> 決定卡片的大小：寬度、內邊距、字體、圖示底板、圓角與行數上限。它獨立於主題與樣式，三者可以自由組合。你可以選擇預設，也可以自行建立。</p>
+    <SimulatorCapture name="07-sizes" lang="zh-hant" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact、.regular（預設）或 .large</span>
+
+<span class="comment">// 自訂尺寸</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// 明確指定的寬度優先於尺寸本身的寬度</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>每個儲存格依序標出寬度與圓角半徑。</p>
+    <div class="table-wrap"><table><thead><tr><th>預設</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+<ul class="check-list"><li>傳給 <code>.toasts</code> 的 <code>width:</code> 優先於預設寬度。</li><li>主題中明確設定的字體、圓角和內邊距優先於預設值。</li><li>動態字體放大到 <code>accessibility1</code> 為止，可用 <code>maximumDynamicTypeSize</code> 調整。</li><li>進度預設會設定進度條高度，以及標題和詳情的行數限制。</li></ul>
+  </section>

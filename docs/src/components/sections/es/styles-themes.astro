@@ -1,0 +1,36 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="styling">
+    <div class="section-heading"><span class="section-index">05</span><div><p class="eyebrow">A TU MANERA</p><h2>Estilos y temas</h2></div></div>
+    <p>El estilo predeterminado <code>.glass</code> dibuja una tarjeta translúcida teñida según el estado. Ajusta los tokens con <code>ToastTheme</code>, elige <code>.plain</code> o implementa <code>ToastStyle</code> para crear una tarjeta propia.</p>
+    <SimulatorCapture name="05-styles" lang="es" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastTheme(ToastTheme(
+        titleFont: .headline,
+        tint: &#123; status <span class="kw">in</span>
+            status == .notification ? .pink : ToastTheme.standardTint(status)
+        &#125;,
+        cornerRadius: 16
+    ))
+
+<span class="comment">// Empieza sin superficie ni colores fijos</span>
+MyScreen().toasts(toasts).toastStyle(.plain)</code></pre>
+    <div class="swatches"><span><i class="swatch swatch-violet"></i> Movimiento</span><span><i class="swatch swatch-blue"></i> Color</span><span><i class="swatch swatch-sage"></i> Superficie</span><span><i class="swatch swatch-sand"></i> Tipografía</span></div>
+    <p>Un estilo propio recibe el icono, el título, el mensaje, el estado y la información de si la tarjeta está elevada sobre la pista. La pila sigue controlando el diseño y los gestos.</p>
+    <p><strong>¿Ya tienes una paleta?</strong> Asigna una sola vez los colores de tu catálogo de recursos a un tema con <code>ToastTheme.statusTint</code> y aplícalo en la raíz. Los estados que no indiques conservan su color predeterminado, y las variantes clara, oscura y de alto contraste se mantienen.</p>
+    <pre><code><span class="kw">extension</span> ToastTheme &#123;
+    <span class="kw">static let</span> brand = ToastTheme(
+        <span class="comment">// Símbolos que Xcode genera a partir del catálogo de recursos</span>
+        tint: ToastTheme.statusTint(
+            warning: .brandWarning,
+            error: .brandDanger,
+            notification: .brandAccent
+        )
+    )
+&#125;
+
+ContentView().toasts(toasts).toastTheme(.brand)</code></pre>
+  </section>

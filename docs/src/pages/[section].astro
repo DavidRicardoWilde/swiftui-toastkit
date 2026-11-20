@@ -1,0 +1,25 @@
+---
+import DocPage from '../components/DocPage.astro';
+
+const lang = 'en' as const;
+const sectionModules = import.meta.glob('../components/sections/en/*.astro', { eager: true });
+
+export function getStaticPaths() {
+  const labels = ['Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Sizes', 'Dismissing toasts', 'Progress toasts', 'Accessibility', 'App localization', 'Project & community'];
+  const ids = ['start', 'messages', 'timing', 'actions', 'styling', 'layout', 'sizes', 'dismissing', 'progress', 'accessibility', 'localization', 'feedback'];
+  const slugs = ['get-started', 'toast-messages', 'display-duration', 'gestures-actions', 'styles-themes', 'placement-width', 'sizes', 'dismissing-toasts', 'progress-toasts', 'accessibility', 'app-localization', 'project-community'];
+  return slugs.map((slug, index) => ({
+    params: { section: slug },
+    props: { id: ids[index], slug, title: labels[index] },
+  }));
+}
+
+const { id, slug, title } = Astro.props;
+const modulePath = `../components/sections/en/${slug}.astro`;
+const SectionContent = (sectionModules[modulePath] as { default: any }).default;
+const description = `${title} · ToastKit`;
+---
+
+<DocPage lang={lang} title={`${title} — ToastKit`} description={description} activePage={id}>
+  <SectionContent />
+</DocPage>

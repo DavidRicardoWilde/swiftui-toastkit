@@ -1,0 +1,38 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="actions">
+    <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">次の操作を明確に</p><h2>ジェスチャと操作</h2></div></div>
+    <p>タップ、左右へのスワイプ、長押しが使えます。長押しすると両方のスワイプ操作を確認してから選べます。VoiceOver でも同じ操作を名前から選択できます。</p>
+    <SimulatorCapture name="04-actions" lang="ja" />
+    <div class="table-wrap"><table><thead><tr><th>ジェスチャ</th><th>既定の動作</th><th>カスタマイズ</th></tr></thead><tbody><tr><td>タップ</td><td>操作なし。背後のコンテンツへ通過</td><td><code>tapAction</code> または <code>onTap</code></td></tr><tr><td>leading 側へスワイプ</td><td>トーストを削除</td><td><code>swipeActions.leading</code></td></tr><tr><td>trailing 側へスワイプ</td><td>次にページを開いたときに再表示</td><td><code>swipeActions.trailing</code></td></tr><tr><td>上へスワイプ</td><td>操作なし</td><td><code>swipeActions.up</code></td></tr><tr><td>下へスワイプ</td><td>操作なし</td><td><code>swipeActions.down</code></td></tr><tr><td>長押し</td><td>すべての操作をプレビュー</td><td>スワイプ操作と同じ設定</td></tr></tbody></table></div>
+    <pre><code><span class="kw">let</span> archive = ToastAction(
+    id: <span class="str">"archive"</span>,
+    title: <span class="str">"アーカイブ"</span>,
+    icon: .system(<span class="str">"archivebox"</span>),
+    confirmation: <span class="str">"アーカイブしました"</span>
+) &#123; toast <span class="kw">in</span>
+    store.archive(toast.id)
+&#125;
+
+toasts.present(ToastMessage(
+    title: <span class="str">"Ana からのメッセージ"</span>,
+    tapAction: ToastAction(title: <span class="str">"開く"</span>) &#123; toast <span class="kw">in</span>
+        router.open(toast.id)
+    &#125;,
+    swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
+))</code></pre>
+    <p>上下へのスワイプにも操作を割り当てられます。上下だけ、または四方向すべてを設定できます。スワイプは指が最初に動いた方向の軸に沿って動き、長押しするとそれらの操作が上下にまっすぐ伸びるトラックに表示されます。</p>
+    <pre><code><span class="comment">// 上下のみ</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// 四方向すべて</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
+    <p>操作は handler、スタックの <code>onToastAction</code> オブザーバー、操作の効果の順に実行されます。組み込みの <code>.later</code> は、ページが再び表示されるまでトーストを保留します。</p>
+    <div class="callout"><span>✳</span><p><strong>0.2.0 の新機能：スワイプの始まりから操作を表示。</strong>既定では、素早いスワイプはすぐに操作を実行し、両方の操作を並べたトラックは長押しするまで表示されません。<code>.toastSwipeHints(.immediate)</code> を設定すると、スワイプそのものがカードをトラックに持ち上げます。</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>8 pt 動かすとカードがトラックに乗り、両方の操作が見えたまま指に追従します。64 pt を超えると向かっている側の端が点灯し、そこで指を離すか、その方向へはじくと操作が実行されます。手前で離すとカードは元に戻ります。長押しもこれまでどおり使え、スタックの外で単独表示した <code>ToastCard</code> は素早いスワイプのままです。どちらの場合も、持ち上げたカードは指より上に移動し、操作ラベルは幅を広げたトラックの上半分に表示されるため、親指で隠れません。</p>
+  </section>

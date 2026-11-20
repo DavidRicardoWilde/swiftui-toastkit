@@ -1,0 +1,24 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">EL MENSAJE</p><h2>Mensajes toast</h2></div></div>
+    <p><code>ToastMessage</code> reúne el contenido, el estado semántico, la duración y las acciones opcionales de toque y deslizamiento. Usa el método rápido para avisos sencillos o crea el mensaje directamente si necesitas más control.</p>
+    <SimulatorCapture name="02-messages" lang="es" />
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"Poco espacio"</span>,
+    message: <span class="str">"Libera espacio para continuar la sincronización."</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"Fotos nuevas"</span>,
+    message: <span class="str">"12 fotos de hoy"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>Normal</h3><p>Confirmaciones cotidianas con un tono discreto.</p></article><article><span class="pill amber">WARNING</span><h3>Atención</h3><p>Invita a revisar algo antes de que falle.</p></article><article><span class="pill red">ERROR</span><h3>Algo falló</h3><p>Comunica los errores con una señal visual clara.</p></article><article><span class="pill violet">NOTIFICATION</span><h3>Notificación</h3><p>Usa el color de énfasis de tu app.</p></article></div>
+    <p>Si vuelves a presentar un mensaje con un id que ya está visible, se actualiza y pasa al frente. Es útil para mostrar estados como «Sincronizando…» y después «Sincronizado». Para un trabajo con barra, que se pueda cancelar o que pueda fallar, usa un <a href="#progress">toast de progreso</a>.</p>
+  </section>

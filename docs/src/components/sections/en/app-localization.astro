@@ -1,0 +1,15 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">SPEAK THEIR LANGUAGE</p><h2>App localization</h2></div></div>
+    <p>ToastKit ships its built-in action labels in English, Japanese, Simplified Chinese, and Traditional Chinese. Your app’s strings are separate: localize the title, message, and any custom action labels you provide.</p>
+    <SimulatorCapture name="11-localization" lang="en" />
+    <pre><code><span class="comment">// Keep app copy in your String Catalog or Localizable.strings.</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit follows the host app’s locale for its own built-in labels. Custom <code>ToastAction</code> titles and confirmations are plain strings so you can localize them with the same tools as the rest of your app.</p>
+  </section>

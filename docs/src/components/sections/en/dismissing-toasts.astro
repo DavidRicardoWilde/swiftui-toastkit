@@ -1,0 +1,37 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">LET IT GO</p><h2>Dismissing toasts</h2></div></div>
+    <p>Remove one toast by id or take whichever is in front. To remove several at once, give related toasts a <code>ToastGroup</code> or match them with a closure. A batch is a single change, and each call returns how many toasts it removed.</p>
+    <SimulatorCapture name="08-dismissing" lang="en" />
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// one toast by id</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// every toast in a group</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// every toast the closure accepts</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// the whole stack</span></code></pre>
+    <p><code>scope</code> says which toasts a call reaches:</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>Reaches</th><th>Default for</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>Toasts in the stack</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>Toasts waiting to come back</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>Both</td><td><code>dismiss(id:)</code>, <code>dismiss(group:)</code>, <code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> chooses how the cards leave. Passing <code>nil</code>, the default, uses the stack’s own setting.</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>The card</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>Dissolves where it stands. The default.</td></tr><tr><td><code>.slide(direction)</code></td><td>Slides off while fading, all cards together.</td></tr><tr><td><code>.trail(direction)</code></td><td>Winds up slightly, then leaves shrinking and blurring, the front card first.</td></tr></tbody></table></div>
+    <p>Slide and trail take a direction: <code>.towardAnchor</code> by default, <code>.awayFromAnchor</code>, <code>.top</code> and <code>.bottom</code>, <code>.leading</code> and <code>.trailing</code> (which flip in right-to-left layouts), <code>.degrees(_:)</code>, <code>.vector(dx:dy:)</code> or <code>.inPlace</code>. Set the default exit for the whole stack with <code>.toastRemoval(_:)</code>.</p>
+    <pre><code><span class="comment">// The default exit for every removal</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// Per call: upward, or away from the edge</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>With Reduce Motion, every removal is a cross-fade and all cards fade together.</p>
+    <div class="callout"><span>✳</span><p><strong>Progress toasts are hidden, not cancelled.</strong> Dismissing a running <a href="#progress">progress toast</a> takes the card off the screen and leaves the work alone. To stop the work, cancel it, for example with <code>cancelProgress(group:)</code>. A swipe can cancel as well, if you opt in.</p></div>
+    <pre><code><span class="comment">// Hiding leaves the work running; cancelling stops it</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// Opt in: swiping cancels as well as hides</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>
