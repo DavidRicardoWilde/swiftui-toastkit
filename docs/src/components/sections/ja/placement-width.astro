@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="layout">
+    <div class="section-heading"><span class="section-index">06</span><div><p class="eyebrow">適切な場所に表示</p><h2>配置と幅</h2></div></div>
+    <p>既定では画面下部から積み重なり、安全領域の幅の60%で表示されます。プリセットごとの幅と優先順位は<a href="#sizes">サイズ</a>で説明します。上部に配置すると、すべてが上下反転します。古いカードは下にのぞき、長押しのトラックは上端に向かって反り、持ち上げたカードは上ではなく下へ移動します。</p>
+    <SimulatorCapture name="06-placement" lang="ja" />
+    <pre><code><span class="comment">// 上端に配置</span>
+MyScreen().toasts(toasts, placement: .top)
+
+<span class="comment">// 安全領域の90%、または固定幅</span>
+MyScreen().toasts(toasts, width: .fraction(0.9))
+MyScreen().toasts(toasts, width: .points(320))</code></pre>
+    <p><code>TabView</code> 内では、タブのコンテンツに <code>.toasts(toasts)</code> を付けます。システムのタブバーや下部アクセサリは安全領域に含まれます。独自のフローティングバーには <code>.toastObstruction()</code> を付けると、スタックが重ならないように移動します。</p>
+    <div class="mini-demo"><div class="demo-toast"><span>✓</span><b>保存しました</b><small>下部 · 60%</small></div><div class="demo-line"></div><div class="demo-label">セーフエリア</div></div>
+  </section>

@@ -1,0 +1,24 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">メッセージ</p><h2>トーストメッセージ</h2></div></div>
+    <p><code>ToastMessage</code> には、表示内容、意味を持つステータス、表示時間、任意のタップ操作とスワイプ操作を設定します。簡単な通知には便利メソッドを、細かな制御が必要な場合はメッセージを直接作成します。</p>
+    <SimulatorCapture name="02-messages" lang="ja" />
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"ストレージの空き容量が不足しています"</span>,
+    message: <span class="str">"同期を続けるには空き容量を増やしてください。"</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"新しい写真"</span>,
+    message: <span class="str">"今日の写真が12枚あります"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid"><article><span class="pill neutral">NORMAL</span><h3>通常</h3><p>日常的な確認に使う、控えめな表示です。</p></article><article><span class="pill amber">WARNING</span><h3>注意</h3><p>問題が失敗に至る前に確認を促します。</p></article><article><span class="pill red">ERROR</span><h3>エラー</h3><p>失敗を明確に伝える視覚的な合図です。</p></article><article><span class="pill violet">NOTIFICATION</span><h3>お知らせ</h3><p>アプリのアクセントカラーで通知します。</p></article></div>
+    <p>表示中のメッセージと同じ id を使って再度表示すると、複製せずに内容を更新して先頭へ移動します。「同期中…」から「同期完了」への更新に便利です。進捗バーが必要な処理、キャンセルできる処理、失敗しうる処理には<a href="#progress">進捗 Toast</a>を使います。</p>
+  </section>

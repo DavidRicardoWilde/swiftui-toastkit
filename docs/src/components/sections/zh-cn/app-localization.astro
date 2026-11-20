@@ -1,0 +1,15 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">说用户的语言</p><h2>应用本地化</h2></div></div>
+    <p>ToastKit 内置的操作标签支持英语、日语、简体中文和繁体中文。应用自己的文案由你管理：请为标题、正文和自定义操作标签添加本地化。</p>
+    <SimulatorCapture name="11-localization" lang="zh-cn" />
+    <pre><code><span class="comment">// 将应用文案放在 String Catalog 或 Localizable.strings 中。</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit 会根据宿主应用的语言环境显示内置标签。自定义 <code>ToastAction</code> 标题和确认文案是普通字符串，可使用应用现有的本地化工具处理。</p>
+  </section>

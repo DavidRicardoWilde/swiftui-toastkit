@@ -1,0 +1,30 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">알맞은 크기</p><h2>크기</h2></div></div>
+    <p><code>ToastMetrics</code>는 카드의 크기를 정합니다. 너비, 여백, 글꼴, 아이콘 칩, 모서리 반경, 줄 수 제한이 여기에 속합니다. 테마나 스타일과는 별개라서 자유롭게 조합할 수 있습니다. 프리셋을 고르거나 직접 만들어 보세요.</p>
+    <SimulatorCapture name="07-sizes" lang="ko" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact, .regular(기본값), .large 중 선택</span>
+
+<span class="comment">// 직접 만든 크기</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// 명시한 너비가 크기의 너비보다 우선</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>각 칸에는 너비와 모서리 반경을 표시했습니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>프리셋</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+<ul class="check-list"><li><code>.toasts</code>에 전달한 <code>width:</code>가 프리셋 너비보다 우선합니다.</li><li>테마에서 지정한 글꼴, 모서리 반경, 여백은 프리셋 값보다 우선합니다.</li><li>Dynamic Type 확대는 <code>accessibility1</code>까지입니다. <code>maximumDynamicTypeSize</code>로 변경할 수 있습니다.</li><li>진행률 프리셋은 막대 높이와 제목 및 상세 문구의 줄 수를 설정합니다.</li></ul>
+  </section>

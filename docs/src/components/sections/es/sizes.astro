@@ -1,0 +1,30 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">A SU MEDIDA</p><h2>Tamaños</h2></div></div>
+    <p><code>ToastMetrics</code> define el tamaño de una tarjeta: ancho, márgenes, tipografía, el icono, el radio de las esquinas y el límite de líneas. Es independiente del tema y del estilo, así que se combinan libremente. Elige un ajuste preestablecido o crea el tuyo.</p>
+    <SimulatorCapture name="07-sizes" lang="es" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact, .regular (el predeterminado) o .large</span>
+
+<span class="comment">// Tus propias medidas</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// Un ancho explícito prevalece sobre el del tamaño</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>Cada celda indica el ancho y el radio de las esquinas.</p>
+    <div class="table-wrap"><table><thead><tr><th>Ajuste</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+<ul class="check-list"><li>El <code>width:</code> que pases a <code>.toasts</code> prevalece sobre el ancho preestablecido.</li><li>La fuente, el radio y el margen explícitos del tema prevalecen sobre los valores preestablecidos.</li><li>Dynamic Type deja de ampliar el contenido en <code>accessibility1</code>; cámbialo con <code>maximumDynamicTypeSize</code>.</li><li>Los tamaños de progreso fijan la altura de la barra y las líneas del título y el detalle.</li></ul>
+  </section>

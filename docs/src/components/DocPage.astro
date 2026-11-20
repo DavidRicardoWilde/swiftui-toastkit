@@ -1,23 +1,50 @@
 ---
 import '../styles/global.css';
+import CommunityEn from './sections/en/project-community.astro';
+import CommunityEs from './sections/es/project-community.astro';
+import CommunityJa from './sections/ja/project-community.astro';
+import CommunityKo from './sections/ko/project-community.astro';
+import CommunityZhCn from './sections/zh-cn/project-community.astro';
+import CommunityZhHant from './sections/zh-hant/project-community.astro';
 
 interface Props {
   lang: 'en' | 'zh-cn' | 'zh-hant' | 'ja' | 'ko' | 'es';
   title: string;
   description: string;
+  activePage?: string;
 }
 
-const { lang, title, description } = Astro.props;
+const { lang, title, description, activePage = 'overview' } = Astro.props;
+const isDev = import.meta.env.DEV;
+const CommunitySection = {
+  en: CommunityEn,
+  es: CommunityEs,
+  ja: CommunityJa,
+  ko: CommunityKo,
+  'zh-cn': CommunityZhCn,
+  'zh-hant': CommunityZhHant,
+}[lang];
 const sectionLabels: Record<Props['lang'], string[]> = {
-  en: ['Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Accessibility', 'App localization'],
-  'zh-cn': ['快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '辅助功能', '应用本地化'],
-  'zh-hant': ['快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '輔助使用', '應用程式本地化'],
-  ja: ['はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'アクセシビリティ', 'アプリのローカライズ'],
-  ko: ['시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '접근성', '앱 현지화'],
-  es: ['Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Accesibilidad', 'Localización de la app'],
+  en: ['About ToastKit', 'Get started', 'Toast messages', 'Display duration', 'Gestures & actions', 'Styles & themes', 'Placement & width', 'Sizes', 'Dismissing toasts', 'Progress toasts', 'Accessibility', 'App localization', 'Project & community'],
+  'zh-cn': ['项目介绍', '快速开始', 'Toast 消息', '显示时长', '手势与操作', '样式与主题', '位置与宽度', '尺寸', '移除 Toast', '进度 Toast', '辅助功能', '应用本地化', '项目与社区'],
+  'zh-hant': ['專案介紹', '快速開始', 'Toast 訊息', '顯示時間', '手勢與操作', '樣式與主題', '位置與寬度', '尺寸', '移除 Toast', '進度 Toast', '輔助使用', '應用程式本地化', '專案與社群'],
+  ja: ['ToastKit について', 'はじめに', 'Toast メッセージ', '表示時間', 'ジェスチャと操作', 'スタイルとテーマ', '配置と幅', 'サイズ', 'Toast を閉じる', '進捗 Toast', 'アクセシビリティ', 'アプリのローカライズ', 'プロジェクトとコミュニティ'],
+  ko: ['ToastKit 소개', '시작하기', '토스트 메시지', '표시 시간', '제스처와 동작', '스타일과 테마', '위치와 너비', '크기', '토스트 닫기', '진행률 토스트', '접근성', '앱 현지화', '프로젝트와 커뮤니티'],
+  es: ['Acerca de ToastKit', 'Primeros pasos', 'Mensajes toast', 'Duración', 'Gestos y acciones', 'Estilos y temas', 'Posición y ancho', 'Tamaños', 'Descartar toasts', 'Toasts de progreso', 'Accesibilidad', 'Localización de la app', 'Proyecto y comunidad'],
 };
 const guideLabel: Record<Props['lang'], string> = {
   en: 'GUIDES', 'zh-cn': '使用指南', 'zh-hant': '使用指南', ja: 'ガイド', ko: '가이드', es: 'GUÍAS',
+};
+const tocLabel: Record<Props['lang'], string> = {
+  en: 'ON THIS PAGE', 'zh-cn': '本页目录', 'zh-hant': '本頁目錄', ja: 'このページ', ko: '이 페이지', es: 'EN ESTA PÁGINA',
+};
+const searchCopy: Record<Props['lang'], { placeholder: string; label: string; empty: string }> = {
+  en: { placeholder: 'Search docs…', label: 'Search documentation', empty: 'No matching sections' },
+  'zh-cn': { placeholder: '搜索文档…', label: '搜索文档', empty: '没有匹配的章节' },
+  'zh-hant': { placeholder: '搜尋文件…', label: '搜尋文件', empty: '沒有符合的章節' },
+  ja: { placeholder: 'ドキュメントを検索…', label: 'ドキュメントを検索', empty: '一致するセクションがありません' },
+  ko: { placeholder: '문서 검색…', label: '문서 검색', empty: '일치하는 섹션이 없습니다' },
+  es: { placeholder: 'Buscar documentación…', label: 'Buscar documentación', empty: 'No hay secciones coincidentes' },
 };
 const languageNames: Array<{ code: Props['lang']; label: string; native: string; href: string }> = [
   { code: 'en', label: 'English', native: 'EN', href: '/' },
@@ -29,8 +56,70 @@ const languageNames: Array<{ code: Props['lang']; label: string; native: string;
 ];
 const htmlLang = lang === 'zh-hant' ? 'zh-Hant' : lang === 'zh-cn' ? 'zh-CN' : lang;
 const sections = sectionLabels[lang].map((label, index) => [
-  ['start', 'messages', 'timing', 'actions', 'styling', 'layout', 'accessibility', 'localization'][index], label,
+  ['overview', 'start', 'messages', 'timing', 'actions', 'styling', 'layout', 'sizes', 'dismissing', 'progress', 'accessibility', 'localization', 'feedback'][index], label,
 ]);
+const mockSubsectionLabels: Record<Props['lang'], string[]> = {
+  en: ['GitHub', 'Discussions', 'Issues', 'Releases & changelog', 'Contributing'],
+  'zh-cn': ['GitHub', '讨论', '问题反馈', '版本记录与更新日志', '参与贡献'],
+  'zh-hant': ['GitHub', '討論', '問題回報', '版本記錄與更新日誌', '參與貢獻'],
+  ja: ['GitHub', 'ディスカッション', 'Issue', 'リリースと変更履歴', 'コントリビュート'],
+  ko: ['GitHub', '토론', '이슈', '릴리스 및 변경 기록', '기여하기'],
+  es: ['GitHub', 'Debates', 'Incidencias', 'Versiones y cambios', 'Colaborar'],
+};
+const mockOverviewLabel: Record<Props['lang'], string> = {
+  en: 'Community overview', 'zh-cn': '项目与社区概览', 'zh-hant': '專案與社群概覽', ja: 'プロジェクトとコミュニティの概要', ko: '프로젝트 및 커뮤니티 개요', es: 'Resumen del proyecto y la comunidad',
+};
+const mockCommunityDetails: Record<Props['lang'], Array<{ id: string; eyebrow: string; description: string; guidance: string; links: Array<{ label: string; href: string }> }>> = {
+  en: [
+    { id: 'github', eyebrow: 'SOURCE & PROJECT', description: 'ToastKit is an open-source SwiftUI library for stacked toast notifications on iOS.', guidance: 'Browse the source, sample app, documentation, and project history in the repository.', links: [{ label: 'Open repository', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit' }] },
+    { id: 'discussions', eyebrow: 'QUESTIONS & IDEAS', description: 'Use Discussions for usage questions, general feedback, and ideas that need conversation.', guidance: 'If a discussion reveals a concrete bug or feature request, continue in a GitHub Issue so it can be tracked.', links: [{ label: 'Open Discussions', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions' }] },
+    { id: 'issues', eyebrow: 'BUGS & FEATURE REQUESTS', description: 'Use an Issue for a reproducible problem or a specific feature request.', guidance: 'Include steps to reproduce, actual and expected results, and a minimal Swift example. The example may intentionally contain incorrect or non-compiling code. Add a screenshot or recording for visual issues, plus iOS/iPadOS, device or simulator, Xcode, Swift, and ToastKit versions.', links: [{ label: 'Create an Issue', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose' }] },
+    { id: 'changelog', eyebrow: 'TAGS, RELEASES & CHANGELOG', description: 'Use tags to identify the source for each version, Releases for published release notes, and the changelog for a version-by-version summary.', guidance: 'Compare a release with the previous tag when you need to review the exact code changes.', links: [{ label: 'Browse tags', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/tags' }, { label: 'View Releases', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/releases' }, { label: 'Read changelog', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md' }] },
+    { id: 'contributing', eyebrow: 'CONTRIBUTE', description: 'Contributions are welcome, including focused fixes, documentation improvements, and useful examples.', guidance: 'Please describe the change and validation performed in your pull request. The guide covers project conventions and review expectations.', links: [{ label: 'Read contributing guide', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md' }] },
+  ],
+  'zh-cn': [
+    { id: 'github', eyebrow: '源码与项目', description: 'ToastKit 是一个开源 SwiftUI 库，为 iOS 提供可堆叠的 Toast 通知。', guidance: '在仓库中查看源码、示例应用、文档和项目历史。', links: [{ label: '打开 GitHub 仓库', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit' }] },
+    { id: 'discussions', eyebrow: '问题与想法', description: '用 Discussions 交流使用问题、一般反馈，以及需要先讨论的想法。', guidance: '如果讨论中发现了明确的错误或功能需求，可以整理成 GitHub Issue 进行跟踪。', links: [{ label: '打开 Discussions', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions' }] },
+    { id: 'issues', eyebrow: '错误与功能请求', description: '使用 Issue 报告可复现的问题，或提出具体的功能请求。', guidance: '请写明复现步骤、实际结果和期望结果，并提供最小 Swift 示例。示例代码允许故意写成错误或无法编译的形式。视觉问题请附截图或录屏，并注明 iOS/iPadOS、设备或模拟器、Xcode、Swift 和 ToastKit 版本。', links: [{ label: '创建 GitHub Issue', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose' }] },
+    { id: 'changelog', eyebrow: 'TAG、RELEASES 与 CHANGELOG', description: '使用 tag 确认每个版本的源码，使用 Releases 查看发布说明，并通过 changelog 浏览逐版本的变更摘要。', guidance: '需要核对具体代码变化时，可以比较当前版本与上一个 tag。', links: [{ label: '浏览 tags', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/tags' }, { label: '查看 Releases', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/releases' }, { label: '查看变更日志', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md' }] },
+    { id: 'contributing', eyebrow: '参与贡献', description: '欢迎提交范围清晰的修复、文档改进和有帮助的示例。', guidance: '提交 Pull Request 时，请简要说明改动内容和验证方式。贡献指南列出了项目约定与审阅注意事项。', links: [{ label: '阅读贡献指南', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md' }] },
+  ],
+  'zh-hant': [
+    { id: 'github', eyebrow: '原始碼與專案', description: 'ToastKit 是一個開源 SwiftUI 函式庫，為 iOS 提供可堆疊的 Toast 通知。', guidance: '可在儲存庫中查看原始碼、示範 App、文件與專案歷史。', links: [{ label: '開啟 GitHub 儲存庫', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit' }] },
+    { id: 'discussions', eyebrow: '問題與想法', description: '使用 Discussions 交流使用問題、一般回饋，以及需要先討論的想法。', guidance: '若討論中發現明確的錯誤或功能需求，可整理成 GitHub Issue 追蹤。', links: [{ label: '開啟 Discussions', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions' }] },
+    { id: 'issues', eyebrow: '錯誤與功能請求', description: '使用 Issue 回報可重現的問題，或提出具體的功能請求。', guidance: '請提供重現步驟、實際結果與預期結果，以及最小 Swift 範例。範例程式碼可刻意寫成錯誤或無法編譯的形式。視覺問題請附截圖或錄影，並註明 iOS/iPadOS、裝置或模擬器、Xcode、Swift 與 ToastKit 版本。', links: [{ label: '建立 GitHub Issue', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose' }] },
+    { id: 'changelog', eyebrow: 'TAG、RELEASES 與 CHANGELOG', description: '透過 tag 確認各版本原始碼，透過 Releases 查看發布說明，並在 changelog 瀏覽各版本摘要。', guidance: '若要核對程式碼變化，可比較目前版本與前一個 tag。', links: [{ label: '瀏覽 tags', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/tags' }, { label: '查看 Releases', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/releases' }, { label: '查看變更日誌', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md' }] },
+    { id: 'contributing', eyebrow: '參與貢獻', description: '歡迎提交範圍明確的修正、文件改進與實用範例。', guidance: '提交 Pull Request 時，請簡述改動內容與驗證方式。貢獻指南說明了專案約定與審查注意事項。', links: [{ label: '閱讀貢獻指南', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md' }] },
+  ],
+  ja: [
+    { id: 'github', eyebrow: 'ソースとプロジェクト', description: 'ToastKit は iOS 向けのスタック可能な Toast 通知を提供する、オープンソースの SwiftUI ライブラリです。', guidance: 'リポジトリでソース、サンプルアプリ、ドキュメント、プロジェクトの履歴を確認できます。', links: [{ label: 'GitHub リポジトリを開く', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit' }] },
+    { id: 'discussions', eyebrow: '質問とアイデア', description: '使い方の質問、一般的なフィードバック、議論が必要なアイデアには Discussions を利用してください。', guidance: '具体的な不具合や機能要望になった場合は、GitHub Issue にまとめて追跡できます。', links: [{ label: 'Discussions を開く', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions' }] },
+    { id: 'issues', eyebrow: '不具合と機能要望', description: '再現可能な問題の報告や具体的な機能要望には Issue を利用してください。', guidance: '再現手順、実際の結果、期待する結果、最小限の Swift サンプルを記載してください。サンプルには意図的に誤ったコードやコンパイルできないコードも含められます。', links: [{ label: 'GitHub Issue を作成', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose' }] },
+    { id: 'changelog', eyebrow: 'タグ、リリース、変更履歴', description: 'タグで各バージョンのソースを確認し、Releases と変更履歴で更新内容を確認できます。', guidance: 'コードの差分を確認するには、現在のタグと直前のタグを比較してください。', links: [{ label: 'タグを見る', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/tags' }, { label: 'Releases を見る', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/releases' }, { label: '変更履歴を見る', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md' }] },
+    { id: 'contributing', eyebrow: 'コントリビュート', description: '範囲を絞った修正、ドキュメントの改善、役立つサンプルを歓迎します。', guidance: 'Pull Request には変更内容と検証方法を簡潔に記載してください。', links: [{ label: '貢献ガイドを読む', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md' }] },
+  ],
+  ko: [
+    { id: 'github', eyebrow: '소스 및 프로젝트', description: 'ToastKit은 iOS용 스택형 Toast 알림을 제공하는 오픈 소스 SwiftUI 라이브러리입니다.', guidance: '저장소에서 소스 코드, 샘플 앱, 문서와 프로젝트 이력을 확인할 수 있습니다.', links: [{ label: 'GitHub 저장소 열기', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit' }] },
+    { id: 'discussions', eyebrow: '질문 및 아이디어', description: '사용법 질문, 일반 피드백, 논의가 필요한 아이디어는 Discussions를 이용하세요.', guidance: '구체적인 버그나 기능 요청이 되면 GitHub Issue로 정리해 추적할 수 있습니다.', links: [{ label: 'Discussions 열기', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions' }] },
+    { id: 'issues', eyebrow: '버그 및 기능 요청', description: '재현 가능한 문제나 구체적인 기능 요청은 Issue로 등록하세요.', guidance: '재현 단계, 실제 결과와 기대 결과, 최소 Swift 예제를 포함하세요. 예제에는 의도적으로 잘못되었거나 컴파일되지 않는 코드를 작성해도 됩니다.', links: [{ label: 'GitHub Issue 만들기', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose' }] },
+    { id: 'changelog', eyebrow: '태그, 릴리스 및 변경 기록', description: '태그로 각 버전의 소스를 확인하고 Releases와 변경 기록에서 업데이트 내용을 살펴보세요.', guidance: '코드 차이를 확인하려면 현재 태그와 이전 태그를 비교하세요.', links: [{ label: '태그 보기', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/tags' }, { label: 'Releases 보기', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/releases' }, { label: '변경 기록 보기', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md' }] },
+    { id: 'contributing', eyebrow: '기여하기', description: '범위가 명확한 수정, 문서 개선과 유용한 예제를 환영합니다.', guidance: 'Pull Request에는 변경 내용과 검증 방법을 간단히 적어 주세요.', links: [{ label: '기여 안내 읽기', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md' }] },
+  ],
+  es: [
+    { id: 'github', eyebrow: 'CÓDIGO Y PROYECTO', description: 'ToastKit es una biblioteca SwiftUI de código abierto para notificaciones toast apiladas en iOS.', guidance: 'Consulta el código, la app de ejemplo, la documentación y el historial en el repositorio.', links: [{ label: 'Abrir el repositorio', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit' }] },
+    { id: 'discussions', eyebrow: 'PREGUNTAS E IDEAS', description: 'Usa Discussions para preguntas de uso, comentarios generales e ideas que necesiten conversación.', guidance: 'Si surge un error concreto o una solicitud de función, puedes convertirla en un Issue para darle seguimiento.', links: [{ label: 'Abrir Discussions', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/discussions' }] },
+    { id: 'issues', eyebrow: 'ERRORES Y SOLICITUDES', description: 'Usa un Issue para informar de un problema reproducible o solicitar una función concreta.', guidance: 'Incluye pasos, resultado real y esperado, y un ejemplo Swift mínimo. El ejemplo puede contener código incorrecto o que no compile de forma intencional.', links: [{ label: 'Crear un Issue', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/issues/new/choose' }] },
+    { id: 'changelog', eyebrow: 'TAGS, VERSIONES Y CAMBIOS', description: 'Consulta los tags para identificar el código de cada versión, Releases para las notas y el changelog para un resumen por versión.', guidance: 'Compara el tag actual con el anterior para revisar los cambios de código.', links: [{ label: 'Ver tags', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/tags' }, { label: 'Ver Releases', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/releases' }, { label: 'Leer el changelog', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CHANGELOG.md' }] },
+    { id: 'contributing', eyebrow: 'COLABORA', description: 'Se agradecen correcciones concretas, mejoras de documentación y ejemplos útiles.', guidance: 'Describe brevemente el cambio y cómo lo validaste en tu pull request.', links: [{ label: 'Leer la guía de contribución', href: 'https://github.com/DavidRicardoWilde/swiftui-toastkit/blob/main/CONTRIBUTING.md' }] },
+  ],
+};
+const pageSlugs: Record<string, string> = {
+  start: 'get-started', messages: 'toast-messages', timing: 'display-duration', actions: 'gestures-actions',
+  styling: 'styles-themes', layout: 'placement-width', sizes: 'sizes', dismissing: 'dismissing-toasts',
+  progress: 'progress-toasts', accessibility: 'accessibility', localization: 'app-localization', feedback: 'project-community',
+};
+const localePrefix = lang === 'en' ? '' : `/${lang}`;
+const sectionHref = (id: string) => id === 'overview' ? home : `${localePrefix}/${pageSlugs[id]}/`;
 const isCjk = ['zh-cn', 'zh-hant', 'ja', 'ko'].includes(lang);
 const home = languageNames.find((language) => language.code === lang)?.href ?? '/';
 const activeLanguage = languageNames.find((language) => language.code === lang)?.native ?? 'EN';
@@ -43,16 +132,36 @@ const activeLanguage = languageNames.find((language) => language.code === lang)?
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f7f7f5" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="1024x1024" href="/icon-1024.png" />
     <title>{title}</title>
+    <script is:inline>
+      (() => {
+        const savedTheme = localStorage.getItem('toastkit-theme');
+        const theme = ['light', 'dark', 'system'].includes(savedTheme ?? '') ? savedTheme : 'system';
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
-  <body>
+  <body data-active-page={activePage}>
     <header class="topbar">
       <a class="brand" href={home} aria-label="ToastKit home">
-        <span class="brand-mark">t</span>
+        <img class="brand-mark" src="/favicon.svg" alt="" width="29" height="29" />
         <span>ToastKit<span class="brand-docs"> / {isCjk ? (lang === 'ja' ? 'ドキュメント' : lang === 'ko' ? '문서' : lang === 'zh-hant' ? '文件' : '文档') : lang === 'es' ? 'Documentación' : 'Docs'}</span></span>
       </a>
       <nav class="top-links" aria-label={isCjk ? (lang === 'ja' ? 'メインナビゲーション' : lang === 'ko' ? '주 탐색' : '主導覽') : lang === 'es' ? 'Navegación principal' : 'Main navigation'}>
         <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">GitHub <span aria-hidden="true">↗</span></a>
+        <details class="theme-menu">
+          <summary aria-label={lang === 'ja' ? 'テーマを選択' : lang === 'ko' ? '테마 선택' : lang === 'es' ? 'Elegir tema' : isCjk ? '选择主题' : 'Choose theme'} title={lang === 'ja' ? 'テーマ' : lang === 'ko' ? '테마' : lang === 'es' ? 'Tema' : isCjk ? '主题' : 'Theme'}>
+            <span aria-hidden="true">◐</span>
+          </summary>
+          <div class="theme-options" role="group" aria-label={lang === 'ja' ? 'テーマ' : lang === 'ko' ? '테마' : lang === 'es' ? 'Tema' : isCjk ? '主题' : 'Theme'}>
+            <button type="button" data-theme-choice="light">{lang === 'ja' ? 'ライト' : lang === 'ko' ? '라이트' : lang === 'es' ? 'Claro' : isCjk ? '浅色' : 'Light'}</button>
+            <button type="button" data-theme-choice="dark">{lang === 'ja' ? 'ダーク' : lang === 'ko' ? '다크' : lang === 'es' ? 'Oscuro' : isCjk ? '深色' : 'Dark'}</button>
+            <button type="button" data-theme-choice="system">{lang === 'ja' ? 'システムに合わせる' : lang === 'ko' ? '시스템 설정' : lang === 'es' ? 'Sistema' : isCjk ? '跟随系统' : 'System'}</button>
+          </div>
+        </details>
         <details class="locale-menu">
           <summary aria-label={lang === 'ja' ? '言語を選択' : lang === 'ko' ? '언어 선택' : lang === 'es' ? 'Seleccionar idioma' : '选择语言'}>{activeLanguage}<span aria-hidden="true">⌄</span></summary>
           <div class="locale-options">
@@ -68,28 +177,262 @@ const activeLanguage = languageNames.find((language) => language.code === lang)?
 
     <div class="shell">
       <aside class="sidebar">
-        <p class="eyebrow">{guideLabel[lang]}</p>
-        <nav aria-label={isCjk ? (lang === 'ja' ? 'ドキュメントの各章' : lang === 'ko' ? '문서 섹션' : '文件章節') : lang === 'es' ? 'Secciones de documentación' : 'Documentation sections'}>
+        <label class="sidebar-search">
+          <svg class="sidebar-search-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+            <circle cx="10.8" cy="10.8" r="6.3" stroke="currentColor" stroke-width="1.8" />
+            <path d="m15.5 15.5 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <span class="sidebar-search-sr-only">{searchCopy[lang].label}</span>
+          <input type="search" class="sidebar-search-input" placeholder={searchCopy[lang].placeholder} aria-label={searchCopy[lang].label} aria-keyshortcuts="Meta+K Control+K" />
+          <kbd aria-hidden="true">⌘ K</kbd>
+        </label>
+        <p class="sidebar-search-empty" role="status" hidden>{searchCopy[lang].empty}</p>
+        <p class="eyebrow sidebar-guide-label">{guideLabel[lang]}</p>
+        <nav class="guide-nav" aria-label={isCjk ? (lang === 'ja' ? 'ドキュメントの各章' : lang === 'ko' ? '문서 섹션' : '文件章節') : lang === 'es' ? 'Secciones de documentación' : 'Documentation sections'}>
           {sections.map(([id, label], index) => (
-            <a href={`#${id}`} class:list={['side-link', index === 0 && 'selected']}>
-              <span class="nav-number">{String(index + 1).padStart(2, '0')}</span>{label}
+            <a href={sectionHref(id)} data-mock-folder={isDev && id === 'feedback' ? 'community' : undefined} class:list={['side-link', id === activePage && 'selected']} aria-current={id === activePage ? 'page' : undefined}>
+              <span class="nav-number">{String(index).padStart(2, '0')}</span>{label}
+              {isDev && id === 'feedback' && <span class="sidebar-mock-chevron" aria-hidden="true">›</span>}
             </a>
           ))}
         </nav>
+        {isDev && (
+          <div class="sidebar-mock-directory" data-mock-directory>
+            <div class="sidebar-subnav" hidden>
+              <button class="sidebar-subnav-heading" type="button" aria-label={isCjk ? '返回使用指南' : 'Back to guides'}>
+                <span class="sidebar-subnav-arrow" aria-hidden="true">‹</span>
+                <span>{sectionLabels[lang][12]}</span>
+              </button>
+              <a class="side-link selected" href="#mock-community-overview" data-mock-child="overview">
+                <span class="nav-number">00</span>{mockOverviewLabel[lang]}
+              </a>
+              {mockSubsectionLabels[lang].map((label, index) => (
+                <a class="side-link" href={`#mock-community-${mockCommunityDetails[lang][index].id}`} data-mock-child={mockCommunityDetails[lang][index].id}>
+                  <span class="nav-number">{String(index + 1).padStart(2, '0')}</span>{label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         <div class="sidebar-note">
           <span class="note-dot"></span>
           <p>{lang === 'ja' ? 'SwiftUI 向け' : lang === 'ko' ? 'SwiftUI 기반' : lang === 'es' ? 'Hecho para SwiftUI' : isCjk ? 'SwiftUI 原生构建' : 'Built for SwiftUI'}</p>
-          <small>iOS 17+ · macOS 14+</small>
+          <small>iOS 17+ · iPadOS 17+</small>
         </div>
       </aside>
 
       <main id="content">
-        <slot />
+        <div class="original-document" data-mock-original>
+          <slot />
+        </div>
+        {isDev && activePage !== 'feedback' && (
+          <div class="original-document" data-mock-community-original hidden>
+            <CommunitySection />
+          </div>
+        )}
+        {isDev && mockCommunityDetails[lang].map((detail, index) => (
+          <section class="doc-section mock-community-page" id={`mock-community-${detail.id}`} data-mock-page={detail.id} hidden>
+            <div class="section-heading">
+              <span class="section-index">12.{String(index + 1).padStart(2, '0')}</span>
+              <div><p class="eyebrow">{detail.eyebrow}</p><h2>{mockSubsectionLabels[lang][index]}</h2></div>
+            </div>
+            <p>{detail.description}</p>
+            <div class="callout"><p>{detail.guidance}</p></div>
+            <div class="mock-community-links">
+              {detail.links.map((link) => <a href={link.href} target="_blank" rel="noreferrer">{link.label} <span aria-hidden="true">↗</span></a>)}
+            </div>
+          </section>
+        ))}
         <footer class="footer">
           <span>ToastKit · SwiftUI notifications</span>
           <a href="https://github.com/DavidRicardoWilde/swiftui-toastkit">{lang === 'ja' ? 'ソースを見る' : lang === 'ko' ? '소스 보기' : lang === 'es' ? 'Ver código fuente' : isCjk ? '查看源码' : 'View source'} ↗</a>
         </footer>
       </main>
+
+      <aside class="toc-sidebar" aria-label={tocLabel[lang]} hidden>
+        <p class="toc-title">{tocLabel[lang]}</p>
+        <nav class="toc-list" aria-label={tocLabel[lang]}></nav>
+      </aside>
     </div>
+<script>
+  const themeMenu = document.querySelector<HTMLElement>('.theme-menu');
+  const themeButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-theme-choice]'));
+
+  const applyTheme = (theme: string) => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('toastkit-theme', theme);
+    themeButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.themeChoice === theme));
+    });
+  };
+
+  themeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyTheme(button.dataset.themeChoice ?? 'system');
+      themeMenu?.removeAttribute('open');
+    });
+  });
+
+  applyTheme(document.documentElement.dataset.theme ?? 'system');
+
+  const navigationLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('.guide-nav .side-link'));
+  const searchInput = document.querySelector<HTMLInputElement>('.sidebar-search-input');
+  const searchEmpty = document.querySelector<HTMLElement>('.sidebar-search-empty');
+  const guideNav = document.querySelector<HTMLElement>('.guide-nav');
+  const guideLabelElement = document.querySelector<HTMLElement>('.sidebar-guide-label');
+  const mockDirectory = document.querySelector<HTMLElement>('[data-mock-directory]');
+  const mockFolder = guideNav?.querySelector<HTMLAnchorElement>('[data-mock-folder]');
+  const mockSubnav = mockDirectory?.querySelector<HTMLElement>('.sidebar-subnav');
+  const mockBack = mockDirectory?.querySelector<HTMLButtonElement>('.sidebar-subnav-heading');
+  const currentDocument = document.querySelector<HTMLElement>('[data-mock-original]');
+  const mockCommunityOriginal = document.querySelector<HTMLElement>('[data-mock-community-original]');
+  const overviewUsesCurrentDocument = document.body.dataset.activePage === 'feedback';
+  const mockPages = Array.from(document.querySelectorAll<HTMLElement>('[data-mock-page]'));
+  const mockChildren = Array.from(mockDirectory?.querySelectorAll<HTMLAnchorElement>('[data-mock-child]') ?? []);
+  const setMockPage = (pageId: string) => {
+    const isOverview = pageId === 'overview';
+    if (currentDocument) currentDocument.hidden = isOverview ? !overviewUsesCurrentDocument : true;
+    if (mockCommunityOriginal) mockCommunityOriginal.hidden = isOverview ? overviewUsesCurrentDocument : true;
+    mockPages.forEach((page) => { page.hidden = page.dataset.mockPage !== pageId; });
+    mockChildren.forEach((link) => link.classList.toggle('selected', link.dataset.mockChild === pageId));
+  };
+  const restoreCurrentDocument = () => {
+    if (currentDocument) currentDocument.hidden = false;
+    if (mockCommunityOriginal) mockCommunityOriginal.hidden = true;
+    mockPages.forEach((page) => { page.hidden = true; });
+  };
+  const setMockSubnavOpen = (isOpen: boolean) => {
+    if (!mockDirectory || !guideNav || !guideLabelElement || !mockFolder || !mockSubnav) return;
+    guideNav.hidden = isOpen;
+    guideLabelElement.hidden = isOpen;
+    mockSubnav.hidden = !isOpen;
+  };
+  mockFolder?.addEventListener('click', (event) => {
+    event.preventDefault();
+    setMockSubnavOpen(true);
+    setMockPage('overview');
+  });
+  mockBack?.addEventListener('click', () => {
+    restoreCurrentDocument();
+    setMockSubnavOpen(false);
+  });
+  mockChildren.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      setMockPage(link.dataset.mockChild ?? 'overview');
+    });
+  });
+  searchInput?.addEventListener('input', () => {
+    if (searchInput.value.trim()) setMockSubnavOpen(false);
+  });
+  const normalizeSearchText = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+  const searchEntries = navigationLinks.map((link) => ({ link, title: normalizeSearchText(link.textContent ?? '') }));
+  const pageTextCache = new Map<string, Promise<string>>();
+  let searchRevision = 0;
+
+  const getPageText = (link: HTMLAnchorElement) => {
+    if (link.getAttribute('aria-current') === 'page') {
+      return Promise.resolve(normalizeSearchText(document.querySelector('#content')?.textContent ?? ''));
+    }
+    const cached = pageTextCache.get(link.href);
+    if (cached) return cached;
+    const result = fetch(link.href)
+      .then((response) => response.text())
+      .then((html) => {
+        const page = new DOMParser().parseFromString(html, 'text/html');
+        return normalizeSearchText(page.querySelector('#content')?.textContent ?? '');
+      })
+      .catch(() => '');
+    pageTextCache.set(link.href, result);
+    return result;
+  };
+
+  let searchTask: Promise<void> = Promise.resolve();
+  const updateSearch = async () => {
+    const revision = ++searchRevision;
+    const query = normalizeSearchText(searchInput?.value.trim() ?? '');
+    if (!query) {
+      searchEntries.forEach(({ link }) => { link.hidden = false; });
+      if (searchEmpty) searchEmpty.hidden = true;
+      return;
+    }
+    searchEntries.forEach(({ link, title }) => {
+      const isMatch = title.includes(query);
+      link.hidden = !isMatch;
+    });
+    if (searchEmpty) searchEmpty.hidden = true;
+    const pageTexts = await Promise.all(searchEntries.map(({ link }) => getPageText(link)));
+    if (revision !== searchRevision) return;
+    let matches = 0;
+    searchEntries.forEach(({ link, title }, index) => {
+      const isMatch = title.includes(query) || pageTexts[index].includes(query);
+      link.hidden = !isMatch;
+      if (isMatch) matches += 1;
+    });
+    if (searchEmpty) searchEmpty.hidden = matches > 0;
+  };
+
+  searchInput?.addEventListener('input', () => { searchTask = updateSearch(); });
+  searchInput?.addEventListener('keydown', async (event) => {
+    if (event.key === 'Escape') {
+      searchInput.value = '';
+      searchTask = updateSearch();
+      searchInput.blur();
+    } else if (event.key === 'Enter') {
+      await searchTask;
+      const firstMatch = searchEntries.find(({ link }) => !link.hidden)?.link;
+      if (firstMatch) {
+        firstMatch.click();
+        searchInput.value = '';
+        searchTask = updateSearch();
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      searchInput?.focus();
+      searchInput?.select();
+    }
+  });
+
+  const tocAside = document.querySelector<HTMLElement>('.toc-sidebar');
+  const tocList = document.querySelector<HTMLElement>('.toc-list');
+  const articleHeadings = Array.from(document.querySelectorAll<HTMLElement>('#content .doc-section h3'))
+    .filter((heading) => !heading.closest('.info-grid'));
+  if (tocAside && tocList && articleHeadings.length >= 2) {
+    const usedIds = new Set<string>();
+    articleHeadings.forEach((heading, index) => {
+      if (!heading.id) {
+        const base = normalizeSearchText(heading.textContent ?? '')
+          .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
+          .replace(/^-|-$/g, '') || `section-${index + 1}`;
+        let id = base;
+        let suffix = 2;
+        while (usedIds.has(id) || document.getElementById(id)) id = `${base}-${suffix++}`;
+        heading.id = id;
+      }
+      usedIds.add(heading.id);
+      const link = document.createElement('a');
+      link.className = 'toc-link';
+      link.href = `#${heading.id}`;
+      link.textContent = heading.textContent?.trim() ?? '';
+      link.dataset.tocId = heading.id;
+      tocList.append(link);
+    });
+    tocAside.hidden = false;
+
+    const tocLinks = Array.from(tocList.querySelectorAll<HTMLAnchorElement>('.toc-link'));
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (!visible) return;
+      const activeId = (visible.target as HTMLElement).id;
+      tocLinks.forEach((link) => link.classList.toggle('active', link.dataset.tocId === activeId));
+    }, { rootMargin: '-90px 0px -65% 0px', threshold: 0 });
+    articleHeadings.forEach((heading) => observer.observe(heading));
+  }
+</script>
   </body>
 </html>

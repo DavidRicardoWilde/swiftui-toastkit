@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">잠시 보여주기</p><h2>표시 시간</h2></div></div>
+    <p><code>.automatic</code>은 기본값인 4초 동안 표시됩니다. 초 단위로 직접 지정하거나 사용자의 확인이 필요한 알림에는 <code>.indefinite</code>를 사용할 수 있어요.</p>
+    <SimulatorCapture name="03-timing" lang="ko" />
+    <pre><code><span class="comment">// 2초 동안 표시</span>
+ToastMessage(title: <span class="str">"복사됨"</span>, duration: 2)
+
+<span class="comment">// 직접 닫을 때까지 표시</span>
+ToastMessage(title: <span class="str">"동기화 실패"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>맨 앞에 있는 토스트만 카운트다운합니다.</li><li>뒤에 가려진 토스트는 앞으로 나올 때까지 표시 시간을 사용하지 않습니다.</li><li>스택을 누르고 있거나 앱이 백그라운드에 있으면 타이머가 멈춥니다.</li></ul>
+  </section>

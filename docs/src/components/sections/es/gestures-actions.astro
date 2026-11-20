@@ -1,0 +1,38 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="actions">
+    <div class="section-heading"><span class="section-index">04</span><div><p class="eyebrow">UN SIGUIENTE PASO CLARO</p><h2>Gestos y acciones</h2></div></div>
+    <p>Se puede tocar, deslizar en cualquier dirección o mantener pulsado para ver ambas opciones antes de elegir. VoiceOver también ofrece las acciones por nombre.</p>
+    <SimulatorCapture name="04-actions" lang="es" />
+    <div class="table-wrap"><table><thead><tr><th>Gesto</th><th>Predeterminado</th><th>Personaliza con</th></tr></thead><tbody><tr><td>Toque</td><td>Sin acción; pasa al contenido de atrás</td><td><code>tapAction</code> u <code>onTap</code></td></tr><tr><td>Deslizar hacia leading</td><td>Eliminar el aviso</td><td><code>swipeActions.leading</code></td></tr><tr><td>Deslizar hacia trailing</td><td>Mostrarlo en la próxima visita</td><td><code>swipeActions.trailing</code></td></tr><tr><td>Deslizar hacia arriba</td><td>Sin acción</td><td><code>swipeActions.up</code></td></tr><tr><td>Deslizar hacia abajo</td><td>Sin acción</td><td><code>swipeActions.down</code></td></tr><tr><td>Mantener pulsado</td><td>Previsualizar todas las acciones</td><td>Usa las mismas acciones</td></tr></tbody></table></div>
+    <pre><code><span class="kw">let</span> archive = ToastAction(
+    id: <span class="str">"archive"</span>,
+    title: <span class="str">"Archivar"</span>,
+    icon: .system(<span class="str">"archivebox"</span>),
+    confirmation: <span class="str">"Archivado"</span>
+) &#123; toast <span class="kw">in</span>
+    store.archive(toast.id)
+&#125;
+
+toasts.present(ToastMessage(
+    title: <span class="str">"Mensaje de Ana"</span>,
+    tapAction: ToastAction(title: <span class="str">"Abrir"</span>) &#123; toast <span class="kw">in</span>
+        router.open(toast.id)
+    &#125;,
+    swipeActions: ToastSwipeActions(leading: archive, trailing: .later)
+))</code></pre>
+    <p>También se puede deslizar hacia arriba y hacia abajo: se puede ofrecer un solo par de direcciones o las cuatro. El deslizamiento sigue el eje por el que el dedo se mueve primero, y al mantener pulsado esas acciones aparecen en una segunda pista, recta de arriba abajo.</p>
+    <pre><code><span class="comment">// Solo arriba y abajo</span>
+ToastSwipeActions.vertical(up: pin, down: .delete)
+
+<span class="comment">// Las cuatro direcciones</span>
+ToastSwipeActions(leading: .delete, trailing: .later, up: pin, down: archive)</code></pre>
+    <p>Las acciones se ejecutan en este orden: su handler, el observador <code>onToastAction</code> de la pila y, por último, su efecto. La acción integrada <code>.later</code> guarda el aviso hasta que la página vuelva a aparecer.</p>
+    <div class="callout"><span>✳</span><p><strong>Novedad en 0.2.0: las acciones a la vista desde el inicio del deslizamiento.</strong> De forma predeterminada, un deslizamiento rápido actúa al instante y la pista con ambas acciones espera a que se mantenga pulsado. Con <code>.toastSwipeHints(.immediate)</code>, el propio deslizamiento levanta la tarjeta sobre la pista.</p></div>
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastSwipeHints(.immediate)</code></pre>
+    <p>Tras 8 pt de recorrido, la tarjeta ya está en la pista con ambas acciones a la vista y sigue al dedo. Pasados 64 pt, el extremo hacia el que va se ilumina; al soltarla ahí, o al lanzarla hacia un extremo, se ejecuta esa acción. Si se suelta antes, la tarjeta vuelve a su sitio. Mantener pulsado sigue funcionando, y una <code>ToastCard</code> mostrada por sí sola, fuera de una pila, conserva el deslizamiento rápido. En ambos casos, la tarjeta levantada sube por encima del dedo y sus etiquetas van en la mitad superior de una pista más ancha, así que el pulgar no las tapa.</p>
+  </section>

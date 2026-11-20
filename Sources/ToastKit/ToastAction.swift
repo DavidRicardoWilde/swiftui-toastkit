@@ -114,6 +114,10 @@ public extension ToastAction {
     static let laterID = "toastkit.later"
     /// ``id`` of the action a stack-level `onTap` runs as.
     static let tapID = "toastkit.tap"
+    /// ``id`` of the built-in ``hideProgress`` action.
+    static let hideProgressID = "toastkit.progress.hide"
+    /// ``id`` of the built-in ``cancelProgress`` action.
+    static let cancelProgressID = "toastkit.progress.cancel"
 
     /// Removes the toast. The default leading swipe — to the left, in a left-to-right
     /// layout.
@@ -170,25 +174,60 @@ public extension ToastAction {
     }
 }
 
+// MARK: - Progress actions
+
+public extension ToastAction {
+
+    /// Hides a running progress toast. The work carries on, and a failure brings the card
+    /// back. What swiping a progress toast does unless told otherwise.
+    static var hideProgress: ToastAction {
+        ToastAction(
+            id: hideProgressID,
+            title: String(localized: "toast.action.hide", bundle: .module),
+            icon: .system("eye.slash"),
+            role: .subdued,
+            effect: .dismiss
+        )
+    }
+
+    /// Hides a running progress toast *and* cancels its work. Opt in with
+    /// `ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)`; swiping
+    /// never cancels otherwise.
+    static var cancelProgress: ToastAction {
+        ToastAction(
+            id: cancelProgressID,
+            title: String(localized: "toast.action.cancel", bundle: .module),
+            icon: .system("xmark.circle"),
+            role: .destructive,
+            effect: .dismiss
+        )
+    }
+}
+
 // MARK: - Swipe actions
 
-/// The two things a toast can be swiped into, one toward each side.
+/// What swiping a toast does: one action for each direction.
 ///
 /// A quick swipe runs an action at once. Pressing and holding first lifts the card onto
-/// a track with both actions drawn at its ends — icon, title and subtitle — so the user
-/// can see what each way does before letting go.
+/// a track with each action drawn at its end — icon, title and subtitle — so the user can
+/// see what each way does before letting go. With ``ToastSwipeHints/immediate`` set, the
+/// swipe itself lifts the card onto that track.
 ///
-/// By default every toast offers ``ToastAction/delete`` on the leading side and
-/// ``ToastAction/later`` on the trailing side. Replace either, or pass `nil` to make that
+/// Actions go left and right, up and down, or all four ways. By default every toast
+/// offers ``ToastAction/delete`` on the leading side and ``ToastAction/later`` on the
+/// trailing side, and nothing up or down. Replace any of them, or pass `nil` to make that
 /// direction do nothing:
 ///
 /// ```swift
 /// ToastSwipeActions()                                       // delete ← → later
 /// ToastSwipeActions(trailing: .later(title: "Snooze"))      // reworded
 /// ToastSwipeActions(leading: .delete, trailing: nil)        // one way only
+/// ToastSwipeActions.vertical(up: .later, down: .delete)     // up and down only
+/// ToastSwipeActions(up: pin, down: archive)                 // all four
 /// ToastSwipeActions.disabled                                // no swiping
 /// ```
 ///
+/// A swipe moves along one axis at a time, picked by which way the finger first goes.
 /// `leading` is the left side and `trailing` the right in a left-to-right layout.
 /// Right-to-left mirroring has not been verified yet.
 public struct ToastSwipeActions: Equatable {
@@ -196,10 +235,39 @@ public struct ToastSwipeActions: Equatable {
     public var leading: ToastAction?
     /// Run by swiping toward the trailing side.
     public var trailing: ToastAction?
+    /// Run by swiping up.
+    public var up: ToastAction?
+    /// Run by swiping down.
+    public var down: ToastAction?
 
-    public init(leading: ToastAction? = .delete, trailing: ToastAction? = .later) {
+    /// - Parameters:
+    ///   - leading: Run by swiping toward the leading side. ``ToastAction/delete`` by default.
+    ///   - trailing: Run by swiping toward the trailing side. ``ToastAction/later`` by default.
+    ///   - up: Run by swiping up. Nothing by default.
+    ///   - down: Run by swiping down. Nothing by default.
+    public init(
+        leading: ToastAction? = .delete,
+        trailing: ToastAction? = .later,
+        up: ToastAction? = nil,
+        down: ToastAction? = nil
+    ) {
         self.leading = leading
         self.trailing = trailing
+        self.up = up
+        self.down = down
+    }
+
+    /// Up and down only: a sideways swipe does nothing.
+    public static func vertical(up: ToastAction?, down: ToastAction?) -> ToastSwipeActions {
+        ToastSwipeActions(leading: nil, trailing: nil, up: up, down: down)
+    }
+
+    /// Left and right only. The same as the default, spelled out.
+    public static func horizontal(
+        leading: ToastAction? = .delete,
+        trailing: ToastAction? = .later
+    ) -> ToastSwipeActions {
+        ToastSwipeActions(leading: leading, trailing: trailing)
     }
 
     /// Delete one way, later the other. What every toast offers unless told otherwise.
@@ -207,12 +275,18 @@ public struct ToastSwipeActions: Equatable {
         ToastSwipeActions()
     }
 
-    /// Neither way does anything, and a long press is inert. The toast leaves when its
+    /// No way does anything, and a long press is inert. The toast leaves when its
     /// countdown ends, when it is tapped, or from code.
     public static var disabled: ToastSwipeActions {
         ToastSwipeActions(leading: nil, trailing: nil)
     }
 
+    /// Hide the card either way. What a running progress toast offers by default: the work
+    /// goes on, and nothing is cancelled by accident.
+    public static var progress: ToastSwipeActions {
+        ToastSwipeActions(leading: .hideProgress, trailing: .hideProgress)
+    }
+
     /// True when there is nothing to swipe into.
-    public var isEmpty: Bool { leading == nil && trailing == nil }
+    public var isEmpty: Bool { leading == nil && trailing == nil && up == nil && down == nil }
 }

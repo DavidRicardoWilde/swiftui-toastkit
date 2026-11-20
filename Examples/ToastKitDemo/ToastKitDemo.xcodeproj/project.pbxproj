@@ -15,10 +15,18 @@
 		7D10A0012C00000000000006 /* DemoStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000006 /* DemoStyles.swift */; };
 		7D10A0012C00000000000007 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000007 /* Assets.xcassets */; };
 		7D10A0012C00000000000008 /* ToastKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7D10A00A2C00000000000001 /* ToastKit */; };
+		7D10A0012C00000000000009 /* SizesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000009 /* SizesView.swift */; };
+		7D10A0012C0000000000000A /* DismissalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C0000000000000A /* DismissalView.swift */; };
+		7D10A0012C0000000000000B /* ProgressDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C0000000000000B /* ProgressDemoView.swift */; };
 		7D10A0012C00000000000011 /* ToastKitDemoWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000011 /* ToastKitDemoWatchApp.swift */; };
 		7D10A0012C00000000000012 /* WatchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000012 /* WatchContentView.swift */; };
 		7D10A0012C00000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000013 /* Assets.xcassets */; };
 		7D10A0012C00000000000014 /* ToastKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7D10A00A2C00000000000011 /* ToastKit */; };
+		7D10A0012C00000000000015 /* WatchSizesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000015 /* WatchSizesSection.swift */; };
+		7D10A0012C00000000000016 /* WatchDismissSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000016 /* WatchDismissSection.swift */; };
+		7D10A0012C00000000000017 /* WatchProgressSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000017 /* WatchProgressSection.swift */; };
+		7D10A0012C00000000000018 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000018 /* Localizable.xcstrings */; };
+		7D10A0012C00000000000019 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 7D10A0022C00000000000018 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,10 +38,17 @@
 		7D10A0022C00000000000006 /* DemoStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoStyles.swift; sourceTree = "<group>"; };
 		7D10A0022C00000000000007 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7D10A0022C00000000000008 /* ToastKitDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToastKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D10A0022C00000000000009 /* SizesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SizesView.swift; sourceTree = "<group>"; };
+		7D10A0022C0000000000000A /* DismissalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissalView.swift; sourceTree = "<group>"; };
+		7D10A0022C0000000000000B /* ProgressDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressDemoView.swift; sourceTree = "<group>"; };
 		7D10A0022C00000000000011 /* ToastKitDemoWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastKitDemoWatchApp.swift; sourceTree = "<group>"; };
 		7D10A0022C00000000000012 /* WatchContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchContentView.swift; sourceTree = "<group>"; };
 		7D10A0022C00000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7D10A0022C00000000000014 /* ToastKitDemoWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToastKitDemoWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D10A0022C00000000000015 /* WatchSizesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSizesSection.swift; sourceTree = "<group>"; };
+		7D10A0022C00000000000016 /* WatchDismissSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDismissSection.swift; sourceTree = "<group>"; };
+		7D10A0022C00000000000017 /* WatchProgressSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProgressSection.swift; sourceTree = "<group>"; };
+		7D10A0022C00000000000018 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +89,11 @@
 				7D10A0022C00000000000004 /* StylesView.swift */,
 				7D10A0022C00000000000005 /* DemoSettings.swift */,
 				7D10A0022C00000000000006 /* DemoStyles.swift */,
+				7D10A0022C00000000000009 /* SizesView.swift */,
+				7D10A0022C0000000000000A /* DismissalView.swift */,
+				7D10A0022C0000000000000B /* ProgressDemoView.swift */,
 				7D10A0022C00000000000007 /* Assets.xcassets */,
+				7D10A0022C00000000000018 /* Localizable.xcstrings */,
 			);
 			path = ToastKitDemo;
 			sourceTree = "<group>";
@@ -93,6 +112,9 @@
 			children = (
 				7D10A0022C00000000000011 /* ToastKitDemoWatchApp.swift */,
 				7D10A0022C00000000000012 /* WatchContentView.swift */,
+				7D10A0022C00000000000015 /* WatchSizesSection.swift */,
+				7D10A0022C00000000000016 /* WatchDismissSection.swift */,
+				7D10A0022C00000000000017 /* WatchProgressSection.swift */,
 				7D10A0022C00000000000013 /* Assets.xcassets */,
 			);
 			path = ToastKitDemoWatch;
@@ -101,26 +123,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8A8E2C1F4B3D7E9F0A1B2C3D /* ToastKitDemo */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 7D10A0082C00000000000002 /* Build configuration list for PBXNativeTarget "ToastKitDemo" */;
-			buildPhases = (
-				7D10A0052C00000000000001 /* Sources */,
-				7D10A0032C00000000000001 /* Frameworks */,
-				7D10A0062C00000000000001 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ToastKitDemo;
-			packageProductDependencies = (
-				7D10A00A2C00000000000001 /* ToastKit */,
-			);
-			productName = ToastKitDemo;
-			productReference = 7D10A0022C00000000000008 /* ToastKitDemo.app */;
-			productType = "com.apple.product-type.application";
-		};
 		7D10A00C2C00000000000011 /* ToastKitDemoWatch */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7D10A0082C00000000000011 /* Build configuration list for PBXNativeTarget "ToastKitDemoWatch" */;
@@ -141,6 +143,26 @@
 			productReference = 7D10A0022C00000000000014 /* ToastKitDemoWatch.app */;
 			productType = "com.apple.product-type.application";
 		};
+		8A8E2C1F4B3D7E9F0A1B2C3D /* ToastKitDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7D10A0082C00000000000002 /* Build configuration list for PBXNativeTarget "ToastKitDemo" */;
+			buildPhases = (
+				7D10A0052C00000000000001 /* Sources */,
+				7D10A0032C00000000000001 /* Frameworks */,
+				7D10A0062C00000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ToastKitDemo;
+			packageProductDependencies = (
+				7D10A00A2C00000000000001 /* ToastKit */,
+			);
+			productName = ToastKitDemo;
+			productReference = 7D10A0022C00000000000008 /* ToastKitDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -151,11 +173,11 @@
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
-					8A8E2C1F4B3D7E9F0A1B2C3D = {
-						CreatedOnToolsVersion = 15.0;
-					};
 					7D10A00C2C00000000000011 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					8A8E2C1F4B3D7E9F0A1B2C3D = {
+						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
@@ -166,6 +188,11 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				"zh-Hant",
+				ja,
+				ko,
+				es,
 			);
 			mainGroup = 7D10A0042C00000000000001;
 			packageReferences = (
@@ -187,6 +214,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7D10A0012C00000000000007 /* Assets.xcassets in Resources */,
+				7D10A0012C00000000000018 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,6 +223,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7D10A0012C00000000000013 /* Assets.xcassets in Resources */,
+				7D10A0012C00000000000019 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,6 +240,9 @@
 				7D10A0012C00000000000004 /* StylesView.swift in Sources */,
 				7D10A0012C00000000000005 /* DemoSettings.swift in Sources */,
 				7D10A0012C00000000000006 /* DemoStyles.swift in Sources */,
+				7D10A0012C00000000000009 /* SizesView.swift in Sources */,
+				7D10A0012C0000000000000A /* DismissalView.swift in Sources */,
+				7D10A0012C0000000000000B /* ProgressDemoView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,6 +252,9 @@
 			files = (
 				7D10A0012C00000000000011 /* ToastKitDemoWatchApp.swift in Sources */,
 				7D10A0012C00000000000012 /* WatchContentView.swift in Sources */,
+				7D10A0012C00000000000015 /* WatchSizesSection.swift in Sources */,
+				7D10A0012C00000000000016 /* WatchDismissSection.swift in Sources */,
+				7D10A0012C00000000000017 /* WatchProgressSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">GIVE IT A MOMENT</p><h2>Display duration</h2></div></div>
+    <p><code>.automatic</code> uses the center’s default duration of four seconds. Pass seconds directly or use <code>.indefinite</code> for a message that needs an explicit response.</p>
+    <SimulatorCapture name="03-timing" lang="en" />
+    <pre><code><span class="comment">// Two seconds</span>
+ToastMessage(title: <span class="str">"Copied"</span>, duration: 2)
+
+<span class="comment">// Stays until dismissed</span>
+ToastMessage(title: <span class="str">"Sync failed"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>Only the toast at the front counts down.</li><li>Covered toasts keep their full duration until they come forward.</li><li>The timer pauses while someone touches the stack or the app leaves the foreground.</li></ul>
+  </section>

@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// What a progress card's buttons do, handed in by the stack.
+struct ToastProgressActions {
+    /// Cancel was tapped, or VoiceOver's Cancel was chosen.
+    let cancel: @MainActor () -> Void
+    /// Retry was tapped, or VoiceOver's Retry was chosen.
+    let retry: @MainActor () -> Void
+}
+
 /// A single toast card: the owner of its tap, swipe and long-press gestures.
 ///
 /// The card draws nothing itself — its body comes from the ``ToastStyle`` in effect —
@@ -12,12 +20,19 @@ import SwiftUI
 /// Gestures, on the front card:
 ///
 /// - **Tap** runs the tap action, if there is one.
-/// - **Swipe** toward a side runs that side's swipe action. Past 88 pt, or on a flick,
-///   the card flies off that way first; short of it, the card springs back. Toward a
-///   side with no action it barely moves.
+/// - **Swipe** toward a side, or up or down, runs that direction's swipe action. The
+///   first movement picks the axis. Past 88 pt, or on a flick, the card flies off that
+///   way first; short of it, the card springs back. Toward a direction with no action it
+///   barely moves.
 /// - **Press and hold** lifts the card onto a track with each swipe action drawn at its
-///   end. Carrying it 64 pt toward an end arms that action; letting go there runs it,
-///   anywhere else puts the card back. See `ToastActionTrack`.
+///   end: a band across for left and right, one up and down for up and down. Carrying it
+///   64 pt toward an end arms that action; letting go there runs it, anywhere else puts
+///   the card back. See `ToastActionTrack` and `ToastVerticalActionTrack`.
+///
+/// With ``ToastSwipeHints/immediate`` in the environment, a swipe does what the hold
+/// does: 8 pt of travel lifts the card onto the track, the swipe carries it, and letting
+/// go runs the armed end, or the end it was flicked toward. A card with nowhere to draw a
+/// track, outside a stack, keeps the quick swipe.
 ///
 /// The exit is animated here rather than left to a SwiftUI removal transition, because
 /// a transition cannot know which way the finger went. The card flings itself past the
@@ -36,6 +51,13 @@ public struct ToastCard: View {
     let onAction: (ToastAction) -> Void
     /// Removes the toast with no action, for VoiceOver's "Dismiss".
     let onDismiss: () -> Void
+    /// Told when the card starts an exit of its own — a fling or a track action's drop —
+    /// at least 220 ms before it is removed, so the stack draws no stand-in for it.
+    let onOwnExit: () -> Void
+    /// The live value of a progress card, observed by this card alone. `nil` otherwise.
+    let progressCell: ToastProgressCell?
+    /// What the card's Cancel and Retry do. `nil` when the card draws no such buttons.
+    let progressActions: ToastProgressActions?
 
     /// - Parameters:
     ///   - toast: What to draw, and the actions it offers.
@@ -58,7 +80,8 @@ public struct ToastCard: View {
             tapAction: toast.tapAction,
             onInteractionChange: onInteractionChange,
             onAction: onAction,
-            onDismiss: onDismiss
+            onDismiss: onDismiss,
+            onOwnExit: {}
         )
     }
 
@@ -68,7 +91,10 @@ public struct ToastCard: View {
         tapAction: ToastAction?,
         onInteractionChange: @escaping (Bool) -> Void,
         onAction: @escaping (ToastAction) -> Void,
-        onDismiss: @escaping () -> Void
+        onDismiss: @escaping () -> Void,
+        onOwnExit: @escaping () -> Void,
+        progressCell: ToastProgressCell? = nil,
+        progressActions: ToastProgressActions? = nil
     ) {
         self.toast = toast
         self.isInteractive = isInteractive
@@ -76,15 +102,25 @@ public struct ToastCard: View {
         self.onInteractionChange = onInteractionChange
         self.onAction = onAction
         self.onDismiss = onDismiss
+        self.onOwnExit = onOwnExit
+        self.progressCell = progressCell
+        self.progressActions = progressActions
     }
 
     @Environment(\.toastStyle) private var style
+    @Environment(\.locale) private var locale
     @Environment(\.toastTheme) private var theme
+    @Environment(\.toastMetrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.toastPlacement) private var placement
     @Environment(\.toastTrackLayout) private var trackLayout
+    @Environment(\.toastDragPoses) private var dragPoses
+    @Environment(\.toastSwipeHints) private var swipeHints
 
     @State private var dragX: CGFloat = 0
+    @State private var dragY: CGFloat = 0
+    /// The axis this swipe moves along, settled by its first movement.
+    @State private var swipeAxis: ToastSwipeAxis = .horizontal
     @State private var isFlingingOut = false
     /// True from a drag's first change until it is resolved, by `onEnded` or by
     /// `releaseAbandonedDrag()`. It is what says this card raised the interaction.
@@ -98,12 +134,19 @@ public struct ToastCard: View {
     @State private var swipeStarted = false
 
     @State private var lift: ToastLift = .resting
-    /// Where the lifted card sits along the track, from its centre.
+    /// Where the lifted card sits along the horizontal track, from its centre.
     @State private var carryX: CGFloat = 0
+    /// Where the lifted card sits along the vertical track, from its lifted centre.
+    @State private var carryY: CGFloat = 0
+    /// The track the lifted card is on; `nil` until the carry has picked one.
+    @State private var carryAxis: ToastSwipeAxis?
     @State private var armedSide: ToastTrackSide?
     /// The end chosen on letting go; its label switches to the confirmation.
     @State private var chosenSide: ToastTrackSide?
     @State private var liftHaptic = ToastLiftHaptic()
+    /// The swipe lifted the card, rather than a hold. The swipe then carries and releases
+    /// it; the hold's gesture, which has failed by then, leaves it alone.
+    @State private var liftedBySwipe = false
     /// Set when a long press lifts the card, so the tap that may follow the same touch
     /// does not also run the tap action. Cleared when the next touch begins.
     @State private var liftConsumedTouch = false
@@ -126,13 +169,15 @@ public struct ToastCard: View {
                 lift: lift,
                 isPressing: isPressing && canLift,
                 offset: liftOffset,
-                tilt: trackGeometry?.tilt(at: carryX) ?? 0,
+                tilt: carryAxis == .horizontal ? trackGeometry?.tilt(at: carryX) ?? 0 : 0,
                 reduceMotion: reduceMotion
             ))
-            .offset(x: dragX, y: swipeSag)
-            .modifier(ToastTiltEffect(dragX: dragX, enabled: !reduceMotion))
+            .offset(x: dragX, y: swipeSag + dragY)
+            .modifier(ToastTiltEffect(degrees: dragPose.rotationDegrees, anchor: dragPose.rotationAnchor))
             .opacity(dragOpacity)
             .background { actionTrack }
+            // Past the limit toast content stops growing, track labels included.
+            .dynamicTypeSize(...metrics.maximumDynamicTypeSize)
             .contentShape(Rectangle())
             .gesture(dragGesture, including: isInteractive ? .all : .subviews)
             .simultaneousGesture(liftGesture, including: canLift ? .all : .subviews)
@@ -151,18 +196,26 @@ public struct ToastCard: View {
                     putBack()
                 }
             }
+            // The pose is only meaningful away from rest, whichever path brought it home.
+            .onChange(of: dragX == 0 && dragY == 0) { _, atRest in
+                if atRest { dragPoses?.clear(toast.id) }
+            }
             .onChange(of: isPressing) { _, pressing in
                 if pressing { liftConsumedTouch = false }
             }
             // The same for a lift: a cancelled long press must not leave the card up.
-            // Deferred a turn so that a normal release, handled in `onEnded`, wins.
+            // Deferred a turn so that a normal release, handled in `onEnded`, wins. A
+            // swipe that lifts the card also fails the long press, so it is skipped then.
             .onChange(of: isLiftGestureActive) { _, active in
                 guard !active else { return }
-                Task { @MainActor in putBack() }
+                Task { @MainActor in
+                    if !liftedBySwipe { putBack() }
+                }
             }
             .onDisappear {
                 releaseAbandonedDrag()
                 putBack()
+                dragPoses?.clear(toast.id)
             }
             .preference(key: ToastLiftPreferenceKey.self, value: lift == .resting ? nil : toast.id)
             .modifier(ToastLiftFeedback(trigger: liftHaptic))
@@ -170,24 +223,65 @@ public struct ToastCard: View {
             .accessibilityLabel(accessibilityLabel)
             .accessibilityAddTraits(isTappable ? .isButton : [])
             .accessibilityHint(isInteractive ? Text(hintKey, bundle: .module) : Text(""))
-            .accessibilityAction(named: Text("toast.a11y.dismiss", bundle: .module)) { onDismiss() }
+            .modifier(ToastDismissAccessibility(isOffered: !isProgressActive, perform: onDismiss))
             .modifier(ToastActionAccessibility(actions: offeredActions, perform: onAction))
+            .modifier(ToastProgressAccessibility(progress: progress))
     }
 
     private var isTappable: Bool { isInteractive && tapAction != nil }
 
+    /// Names the ways the toast swipes: sideways (also for a toast with none), up and
+    /// down, or any way.
     private var hintKey: LocalizedStringKey {
-        isTappable ? "toast.a11y.hint.activate" : "toast.a11y.hint"
+        let base: String
+        switch (swipeActions.hasActions(along: .horizontal), swipeActions.hasActions(along: .vertical)) {
+        case (true, true): base = "toast.a11y.hint.any"
+        case (false, true): base = "toast.a11y.hint.vertical"
+        default: base = "toast.a11y.hint"
+        }
+        return LocalizedStringKey(isTappable ? base + ".activate" : base)
     }
 
     // MARK: - Content
 
+    @ViewBuilder
     private var cardBody: some View {
-        style.makeBody(configuration: ToastStyleConfiguration(
+        let resolved = metrics.resolved(in: theme)
+        let styled = style.makeBody(configuration: ToastStyleConfiguration(
             toast: toast,
             isLifted: lift != .resting,
-            isTappable: isTappable
+            isTappable: isTappable,
+            metrics: resolved,
+            progress: progress
         ))
+        if let progress, !style.drawsProgress {
+            // A style written before progress toasts: give it a bar and a button anyway.
+            VStack(spacing: resolved.progressSpacing) {
+                styled
+                ToastProgressAccessory(configuration: progress)
+            }
+        } else {
+            styled
+        }
+    }
+
+    /// The bar, detail and buttons for a card with work behind it. Reads the cell, so only
+    /// this card redraws when its value moves.
+    private var progress: ToastProgressConfiguration? {
+        ToastProgressConfiguration.make(
+            toast: toast,
+            cell: progressCell,
+            actions: progressActions,
+            metrics: metrics.resolved(in: theme),
+            tint: toast.status.tint(in: theme),
+            locale: locale,
+            reduceMotion: reduceMotion,
+            isInteractive: isInteractive
+        )
+    }
+
+    private var isProgressActive: Bool {
+        toast.progressPhase?.isActive ?? false
     }
 
     private var accessibilityLabel: Text {
@@ -213,52 +307,92 @@ public struct ToastCard: View {
 
     private var swipeActions: ToastSwipeActions { toast.swipeActions }
 
-    /// Fades with travel in either direction, so the card is already ghosted by the
-    /// time it clears the threshold — and fully gone once a fling starts.
+    /// Fades with travel in any direction, so the card is already ghosted by the time it
+    /// clears the threshold — and fully gone once a fling starts.
     private var dragOpacity: Double {
         if isFlingingOut { return 0 }
-        return 1 - min(Double(abs(dragX)) / 240, 0.65)
+        return dragPose.opacity
     }
 
-    /// The swipe's path bends gently toward the stack's edge (y ≈ x² ÷ 1800, at most
-    /// 160 pt), so a throw reads as a swing rather than a slide. Flat under Reduce Motion.
-    private var swipeSag: CGFloat {
-        guard !reduceMotion else { return 0 }
-        return placement.curve * min(dragX * dragX / 1_800, 160)
+    /// A sideways swipe's path bends gently toward the stack's edge, so a throw reads as a
+    /// swing rather than a slide. An up or down swipe goes straight. Flat under Reduce Motion. The numbers live in `ToastDragPose`.
+    private var swipeSag: CGFloat { dragPose.sag }
+
+    private var dragPose: ToastDragPose {
+        ToastDragPose(dragX: dragX, dragY: dragY, curve: placement.curve, reduceMotion: reduceMotion)
+    }
+
+    /// With ``ToastSwipeHints/immediate``, a swipe lifts the card onto its track.
+    private var swipeLifts: Bool {
+        swipeHints == .immediate && canLift
     }
 
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 8)
             .updating($isDragging) { _, dragging, _ in dragging = true }
             .onChanged { value in
-                guard !isFlingingOut, isInteractive, lift == .resting else { return }
+                guard !isFlingingOut, isInteractive else { return }
+                if lift == .resting, !swipeStarted, swipeLifts {
+                    liftUp(bySwipe: true)
+                }
+                if liftedBySwipe {
+                    carry(value.translation)
+                    return
+                }
+                guard lift == .resting else { return }
+                if !swipeStarted {
+                    swipeAxis = ToastSwipe.axis(for: value.translation, actions: swipeActions)
+                }
                 swipeStarted = true
                 if !holdsInteraction {
                     holdsInteraction = true
                     onInteractionChange(true)
                 }
-                dragX = ToastSwipe.follow(
-                    value.translation.width,
-                    leading: swipeActions.leading != nil,
-                    trailing: swipeActions.trailing != nil
+                let travel = ToastSwipe.follow(
+                    swipeAxis.component(of: value.translation),
+                    along: swipeAxis,
+                    actions: swipeActions
                 )
+                if swipeAxis == .horizontal {
+                    dragX = travel
+                } else {
+                    dragY = travel
+                }
+                // Read once, if a batch removes this card mid-drag, to start its stand-in
+                // from here. A plain box, so the drag does not redraw the stack.
+                dragPoses?.set(dragPose, for: toast.id)
             }
             .onEnded { value in
-                guard !isFlingingOut, isInteractive, swipeStarted, lift == .resting else { return }
+                guard !isFlingingOut, isInteractive else { return }
+                if liftedBySwipe {
+                    // Not yet on an axis: let the throw pick one.
+                    let axis = carryAxis ?? ToastSwipe.axis(for: value.predictedEndTranslation, actions: swipeActions)
+                    release(to: ToastSwipe.release(
+                        armed: armedSide,
+                        travel: axis.component(of: value.translation),
+                        projected: axis.component(of: value.predictedEndTranslation),
+                        along: axis,
+                        actions: swipeActions
+                    ))
+                    return
+                }
+                guard swipeStarted, lift == .resting else { return }
                 swipeStarted = false
                 holdsInteraction = false
                 let side = ToastSwipe.commit(
-                    travel: value.translation.width,
-                    projected: value.predictedEndTranslation.width,
-                    leading: swipeActions.leading != nil,
-                    trailing: swipeActions.trailing != nil
+                    travel: swipeAxis.component(of: value.translation),
+                    projected: swipeAxis.component(of: value.predictedEndTranslation),
+                    along: swipeAxis,
+                    actions: swipeActions
                 )
                 if let side, let action = swipeActions.action(for: side) {
-                    flingOut(towards: side == .leading ? -1 : 1, running: action)
+                    flingOut(toward: side, running: action)
                 } else {
                     withAnimation(theme.snapBackMotion.animation(reduceMotion: reduceMotion)) {
                         dragX = 0
+                        dragY = 0
                     }
+                    dragPoses?.clear(toast.id)
                     onInteractionChange(false)
                 }
             }
@@ -268,22 +402,37 @@ public struct ToastCard: View {
     /// interaction it raised. A no-op once the drag has been resolved, and during a
     /// fling, whose deferred action lowers the interaction itself.
     private func releaseAbandonedDrag() {
+        if liftedBySwipe {
+            // Puts the card back down, deferred a turn like a cancelled hold, so that a
+            // normal release in `onEnded` wins whichever order the two arrive in.
+            Task { @MainActor in
+                if liftedBySwipe { putBack() }
+            }
+            return
+        }
         guard holdsInteraction, !isFlingingOut else { return }
         holdsInteraction = false
         withAnimation(theme.snapBackMotion.animation(reduceMotion: reduceMotion)) {
             dragX = 0
+            dragY = 0
         }
+        dragPoses?.clear(toast.id)
         onInteractionChange(false)
     }
 
-    private func flingOut(towards direction: CGFloat, running action: ToastAction) {
+    private func flingOut(toward side: ToastTrackSide, running action: ToastAction) {
         isFlingingOut = true
+        onOwnExit()
         // Raised again rather than assumed: whichever way `onEnded` and the gesture
         // state's reset are ordered, the flight must hold the countdown. Idempotent.
         onInteractionChange(true)
         let motion = theme.flingMotion
         withAnimation(motion.animation(reduceMotion: reduceMotion)) {
-            dragX = direction * exitDistance
+            if side.axis == .horizontal {
+                dragX = side.sign * exitDistance
+            } else {
+                dragY = side.sign * exitDistance
+            }
         }
         // The action runs once the card has left the screen; `onInteractionChange`
         // stays raised across the fling so the toast underneath does not start its
@@ -302,31 +451,48 @@ public struct ToastCard: View {
         return ToastTrackGeometry(
             cardWidth: trackLayout.cardWidth,
             availableWidth: trackLayout.availableWidth,
-            curve: placement.curve
+            curve: placement.curve,
+            scale: metrics.actionTrackScale
         )
     }
 
     /// Only the front card of a stack, with something to swipe into.
     private var canLift: Bool {
-        isInteractive && trackGeometry != nil && !swipeActions.isEmpty
+        isInteractive && trackGeometry != nil && !swipeActions.isEmpty && !isProgressActive
     }
 
     private var liftOffset: CGSize {
-        trackGeometry?.cardOffset(at: carryX) ?? .zero
+        guard let geometry = trackGeometry else { return .zero }
+        return carryAxis == .vertical ? geometry.cardOffset(vertically: carryY) : geometry.cardOffset(at: carryX)
     }
 
-    /// Hidden at rest rather than absent, so it can draw out as the card lifts.
+    /// Hidden at rest rather than absent, so it can draw out as the card lifts. A band
+    /// for each axis that has actions: across, up and down, or both.
     @ViewBuilder
     private var actionTrack: some View {
         if let geometry = trackGeometry, !swipeActions.isEmpty {
-            ToastActionTrack(
-                geometry: geometry,
-                actions: swipeActions,
-                armed: armedSide,
-                chosen: chosenSide,
-                isShown: lift != .resting
-            )
-            .offset(y: geometry.trackOffset)
+            ZStack {
+                if swipeActions.hasActions(along: .horizontal) {
+                    ToastActionTrack(
+                        geometry: geometry,
+                        actions: swipeActions,
+                        armed: armedSide,
+                        chosen: chosenSide,
+                        isShown: lift != .resting
+                    )
+                    .offset(y: geometry.trackOffset)
+                }
+                if swipeActions.hasActions(along: .vertical) {
+                    ToastVerticalActionTrack(
+                        geometry: geometry,
+                        actions: swipeActions,
+                        armed: armedSide,
+                        chosen: chosenSide,
+                        isShown: lift != .resting
+                    )
+                    .offset(y: geometry.liftedCenterY)
+                }
+            }
         }
     }
 
@@ -340,50 +506,80 @@ public struct ToastCard: View {
             .onChanged { value in
                 guard case .second(true, let drag) = value else { return }
                 if lift == .resting { liftUp() }
-                if let drag { carry(drag.translation.width) }
+                if let drag { carry(drag.translation) }
             }
             .onEnded { value in
                 guard case .second(true, _) = value else { return }
-                release()
+                release(to: armedSide)
             }
     }
 
-    private func liftUp() {
+    /// Onto the track, by a hold or, with ``ToastSwipeHints/immediate``, by a swipe.
+    private func liftUp(bySwipe: Bool = false) {
         guard lift == .resting, canLift, !isFlingingOut else { return }
         liftConsumedTouch = true
         swipeStarted = false
+        liftedBySwipe = bySwipe
         withAnimation(theme.stackMotion.animation(reduceMotion: reduceMotion)) {
             lift = .lifted
             carryX = 0
+            carryY = 0
+            carryAxis = nil
             armedSide = nil
             chosenSide = nil
         }
         onInteractionChange(true)
-        liftHaptic.fire(.lifted)
+        // A hold gets a thump to say it has worked. A swipe is already under way, so it
+        // is left with the tick as an end arms; a thump on every swipe would grate.
+        if !bySwipe { liftHaptic.fire(.lifted) }
     }
 
-    private func carry(_ translation: CGFloat) {
+    /// Moves the lifted card along whichever track the finger has picked, and arms the
+    /// end it has gone far enough toward.
+    private func carry(_ translation: CGSize) {
         guard lift == .lifted, let geometry = trackGeometry else { return }
-        let x = geometry.carry(
-            translation,
-            leading: swipeActions.leading != nil,
-            trailing: swipeActions.trailing != nil
-        )
-        if reduceMotion {
-            carryX = x
-        } else {
-            withAnimation(.interactiveSpring(duration: 0.18, extraBounce: 0)) { carryX = x }
+        let axis = ToastTrackGeometry.carryAxis(for: translation, current: carryAxis, actions: swipeActions)
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        let side: ToastTrackSide?
+        switch axis {
+        case .horizontal:
+            x = geometry.carry(
+                translation.width,
+                leading: swipeActions.leading != nil,
+                trailing: swipeActions.trailing != nil
+            )
+            side = geometry.armedSide(at: x)
+        case .vertical:
+            y = geometry.carryVertically(
+                translation.height,
+                up: swipeActions.up != nil,
+                down: swipeActions.down != nil
+            )
+            side = geometry.armedSide(at: y, along: .vertical)
+        case nil:
+            side = nil
         }
-        let side = geometry.armedSide(at: x)
+        if reduceMotion {
+            carryAxis = axis
+            carryX = x
+            carryY = y
+        } else {
+            withAnimation(.interactiveSpring(duration: 0.18, extraBounce: 0)) {
+                carryAxis = axis
+                carryX = x
+                carryY = y
+            }
+        }
         guard side != armedSide else { return }
         withAnimation(.easeOut(duration: 0.18)) { armedSide = side }
         if side != nil { liftHaptic.fire(.armed) }
     }
 
-    /// Let go: into the armed action, or back down if none is armed.
-    private func release() {
+    /// Let go: into `side`'s action, or back down if there is none.
+    private func release(to side: ToastTrackSide?) {
         guard lift == .lifted else { return }
-        if let side = armedSide, let action = swipeActions.action(for: side) {
+        if let side, let action = swipeActions.action(for: side) {
             choose(action, at: side)
         } else {
             putBack()
@@ -394,9 +590,16 @@ public struct ToastCard: View {
     /// stays held until the action has run.
     private func choose(_ action: ToastAction, at side: ToastTrackSide) {
         guard let geometry = trackGeometry else { return }
+        onOwnExit()
+        liftedBySwipe = false
         withAnimation(theme.flingMotion.animation(reduceMotion: reduceMotion)) {
             lift = .committing
-            carryX = geometry.labelX(for: side)
+            carryAxis = side.axis
+            if side.axis == .horizontal {
+                carryX = geometry.labelX(for: side)
+            } else {
+                carryY = geometry.verticalLabelY(for: side)
+            }
         }
         liftHaptic.fire(.chosen(destructive: action.role == .destructive))
         Task { @MainActor in
@@ -411,9 +614,12 @@ public struct ToastCard: View {
     /// Back down to full size with nothing chosen. A no-op unless the card is lifted.
     private func putBack() {
         guard lift == .lifted else { return }
+        liftedBySwipe = false
         withAnimation(theme.stackMotion.animation(reduceMotion: reduceMotion)) {
             lift = .resting
             carryX = 0
+            carryY = 0
+            carryAxis = nil
             armedSide = nil
         }
         onInteractionChange(false)
@@ -453,27 +659,73 @@ private struct ToastActionAccessibility: ViewModifier {
             if let leading = actions?.leading {
                 Button(leading.title) { perform(leading) }
             }
-            if let trailing = actions?.trailing {
+            // Both sides can be the same action, such as a progress card's Hide.
+            if let trailing = actions?.trailing, trailing.id != actions?.leading?.id {
                 Button(trailing.title) { perform(trailing) }
+            }
+            if let up = actions?.up {
+                Button(up.title) { perform(up) }
+            }
+            if let down = actions?.down {
+                Button(down.title) { perform(down) }
             }
         }
     }
 }
 
-// MARK: - Tilt
-
-/// A few degrees of rotation following the drag, pivoting off the card's far edge.
-/// Split into a modifier so Reduce Motion can drop it without the call site branching
-/// mid-chain.
-private struct ToastTiltEffect: ViewModifier {
-    let dragX: CGFloat
-    let enabled: Bool
+/// VoiceOver's "Dismiss". Left out while work is running, where Hide covers it and
+/// dismissing would not stop anything.
+private struct ToastDismissAccessibility: ViewModifier {
+    let isOffered: Bool
+    let perform: () -> Void
 
     func body(content: Content) -> some View {
-        if enabled {
-            content.rotationEffect(.degrees(Double(dragX) / 36), anchor: .bottom)
-        } else {
-            content
+        content.accessibilityActions {
+            if isOffered {
+                Button { perform() } label: { Text("toast.a11y.dismiss", bundle: .module) }
+            }
         }
+    }
+}
+
+/// A progress card's value, and its Cancel and Retry as named actions.
+///
+/// Cancel here never asks for confirmation: the tap-twice guard is for a finger that may
+/// have landed by accident, and choosing a named action is deliberate.
+private struct ToastProgressAccessibility: ViewModifier {
+    let progress: ToastProgressConfiguration?
+
+    func body(content: Content) -> some View {
+        content
+            .accessibilityValue(progress?.spokenValue ?? "")
+            .accessibilityAddTraits(isRunning ? .updatesFrequently : [])
+            .accessibilityActions {
+                if let progress, isRunning, progress.isCancellationAvailable {
+                    Button { progress.onCancel() } label: { Text("toast.action.cancel", bundle: .module) }
+                }
+                if let progress, progress.isRetryAvailable {
+                    Button { progress.onRetry() } label: { Text("toast.progress.retry", bundle: .module) }
+                }
+            }
+    }
+
+    private var isRunning: Bool {
+        progress?.phase.isRunning ?? false
+    }
+}
+
+// MARK: - Tilt
+
+/// A few degrees of rotation following a sideways drag, pivoting off the card's edge
+/// nearest the stack's own edge, so a top stack swings as the mirror image of a bottom
+/// one. The angle and anchor come from `ToastDragPose`; the angle is zero under Reduce
+/// Motion. The modifier is always applied, so the card's identity does not change as a
+/// drag begins.
+private struct ToastTiltEffect: ViewModifier {
+    let degrees: Double
+    let anchor: UnitPoint
+
+    func body(content: Content) -> some View {
+        content.rotationEffect(.degrees(degrees), anchor: anchor)
     }
 }

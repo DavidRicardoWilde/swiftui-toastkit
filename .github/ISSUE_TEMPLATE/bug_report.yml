@@ -1,0 +1,73 @@
+name: Bug report
+description: Report a reproducible problem with ToastKit on a supported iOS version.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please use this form for reproducible bugs on iOS/iPadOS. For open-ended questions or ideas, use GitHub Discussions when available.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the problem in a few sentences.
+      placeholder: A toast disappears while its progress task is still running.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal example and reproduction steps
+      description: |
+        Paste the smallest Swift example that shows the problem, then list the steps to reproduce it.
+        The example is allowed to contain intentionally incorrect or non-compiling code. Mark the relevant lines and include any compiler error below.
+      placeholder: |
+        ```swift
+        // Minimal example — it is okay if this does not compile yet.
+        ContentView().toasts(toasts)
+        ```
+
+        1. Present a toast with…
+        2. Swipe…
+      render: swift
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior and error output
+      description: What do you see? Include the full relevant compiler error, runtime error, or log if there is one.
+      placeholder: The toast disappears before the task finishes; Xcode reports…
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: Describe clearly what you expected to happen instead.
+      placeholder: The toast should remain visible until the task completes.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recordings
+      description: Add screenshots or a short screen recording when they help show the issue. You can drag files into this field or paste an uploaded GitHub attachment URL.
+      placeholder: Drag an image/video here, or paste its GitHub attachment URL.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include all environment details you know.
+      placeholder: |
+        ToastKit version / branch:
+        iOS or iPadOS version:
+        Device or simulator:
+        Xcode version:
+        Swift version:
+        App deployment target:
+      render: text
+    validations:
+      required: true

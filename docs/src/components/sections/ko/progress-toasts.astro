@@ -1,0 +1,40 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">진행 중인 작업</p><h2>진행률 토스트</h2></div></div>
+    <p>업로드나 동기화처럼 시간이 걸리는 작업에는 <code>track(title:)</code>으로 카드를 표시하세요. 카드는 계속 남아 진행 정도를 보여 주고 취소도 제공할 수 있습니다. 작업이 진행되는 동안에는 시간이 지나도 사라지지 않습니다. 반환된 핸들을 보관하고, 핸들로 상태를 알리다가 마지막에 결과를 하나만 전달하세요. 카드는 그 자리에서 결과로 바뀝니다.</p>
+    <SimulatorCapture name="09-progress" lang="ko" />
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// 따로 알려 주기 전까지는 불확정</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 / 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code>는 진행 정도를 나타냅니다. <code>.indeterminate</code>, <code>.fraction(_:)</code>, <code>.bytes(_:of:)</code>(“12 MB / 30 MB”), <code>.items(_:of:)</code>(“3 / 10”)가 있습니다. 비동기 코드에서는 <code>withProgress</code>가 작업 실행과 카드 관리를 맡습니다. reporter는 어느 스레드에서든 호출할 수 있습니다.</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>작업이 끝나는 방식이 카드를 결정합니다. 값을 반환하면 성공, 취소되면 취소, 그 밖의 오류는 실패로 처리되며 오류는 다시 던져집니다. <code>track</code>은 <code>URLSessionTask.progress</code> 같은 Foundation의 <code>Progress</code>도 받을 수 있으며, 끝나면 스스로 성공 처리합니다.</p>
+    <div class="table-wrap"><table><thead><tr><th>단계</th><th>의미</th></tr></thead><tbody><tr><td><code>running</code></td><td>작업이 진행 중입니다. 시간이 지나도 사라지지 않습니다.</td></tr><tr><td><code>cancelling</code></td><td>취소가 요청되어 작업이 멈추기를 기다리는 중입니다.</td></tr><tr><td><code>succeeded</code></td><td>완료되었습니다. 카드가 결과를 보여 주고 표시 시간이 줄어듭니다.</td></tr><tr><td><code>failed</code></td><td>오류 카드가 8초 동안 표시됩니다. 클로저를 넘겼다면 다시 시도 버튼도 나옵니다.</td></tr><tr><td><code>cancelled</code></td><td>작업이 멈췄습니다. 카드가 사라지며, 옵션을 켜면 짧은 “취소됨”이 표시됩니다.</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// 취소하면 Task도 취소된다</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// 또는 그룹 전체를 취소</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// 같은 id: 카드가 그 자리에서 이어진다</span>
+&#125;</code></pre>
+    <p>취소 버튼은 작업이 실행 중이고 멈출 방법이 있을 때 나타납니다. 누르면 작업이 멈출 때까지 “취소하는 중…”이 표시되고, 10초가 지나면 카드가 어쨌든 마무리되므로 취소가 멈춘 채로 남지 않습니다. 실패 후 다시 시도는 같은 id로 작업을 다시 시작하면 같은 카드를 재사용합니다.</p>
+    <pre><code><span class="comment">// 닫으면 카드만 숨겨지고 작업은 계속된다</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 옵션: 스와이프가 숨기면서 취소도 한다</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>실행 중인 카드를 스와이프하거나 닫아도 숨겨질 뿐이며, 숨겨진 동안 발생한 실패는 새 토스트로 다시 나타납니다. 자세한 내용은 <a href="#dismissing">토스트 닫기</a>를 참고하세요.</p>
+    <div class="callout"><span>✳</span><p><strong>작업이 끝날 때까지 핸들을 보관하세요.</strong> 결과 없이 해제된 핸들은 버려진 것으로 간주되어, 작업이 취소되고 카드가 제거됩니다.</p></div>
+    <ul class="check-list"><li>VoiceOver는 진행 상태를 카드의 값(예: “42%, 12 MB / 30 MB”)으로 읽어 줍니다.</li><li>시작할 때, 4분의 1씩 진행될 때마다(5초 이상 간격을 두고 맨 앞 카드에서만), 그리고 결과가 나왔을 때 알립니다. 실패는 플랫폼이 지원하는 경우 긴급하게 알립니다.</li><li>취소, 숨기기, 다시 시도는 동작 로터에서 이름으로 선택할 수 있습니다.</li><li>동작 줄이기를 켜면 막대가 움직이며 훑지 않고 애니메이션 없이 채워집니다.</li></ul>
+  </section>

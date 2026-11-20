@@ -1,0 +1,26 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="start">
+    <div class="section-heading"><span class="section-index">01</span><div><p class="eyebrow">快速接入</p><h2>快速开始</h2></div></div>
+    <p>通过 Swift Package Manager 添加 ToastKit，然后将 <code>ToastCenter</code> 附加到需要显示通知的视图。</p>
+    <SimulatorCapture name="quick-start-stack" lang="zh-cn" recording />
+    <div class="code-label"><span>ContentView.swift</span><span>SWIFT</span></div>
+    <pre><code><span class="kw">import</span> SwiftUI
+<span class="kw">import</span> ToastKit
+
+<span class="kw">struct</span> ContentView: <span class="type">View</span> &#123;
+    <span class="kw">@State private var</span> toasts = ToastCenter()
+
+    <span class="kw">var body</span>: <span class="kw">some</span> View &#123;
+        Button(<span class="str">"保存"</span>) &#123;
+            toasts.present(.normal, title: <span class="str">"更改已保存"</span>)
+        &#125;
+        .toasts(toasts)
+    &#125;
+&#125;</code></pre>
+    <div class="callout"><span>✳</span><p><strong>就这么简单。</strong>提示会显示在安全区域底部，停留四秒。默认滑动操作可删除提示，也可暂存到下次打开页面时再显示。</p></div>
+    <p>在 Xcode 中选择 <strong>File → Add Package Dependencies</strong>，输入 <code>https://github.com/DavidRicardoWilde/swiftui-toastkit</code>。</p>
+    <p>想查看功能实际运行的效果，请打开仓库中的演示项目，并在 iPhone 或 iPad 模拟器上运行 ToastKitDemo。ToastKit 目前支持 iOS 17 及更高版本；由于测试范围目前仅限 iOS，暂不支持其他平台。</p>
+  </section>

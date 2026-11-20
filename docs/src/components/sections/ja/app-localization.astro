@@ -1,0 +1,15 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="localization">
+    <div class="section-heading"><span class="section-index">11</span><div><p class="eyebrow">ユーザーの言語で</p><h2>アプリのローカライズ</h2></div></div>
+    <p>ToastKit の組み込み操作ラベルは英語、日本語、簡体字中国語、繁体字中国語に対応しています。タイトル、本文、独自の操作ラベルはアプリ側でローカライズしてください。</p>
+    <SimulatorCapture name="11-localization" lang="ja" />
+    <pre><code><span class="comment">// アプリの文言は String Catalog または Localizable.strings に登録します。</span>
+toasts.present(.warning,
+    title: String(localized: <span class="str">"storage.low.title"</span>),
+    message: String(localized: <span class="str">"storage.low.message"</span>)
+)</code></pre>
+    <p>ToastKit の組み込みラベルはホストアプリのロケールに従います。独自の <code>ToastAction</code> タイトルと確認文は通常の文字列なので、アプリと同じローカライズ手段を使えます。</p>
+  </section>

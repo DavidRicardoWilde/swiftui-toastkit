@@ -1,0 +1,37 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">きれいに閉じる</p><h2>Toast を閉じる</h2></div></div>
+    <p>id を指定して1つ閉じることも、最前面の1つを閉じることもできます。まとめて閉じるには、関連する Toast に <code>ToastGroup</code> を付けるか、クロージャで条件を指定します。まとめて閉じる操作は1回の変更として扱われ、閉じた件数が戻り値で返ります。</p>
+    <SimulatorCapture name="08-dismissing" lang="ja" />
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// id を指定して1つ</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// グループ内のすべて</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// クロージャが受け入れたすべて</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// スタック全体</span></code></pre>
+    <p><code>scope</code> は、呼び出しが対象にする Toast を決めます。</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>対象</th><th>既定になる呼び出し</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>スタックにある Toast</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>後で戻る予定の Toast</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>両方</td><td><code>dismiss(id:)</code>、<code>dismiss(group:)</code>、<code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> はカードの消え方を選びます。既定の <code>nil</code> では、スタック側の設定に従います。</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>カードの動き</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>その場で薄れて消えます。既定です。</td></tr><tr><td><code>.slide(direction)</code></td><td>フェードしながらスライドして消えます。すべてのカードが一緒に動きます。</td></tr><tr><td><code>.trail(direction)</code></td><td>少し引いてから、縮みながらぼけて消えます。最前面のカードが先に消えます。</td></tr></tbody></table></div>
+    <p>slide と trail には方向を指定できます。既定は <code>.towardAnchor</code> で、ほかに <code>.awayFromAnchor</code>、<code>.top</code>、<code>.bottom</code>、<code>.leading</code>、<code>.trailing</code>（右から左の言語では反転します）、<code>.degrees(_:)</code>、<code>.vector(dx:dy:)</code>、<code>.inPlace</code> があります。スタック全体の既定の消え方は <code>.toastRemoval(_:)</code> で設定します。</p>
+    <pre><code><span class="comment">// すべての消え方の既定</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// 呼び出しごと: 上方向、またはスタックの端から離れる向き</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>視差効果を減らす設定では、どの消え方もフェードになり、すべてのカードが同時にフェードアウトします。</p>
+    <div class="callout"><span>✳</span><p><strong>進捗 Toast は非表示になるだけで、キャンセルはされません。</strong>実行中の<a href="#progress">進捗 Toast</a>を閉じると、カードは画面から消えますが、処理は続きます。処理を止めるには、<code>cancelProgress(group:)</code> などでキャンセルします。スワイプでキャンセルすることもでき、その場合は設定で有効にします。</p></div>
+    <pre><code><span class="comment">// 非表示にしても処理は続く。キャンセルすると止まる</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 設定でスワイプによるキャンセルも有効にする</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>

@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import ToastKit
 
@@ -77,7 +78,14 @@ extension View {
 }
 
 extension ToastMessage.Status {
-    var displayName: String { rawValue.capitalized }
+    var displayName: String {
+        switch self {
+        case .normal:       String(localized: "Normal")
+        case .warning:      String(localized: "Warning")
+        case .error:        String(localized: "Error")
+        case .notification: String(localized: "Notification")
+        }
+    }
 
     var symbolName: String {
         switch self {

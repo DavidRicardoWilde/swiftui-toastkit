@@ -1,0 +1,40 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="progress">
+    <div class="section-heading"><span class="section-index">09</span><div><p class="eyebrow">WORK IN PROGRESS</p><h2>Progress toasts</h2></div></div>
+    <p>For work that takes a while, such as an upload or a sync, <code>track(title:)</code> presents a card that stays up, shows how far the work has got and can offer Cancel. It is never timed while the work runs. Keep the handle it returns, report through it, and finish with one outcome. The card turns into its result where it stands.</p>
+    <SimulatorCapture name="09-progress" lang="en" />
+    <pre><code><span class="kw">let</span> handle = toasts.track(title: <span class="str">"Syncing"</span>, group: <span class="str">"sync"</span>)   <span class="comment">// indeterminate until you say otherwise</span>
+handle.update(.items(3, of: 10))                             <span class="comment">// "3 of 10"</span>
+handle.update(fraction: 0.8)
+handle.succeed(ToastProgressResult(title: <span class="str">"Synced"</span>))</code></pre>
+    <p><code>ToastProgress</code> describes how far along the work is: <code>.indeterminate</code>, <code>.fraction(_:)</code>, <code>.bytes(_:of:)</code> (“12 MB of 30 MB”) or <code>.items(_:of:)</code> (“3 of 10”). From async code, <code>withProgress</code> runs the work and manages the card. Its reporter is safe to call from any thread.</p>
+    <pre><code><span class="kw">let</span> url = <span class="kw">try</span> <span class="kw">await</span> toasts.withProgress(
+    title: <span class="str">"Uploading video"</span>,
+    group: <span class="str">"upload"</span>,
+    operation: &#123; report <span class="kw">in</span>
+        <span class="kw">try</span> <span class="kw">await</span> uploader.upload(file) &#123; sent, total <span class="kw">in</span> report(.bytes(sent, of: total)) &#125;
+    &#125;
+)</code></pre>
+    <p>The operation’s result decides the card: a returned value succeeds, a cancellation cancels, and any other error fails and is rethrown. <code>track</code> also accepts a Foundation <code>Progress</code>, such as <code>URLSessionTask.progress</code>, and succeeds by itself when it finishes.</p>
+    <div class="table-wrap"><table><thead><tr><th>Phase</th><th>Meaning</th></tr></thead><tbody><tr><td><code>running</code></td><td>The work is under way. The bar is never timed.</td></tr><tr><td><code>cancelling</code></td><td>Cancel was requested. Waiting for the work to stop.</td></tr><tr><td><code>succeeded</code></td><td>Done. The card shows the result and counts down.</td></tr><tr><td><code>failed</code></td><td>The card is an error for eight seconds, with Retry if you gave a closure.</td></tr><tr><td><code>cancelled</code></td><td>The work stopped. The card leaves, or shows a short “Cancelled” if you ask.</td></tr></tbody></table></div>
+    <pre><code>handle.cancels(uploadTask)              <span class="comment">// Cancel cancels the Task</span>
+toasts.cancelProgress(group: <span class="str">"upload"</span>)  <span class="comment">// or cancel a whole group</span>
+
+handle.fail(ToastProgressResult(message: <span class="str">"No connection"</span>)) &#123;
+    send(toasts, id: id)                <span class="comment">// the same id: the card resumes in place</span>
+&#125;</code></pre>
+    <p>Cancel appears while the work runs and a way to stop it exists. Pressing it shows “Cancelling…” until the work stops, and after ten seconds the card finishes anyway, so a cancel cannot hang. A failure with Retry reuses the card when you start the work again with the same id.</p>
+    <pre><code><span class="comment">// Dismissing hides the card; the work goes on</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// Opt in: swiping cancels as well as hides</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+    <p>Swiping or dismissing a running card only hides it, and a failure that arrives while it is hidden comes back as a new toast. See <a href="#dismissing">Dismissing toasts</a>.</p>
+    <div class="callout"><span>✳</span><p><strong>Keep the handle until the work ends.</strong> A handle released without an outcome is abandoned: its work is cancelled and its card removed.</p></div>
+    <ul class="check-list"><li>VoiceOver reads the progress as the card’s value, such as “42%, 12 MB of 30 MB”.</li><li>It announces the start, every quarter of the way (at least five seconds apart, front card only) and the outcome. Failures are urgent where the platform allows.</li><li>Cancel, Hide and Retry are named actions in the actions rotor.</li><li>With Reduce Motion the bar stops sweeping and fills without animation.</li></ul>
+  </section>

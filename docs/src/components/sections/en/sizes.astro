@@ -1,0 +1,30 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="sizes">
+    <div class="section-heading"><span class="section-index">07</span><div><p class="eyebrow">SIZE TO FIT</p><h2>Sizes</h2></div></div>
+    <p><code>ToastMetrics</code> decides how big a card is: its width, padding, type, icon chip, corner radius and line limits. It is separate from the theme and the style, so they combine freely. Choose a preset, or build your own.</p>
+    <SimulatorCapture name="07-sizes" lang="en" />
+    <pre><code>MyScreen()
+    .toasts(toasts)
+    .toastMetrics(.compact)   <span class="comment">// .compact, .regular (the default) or .large</span>
+
+<span class="comment">// Your own sizes</span>
+MyScreen()
+    .toasts(toasts)
+    .toastMetrics(ToastMetrics(
+        width: .fraction(0.8),
+        cornerRadius: 12,
+        messageLineLimit: 3,
+        progressBarHeight: 6
+    ))
+
+<span class="comment">// An explicit width beats the size’s</span>
+MyScreen()
+    .toasts(toasts, width: .fraction(0.9))
+    .toastMetrics(.large)</code></pre>
+    <p>Each cell shows the width and the corner radius.</p>
+    <div class="table-wrap"><table><thead><tr><th>Preset</th><th>iOS</th></tr></thead><tbody><tr><td><code>.compact</code></td><td>50% · 16</td></tr><tr><td><code>.regular</code></td><td>60% · 22</td></tr><tr><td><code>.large</code></td><td>80% · 28</td></tr></tbody></table></div>
+    <ul class="check-list"><li>The <code>width:</code> passed to <code>.toasts</code> takes precedence over the preset width.</li><li>Theme values for fonts, corner radius and padding take precedence over preset values.</li><li>Dynamic Type stops at <code>accessibility1</code>; adjust it with <code>maximumDynamicTypeSize</code>.</li></ul>
+  </section>

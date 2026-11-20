@@ -1,0 +1,180 @@
+---
+const { name, lang = 'en', recording = false } = Astro.props;
+const copy = {
+  en: {
+    image: 'ToastKitDemo running in the iOS Simulator.',
+    shot: 'Simulator screenshot',
+    recording: 'Simulator recording · GIF',
+    recordingImage: 'ToastKit toasts appearing and stacking in the iOS Simulator.',
+    caption: 'Captured from ToastKitDemo on iPhone 18 Pro · iOS 27.2.',
+    full: 'Open full screenshot ↗',
+    previous: 'Previous image',
+    next: 'Next image',
+    show: 'Show image',
+  },
+  'zh-cn': {
+    image: 'ToastKitDemo 在 iOS 模拟器中的实际界面。',
+    shot: '模拟器截图',
+    recording: '模拟器录屏 · GIF',
+    recordingImage: 'ToastKit 提示在 iOS 模拟器中出现并堆叠。',
+    caption: '由 iPhone 18 Pro · iOS 27.2 上运行的 ToastKitDemo 截取。',
+    full: '查看完整截图 ↗',
+    previous: '上一张图片',
+    next: '下一张图片',
+    show: '显示图片',
+  },
+  'zh-hant': {
+    image: 'ToastKitDemo 在 iOS 模擬器中的實際畫面。',
+    shot: '模擬器截圖',
+    recording: '模擬器錄影 · GIF',
+    recordingImage: 'ToastKit 提示在 iOS 模擬器中出現並堆疊。',
+    caption: '由 iPhone 18 Pro · iOS 27.2 上執行的 ToastKitDemo 擷取。',
+    full: '查看完整截圖 ↗',
+    previous: '上一張圖片',
+    next: '下一張圖片',
+    show: '顯示圖片',
+  },
+  ja: {
+    image: 'iOS シミュレータで実行中の ToastKitDemo の画面。',
+    shot: 'シミュレータのスクリーンショット',
+    recording: 'シミュレータ録画 · GIF',
+    recordingImage: 'iOS シミュレータで ToastKit の通知が表示され、積み重なる様子。',
+    caption: 'iPhone 18 Pro · iOS 27.2 で実行中の ToastKitDemo から撮影。',
+    full: '全画面を表示 ↗',
+    previous: '前の画像',
+    next: '次の画像',
+    show: '画像を表示',
+  },
+  ko: {
+    image: 'iOS 시뮬레이터에서 실행 중인 ToastKitDemo 화면입니다.',
+    shot: '시뮬레이터 스크린샷',
+    recording: '시뮬레이터 녹화 · GIF',
+    recordingImage: 'iOS 시뮬레이터에서 ToastKit 알림이 나타나고 쌓이는 모습입니다.',
+    caption: 'iPhone 18 Pro · iOS 27.2의 ToastKitDemo에서 캡처했습니다.',
+    full: '전체 화면 보기 ↗',
+    previous: '이전 이미지',
+    next: '다음 이미지',
+    show: '이미지 표시',
+  },
+  es: {
+    image: 'ToastKitDemo en ejecución en el simulador de iOS.',
+    shot: 'Captura del simulador',
+    recording: 'Grabación del simulador · GIF',
+    recordingImage: 'Avisos de ToastKit que aparecen y se apilan en el simulador de iOS.',
+    caption: 'Capturado desde ToastKitDemo en iPhone 18 Pro · iOS 27.2.',
+    full: 'Abrir captura completa ↗',
+    previous: 'Imagen anterior',
+    next: 'Imagen siguiente',
+    show: 'Mostrar imagen',
+  },
+};
+const t = copy[lang as keyof typeof copy] || copy.en;
+const fullSrc = `/images/demos/${name}-full.png`;
+const items = [
+  {
+    src: `/images/demos/${name}.png`,
+    href: fullSrc,
+    alt: t.image,
+    label: t.shot,
+  },
+  ...(recording
+    ? [{
+        src: `/images/demos/${name}.gif`,
+        href: `/images/demos/${name}.gif`,
+        alt: t.recordingImage,
+        label: t.recording,
+      }]
+    : []),
+];
+---
+
+<figure class="simulator-capture">
+  <div class="media-carousel" data-media-carousel data-count={items.length} role="region" aria-roledescription="carousel" aria-label={t.shot}>
+    <div class="media-carousel-stage">
+      {items.map((item, index) => (
+        <div class="media-carousel-slide" data-carousel-slide hidden={index !== 0} aria-hidden={index !== 0}>
+          <a href={item.href} aria-label={item.label}>
+            <span class="media-carousel-placeholder" aria-hidden="true"></span>
+            <img
+              src={index === 0 ? item.src : undefined}
+              data-src={index === 0 ? undefined : item.src}
+              alt={item.alt}
+              width="1206"
+              height="650"
+              loading="lazy"
+              decoding="async"
+              data-carousel-image
+            />
+          </a>
+          <span class="media-carousel-label">{item.label}</span>
+        </div>
+      ))}
+      {items.length > 1 && (
+        <>
+          <button class="media-carousel-arrow media-carousel-previous" type="button" data-carousel-prev aria-label={t.previous}>‹</button>
+          <button class="media-carousel-arrow media-carousel-next" type="button" data-carousel-next aria-label={t.next}>›</button>
+          <nav class="media-carousel-pagination" aria-label={t.shot}>
+            <div class="media-carousel-dots">
+              {items.map((item, index) => (
+                <button type="button" data-carousel-index={index} aria-label={`${t.show} ${index + 1}`} aria-current={index === 0 ? 'true' : undefined}>
+                  <span class="media-carousel-sr-only">{t.show} {index + 1}: {item.label}</span>
+                </button>
+              ))}
+            </div>
+            <span data-carousel-count aria-live="polite">01 / {String(items.length).padStart(2, '0')}</span>
+          </nav>
+        </>
+      )}
+    </div>
+  </div>
+  <figcaption>{t.caption} <a href={fullSrc}>{t.full}</a></figcaption>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-media-carousel]').forEach((carousel) => {
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('[data-carousel-slide]'));
+    const count = carousel.querySelector<HTMLElement>('[data-carousel-count]');
+    let activeIndex = 0;
+
+    const showSlide = (requestedIndex: number) => {
+      activeIndex = (requestedIndex + slides.length) % slides.length;
+      slides.forEach((slide, index) => {
+        const isActive = index === activeIndex;
+        slide.hidden = !isActive;
+        slide.setAttribute('aria-hidden', String(!isActive));
+        if (isActive) {
+          const image = slide.querySelector<HTMLImageElement>('[data-carousel-image]');
+          if (image?.dataset.src) {
+            image.src = image.dataset.src;
+            delete image.dataset.src;
+          }
+          if (image?.complete && image.naturalWidth > 0) {
+            image.classList.add('is-loaded');
+            slide.classList.add('is-loaded');
+          }
+        }
+      });
+      carousel.querySelectorAll<HTMLButtonElement>('[data-carousel-index]').forEach((button, index) => {
+        if (index === activeIndex) button.setAttribute('aria-current', 'true');
+        else button.removeAttribute('aria-current');
+      });
+      if (count) count.textContent = `${String(activeIndex + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+    };
+
+    carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => showSlide(activeIndex - 1));
+    carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => showSlide(activeIndex + 1));
+    carousel.querySelectorAll<HTMLButtonElement>('[data-carousel-index]').forEach((button) => {
+      button.addEventListener('click', () => showSlide(Number(button.dataset.carouselIndex)));
+    });
+    carousel.querySelectorAll<HTMLImageElement>('[data-carousel-image]').forEach((image) => {
+      image.addEventListener('load', () => {
+        image.classList.add('is-loaded');
+        image.closest<HTMLElement>('[data-carousel-slide]')?.classList.add('is-loaded');
+      });
+      if (image.complete && image.naturalWidth > 0) {
+        image.classList.add('is-loaded');
+        image.closest<HTMLElement>('[data-carousel-slide]')?.classList.add('is-loaded');
+      }
+    });
+  });
+</script>

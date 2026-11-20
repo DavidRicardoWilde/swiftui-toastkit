@@ -1,0 +1,37 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="dismissing">
+    <div class="section-heading"><span class="section-index">08</span><div><p class="eyebrow">乾淨俐落地收起</p><h2>移除 Toast</h2></div></div>
+    <p>可以依 id 移除單一 Toast，也可以移除最前面的一個。若要一次移除多個，可以替相關的 Toast 指定 <code>ToastGroup</code>，或用閉包篩選。批次移除算作一次變更，每次呼叫都會回傳移除的數量。</p>
+    <SimulatorCapture name="08-dismissing" lang="zh-hant" />
+    <pre><code>toasts.dismiss(id: savedID)            <span class="comment">// 依 id 移除單一</span>
+toasts.dismissTopmost()
+
+toasts.dismiss(group: <span class="str">"upload"</span>)        <span class="comment">// 移除一個群組裡的全部</span>
+toasts.dismiss(removal: .trail()) &#123; $0.status == .error &#125;   <span class="comment">// 移除閉包接受的全部</span>
+toasts.dismissAll(removal: .slide(.trailing))               <span class="comment">// 移除整個堆疊</span></code></pre>
+    <p><code>scope</code> 決定呼叫會影響哪些 Toast：</p>
+    <div class="table-wrap"><table><thead><tr><th>scope</th><th>影響範圍</th><th>預設用於</th></tr></thead><tbody><tr><td><code>.onScreen</code></td><td>堆疊中的 Toast</td><td><code>dismissAll()</code></td></tr><tr><td><code>.postponed</code></td><td>等待稍後返回的 Toast</td><td>—</td></tr><tr><td><code>.everywhere</code></td><td>兩者</td><td><code>dismiss(id:)</code>、<code>dismiss(group:)</code>、<code>dismiss(where:)</code></td></tr></tbody></table></div>
+    <p><code>removal:</code> 選擇卡片的離場方式。預設的 <code>nil</code> 會沿用堆疊本身的設定。</p>
+    <div class="table-wrap"><table><thead><tr><th>removal</th><th>卡片的表現</th></tr></thead><tbody><tr><td><code>.fade</code></td><td>在原處淡出。預設方式。</td></tr><tr><td><code>.slide(direction)</code></td><td>一邊淡出一邊滑走，所有卡片一起。</td></tr><tr><td><code>.trail(direction)</code></td><td>先微微蓄勢，再縮小、模糊著離開，最前面的卡片最先。</td></tr></tbody></table></div>
+    <p>slide 與 trail 可以指定方向：預設是 <code>.towardAnchor</code>，另有 <code>.awayFromAnchor</code>、<code>.top</code>、<code>.bottom</code>、<code>.leading</code>、<code>.trailing</code>（在由右至左的語言中會鏡像）、<code>.degrees(_:)</code>、<code>.vector(dx:dy:)</code> 與 <code>.inPlace</code>。整個堆疊的預設離場方式用 <code>.toastRemoval(_:)</code> 設定。</p>
+    <pre><code><span class="comment">// 所有移除的預設離場方式</span>
+ContentView()
+    .toasts(toasts)
+    .toastRemoval(.trail())
+
+<span class="comment">// 單次呼叫：向上，或遠離堆疊所靠的邊緣</span>
+toasts.dismiss(group: <span class="str">"upload"</span>, removal: .trail(.degrees(-90)))
+toasts.dismissAll(removal: .slide(.awayFromAnchor))</code></pre>
+    <p>開啟「減少動態效果」後，所有移除都改為淡出，所有卡片一起淡出。</p>
+    <div class="callout"><span>✳</span><p><strong>進度 Toast 只會被隱藏，不會被取消。</strong>移除一個正在執行的<a href="#progress">進度 Toast</a>，卡片會離開螢幕，但任務會繼續。若要停止任務，必須明確取消，例如呼叫 <code>cancelProgress(group:)</code>。如果你選擇啟用，滑動也可以同時取消。</p></div>
+    <pre><code><span class="comment">// 隱藏後任務繼續執行；取消才會停止</span>
+toasts.dismiss(id: handle.id)
+toasts.cancelProgress(group: <span class="str">"upload"</span>)
+
+<span class="comment">// 可選：滑動在隱藏的同時也取消</span>
+<span class="kw">var</span> options = ToastProgressOptions()
+options.swipeActions = ToastSwipeActions(leading: .cancelProgress, trailing: .hideProgress)</code></pre>
+  </section>

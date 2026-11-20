@@ -1,0 +1,29 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="messages">
+    <div class="section-heading"><span class="section-index">02</span><div><p class="eyebrow">提示内容</p><h2>Toast 消息</h2></div></div>
+    <p><code>ToastMessage</code> 保存提示文案、语义状态、显示时长，以及可选的点击和滑动操作。简单场景可用便捷方法；需要更多控制时，直接创建消息对象。</p>
+    <SimulatorCapture name="02-messages" lang="zh-cn" />
+    <pre><code>toasts.present(.warning,
+    title: <span class="str">"存储空间不足"</span>,
+    message: <span class="str">"请释放空间以继续同步。"</span>
+)
+
+<span class="kw">let</span> message = ToastMessage(
+    status: .notification,
+    title: <span class="str">"新照片"</span>,
+    message: <span class="str">"今天新增 12 张照片"</span>,
+    icon: .system(<span class="str">"photo.on.rectangle"</span>),
+    duration: 6
+)
+toasts.present(message)</code></pre>
+    <div class="info-grid">
+      <article><span class="pill neutral">NORMAL</span><h3>普通</h3><p>适合日常确认，视觉表达安静克制。</p></article>
+      <article><span class="pill amber">WARNING</span><h3>需要留意</h3><p>提示用户关注尚未失败的问题。</p></article>
+      <article><span class="pill red">ERROR</span><h3>操作失败</h3><p>使用清晰、容易识别的错误信号。</p></article>
+      <article><span class="pill violet">NOTIFICATION</span><h3>值得查看</h3><p>通知状态采用应用的强调色。</p></article>
+    </div>
+    <p>再次提交相同 id 的消息会更新并将该提示移到最前面，很适合展示“正在同步…”随后变为“同步完成”这样的进度状态。若任务带有进度条、可以取消或可能失败，请使用<a href="#progress">进度 Toast</a>。</p>
+  </section>

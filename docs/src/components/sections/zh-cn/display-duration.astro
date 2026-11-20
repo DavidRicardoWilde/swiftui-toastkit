@@ -1,0 +1,17 @@
+---
+import SimulatorCapture from '../../SimulatorCapture.astro';
+---
+
+<section class="doc-section" id="timing">
+    <div class="section-heading"><span class="section-index">03</span><div><p class="eyebrow">留一点时间</p><h2>显示时长</h2></div></div>
+    <p><code>.automatic</code> 使用中心的默认时长，默认为四秒。也可以直接指定秒数；需要用户明确处理的消息可设为 <code>.indefinite</code>。</p>
+    <SimulatorCapture name="03-timing" lang="zh-cn" />
+    <pre><code><span class="comment">// 显示两秒</span>
+ToastMessage(title: <span class="str">"已复制"</span>, duration: 2)
+
+<span class="comment">// 直到用户主动关闭</span>
+ToastMessage(title: <span class="str">"同步失败"</span>, duration: .indefinite)
+
+<span class="kw">let</span> toasts = ToastCenter(defaultDuration: 6)</code></pre>
+    <ul class="check-list"><li>只有最前面的提示会倒计时。</li><li>被遮挡的提示会保留完整时长，等它移到最前面再开始计时。</li><li>用户触摸提示堆栈或应用进入后台时，倒计时会暂停。</li></ul>
+  </section>
